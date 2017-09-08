@@ -29,3 +29,5 @@ Thanks for support:
 - sergzver85
 - nemalio
 - Nmetx
+- sanmigel
+- zcm61

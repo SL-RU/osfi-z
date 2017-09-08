@@ -41,6 +41,29 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define D_WS_Pin GPIO_PIN_4
+#define D_WS_GPIO_Port GPIOA
+#define LED_Pin GPIO_PIN_5
+#define LED_GPIO_Port GPIOA
+#define B_HOLD_Pin GPIO_PIN_13
+#define B_HOLD_GPIO_Port GPIOB
+#define CH_5V_Pin GPIO_PIN_15
+#define CH_5V_GPIO_Port GPIOB
+#define D_MCK_Pin GPIO_PIN_7
+#define D_MCK_GPIO_Port GPIOC
+#define D_CK_Pin GPIO_PIN_3
+#define D_CK_GPIO_Port GPIOB
+#define D_MUTE_Pin GPIO_PIN_4
+#define D_MUTE_GPIO_Port GPIOB
+#define D_SD_Pin GPIO_PIN_5
+#define D_SD_GPIO_Port GPIOB
+#define B_PREV_Pin GPIO_PIN_7
+#define B_PREV_GPIO_Port GPIOB
+#define B_STOP_Pin GPIO_PIN_8
+#define B_STOP_GPIO_Port GPIOB
+#define B_NEXT_Pin GPIO_PIN_9
+#define B_NEXT_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

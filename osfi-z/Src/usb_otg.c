@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : SDIO.c
+  * File Name          : USB_OTG.c
   * Description        : This file provides code for the configuration
-  *                      of the SDIO instances.
+  *                      of the USB_OTG instances.
   ******************************************************************************
   *
   * COPYRIGHT(c) 2017 STMicroelectronics
@@ -33,7 +33,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "sdio.h"
+#include "usb_otg.h"
 
 #include "gpio.h"
 
@@ -41,98 +41,81 @@
 
 /* USER CODE END 0 */
 
-SD_HandleTypeDef hsd;
+PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
-/* SDIO init function */
+/* USB_OTG_FS init function */
 
-void MX_SDIO_SD_Init(void)
+void MX_USB_OTG_FS_PCD_Init(void)
 {
 
-  hsd.Instance = SDIO;
-  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
-  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-  hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 2;
-  if (HAL_SD_Init(&hsd) != HAL_OK)
+  hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
+  hpcd_USB_OTG_FS.Init.dev_endpoints = 4;
+  hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
+  hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.ep0_mps = DEP0CTL_MPS_64;
+  hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+  hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.vbus_sensing_enable = ENABLE;
+  hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
+  if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
   {
     Error_Handler();
   }
 
-  HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B);
-
 }
 
-void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)
+void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
-  if(sdHandle->Instance==SDIO)
+  if(pcdHandle->Instance==USB_OTG_FS)
   {
-  /* USER CODE BEGIN SDIO_MspInit 0 */
+  /* USER CODE BEGIN USB_OTG_FS_MspInit 0 */
 
-  /* USER CODE END SDIO_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_SDIO_CLK_ENABLE();
+  /* USER CODE END USB_OTG_FS_MspInit 0 */
   
-    /**SDIO GPIO Configuration    
-    PC8     ------> SDIO_D0
-    PC9     ------> SDIO_D1
-    PC10     ------> SDIO_D2
-    PC11     ------> SDIO_D3
-    PC12     ------> SDIO_CK
-    PD2     ------> SDIO_CMD 
+    /**USB_OTG_FS GPIO Configuration    
+    PA11     ------> USB_OTG_FS_DM
+    PA12     ------> USB_OTG_FS_DP 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11 
-                          |GPIO_PIN_12;
+    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    /* Peripheral clock enable */
+    __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
+  /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
 
-  /* USER CODE BEGIN SDIO_MspInit 1 */
-
-  /* USER CODE END SDIO_MspInit 1 */
+  /* USER CODE END USB_OTG_FS_MspInit 1 */
   }
 }
 
-void HAL_SD_MspDeInit(SD_HandleTypeDef* sdHandle)
+void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
 {
 
-  if(sdHandle->Instance==SDIO)
+  if(pcdHandle->Instance==USB_OTG_FS)
   {
-  /* USER CODE BEGIN SDIO_MspDeInit 0 */
+  /* USER CODE BEGIN USB_OTG_FS_MspDeInit 0 */
 
-  /* USER CODE END SDIO_MspDeInit 0 */
+  /* USER CODE END USB_OTG_FS_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_SDIO_CLK_DISABLE();
+    __HAL_RCC_USB_OTG_FS_CLK_DISABLE();
   
-    /**SDIO GPIO Configuration    
-    PC8     ------> SDIO_D0
-    PC9     ------> SDIO_D1
-    PC10     ------> SDIO_D2
-    PC11     ------> SDIO_D3
-    PC12     ------> SDIO_CK
-    PD2     ------> SDIO_CMD 
+    /**USB_OTG_FS GPIO Configuration    
+    PA11     ------> USB_OTG_FS_DM
+    PA12     ------> USB_OTG_FS_DP 
     */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11 
-                          |GPIO_PIN_12);
-
-    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11|GPIO_PIN_12);
 
   }
-  /* USER CODE BEGIN SDIO_MspDeInit 1 */
+  /* USER CODE BEGIN USB_OTG_FS_MspDeInit 1 */
 
-  /* USER CODE END SDIO_MspDeInit 1 */
+  /* USER CODE END USB_OTG_FS_MspDeInit 1 */
 } 
 
 /* USER CODE BEGIN 1 */

@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : I2C.h
+  * File Name          : I2S.h
   * Description        : This file provides code for the configuration
-  *                      of the I2C instances.
+  *                      of the I2S instances.
   ******************************************************************************
   *
   * COPYRIGHT(c) 2017 STMicroelectronics
@@ -32,8 +32,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __i2c_H
-#define __i2c_H
+#ifndef __i2s_H
+#define __i2s_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -46,7 +46,7 @@
 
 /* USER CODE END Includes */
 
-extern I2C_HandleTypeDef hi2c1;
+extern I2S_HandleTypeDef hi2s3;
 
 /* USER CODE BEGIN Private defines */
 
@@ -54,7 +54,7 @@ extern I2C_HandleTypeDef hi2c1;
 
 extern void Error_Handler(void);
 
-void MX_I2C1_Init(void);
+void MX_I2S3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
@@ -63,7 +63,7 @@ void MX_I2C1_Init(void);
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ i2c_H */
+#endif /*__ i2s_H */
 
 /**
   * @}

@@ -114,3 +114,6 @@ osfi-z/project.el
 */GPATH
 */GRTAGS
 */GTAGS
+
+*.fuse*
+*.bak
