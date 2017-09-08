@@ -35,11 +35,12 @@
 #include "stm32f4xx_hal.h"
 #include "i2s.h"
 #include "sdio.h"
+#include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "fatfs.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -82,15 +83,36 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_I2S3_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_UART4_Init();
 
   /* USER CODE BEGIN 2 */
+  printf("Starting...\n");
   MX_FATFS_Init();
+
+  FATFS fs;
+  FRESULT r = f_mount(&fs, SD_Path, 0);
+  printf("Mount %d\n", r);
+  if(r == FR_OK)
+  {
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+      FIL f;
+      r = f_open(&f, "lol.txt", FA_WRITE | FA_CREATE_ALWAYS);
+      printf("Open %d\n", r);
+      UINT bw;
+      r = f_write(&f, "AZAZAZ", 6, &bw);
+      printf("Write %d %d\n", r, bw);
+      f_close(&f);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+      HAL_Delay(100);
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+      HAL_Delay(100);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
