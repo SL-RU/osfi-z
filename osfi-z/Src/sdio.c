@@ -54,7 +54,7 @@ void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 6;
+  hsd.Init.ClockDiv = 4;
   if (HAL_SD_Init(&hsd) != HAL_OK)
   {
     Error_Handler();
@@ -99,6 +99,9 @@ void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)
     GPIO_InitStruct.Alternate = GPIO_AF12_SDIO;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+    /* Peripheral interrupt init */
+    HAL_NVIC_SetPriority(SDIO_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(SDIO_IRQn);
   /* USER CODE BEGIN SDIO_MspInit 1 */
 
   /* USER CODE END SDIO_MspInit 1 */
@@ -128,6 +131,9 @@ void HAL_SD_MspDeInit(SD_HandleTypeDef* sdHandle)
                           |GPIO_PIN_12);
 
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
+
+    /* Peripheral interrupt Deinit*/
+    HAL_NVIC_DisableIRQ(SDIO_IRQn);
 
   }
   /* USER CODE BEGIN SDIO_MspDeInit 1 */

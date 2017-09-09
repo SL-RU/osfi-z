@@ -53,9 +53,9 @@
 #endif 
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
 #include "diskio.h"
 #include "ff.h"
+#include "bsp_driver_sd.h"
 
 /* Exported types ------------------------------------------------------------*/
 

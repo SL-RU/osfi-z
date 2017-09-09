@@ -13,7 +13,7 @@ extern "C" {
 #define _USE_IOCTL	1	/* 1: Enable disk_ioctl fucntion */
 
 #include "integer.h"
-
+#include "stm32f4xx_hal.h"
 
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;
