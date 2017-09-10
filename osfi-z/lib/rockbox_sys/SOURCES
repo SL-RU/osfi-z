@@ -1,0 +1,7 @@
+core_alloc.c
+unicode.c
+structec.c
+strlcpy.c
+pathfuncs.c
+crc32.c
+buflib.c

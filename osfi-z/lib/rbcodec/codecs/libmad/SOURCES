@@ -1,0 +1,7 @@
+bit.c
+frame.c
+huffman.c
+layer12.c
+layer3.c
+stream.c
+synth.c

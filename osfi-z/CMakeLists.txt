@@ -39,7 +39,7 @@
 
 #USER CUSTOM SETTINGS
 #You can change values here. It's not recommended to change whole script
-set(OPT "-O0")
+set(OPT "-O2")
 set(USER_LINKER_FLAGS "-u _printf_float")
 set(USER_CFLAGS "")
 
@@ -51,7 +51,7 @@ add_definitions(-DIS_STM32=1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(sub_dirs "")
-set(libs "")
+set(libs rockbox_sys rbcodec tlsf)
 #Add subdirectories
 #set(sub_dirs ${sub_dirs} "test/")
 #Libraries to link
@@ -231,15 +231,28 @@ foreach(def ${STM32_PRJ_DEFS})
 endforeach()
 
 #setup flags
-set(CMAKE_C_FLAGS "${STM32_PRJ_CFLAGS} ${OPT} -Wall -fdata-sections -ffunction-sections -std=c99 -g -gdwarf-2 ${USER_CFLAGS}")
-set(LDSCRIPT "-T${STM32_PRJ_LD_SCRIPT}")
-set(LINKER_FLAGS "-specs=nosys.specs ${LDSCRIPT} -lc -lm -lnosys -Wl,--gc-sections ${USER_LINKER_FLAGS}")
+set(CMAKE_C_FLAGS "${STM32_PRJ_CFLAGS} -dM -Wno-pointer-sign -std=c99 -g -gdwarf-2 ${USER_CFLAGS} ${OPT} -fdata-sections -ffunction-sections -Wa,-mimplicit-it=thumb")
+set(LDSCRIPT "-T${CMAKE_CURRENT_SOURCE_DIR}/linker_main.ld -Wl,-Map=foo.map -specs=nosys.specs -Wa,-mimplicit-it=thumb -Wl,--gc-sections -lnosys")
+set(LINKER_FLAGS "-lc -lm  ${USER_LINKER_FLAGS}")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}")
 
 
+set(IS_ARM YES)
+add_definitions(-DTARGET_ID=73
+  -DROCKBOX
+  -DMEMORYSIZE=1
+#  -DSDLAPP
+  -DTARGET_NAME=sdlapp
+  -DCONFIG_CODEC=SWCODEC
+#  -D__PCTOOL__
+  -DARM_ARCH=7
+  -Dasm=__asm__
+#  -DDEBUG
+)
+add_subdirectory(lib)
+
+
 SET(TARGET ${CMAKE_PROJECT_NAME})
-
-
 
 #setup targets
 get_directory_property(C_DEFS COMPILE_DEFINITIONS)
@@ -248,18 +261,19 @@ add_executable(${TARGET}.elf ${SRC} ${asm_SRC})
 
 FOREACH(iss ${libs})
   IF(NOT ${iss} EQUAL "")
-    target_link_libraries (${TARGET}.elf LINK_PUBLIC ${iss})
+    target_link_libraries (${TARGET}.elf ${iss})
   ENDIF()
 ENDFOREACH()
 
-#print size
-add_custom_command(TARGET ${TARGET}.elf
-  POST_BUILD COMMAND ${CMAKE_SIZE} ${TARGET}.elf)
+#TARGET_LINK_LIBRARIES(${TARGET} rockbox_sys)
 
+#print size
+add_custom_command(TARGET ${TARGET}.elf POST_BUILD COMMAND ${CMAKE_SIZE} ${TARGET}.elf)
+  set_target_properties(${TARGET}.elf
+    PROPERTIES
+    LINK_FLAGS ${LDSCRIPT}
+    COMPILE_FLAGS "${CMAKE_C_FLAGS_T}"
+    )
 #other
-ADD_CUSTOM_TARGET(${TARGET}.hex ALL
-  DEPENDS ${TARGET}.elf
-  COMMAND ${CMAKE_OBJCOPY} -Oihex ${TARGET}.elf ${TARGET}.hex)
-ADD_CUSTOM_TARGET(${TARGET}.bin ALL
-  DEPENDS ${TARGET}.elf
-  COMMAND ${CMAKE_OBJCOPY} -Obinary ${TARGET}.elf ${TARGET}.bin)
+ADD_CUSTOM_TARGET(${TARGET}.hex DEPENDS ${TARGET}.elf COMMAND ${CMAKE_OBJCOPY} -Oihex ${TARGET}.elf ${TARGET}.hex)
+ADD_CUSTOM_TARGET(${TARGET}.bin DEPENDS ${TARGET}.elf COMMAND ${CMAKE_OBJCOPY} -Obinary ${TARGET}.elf ${TARGET}.bin)

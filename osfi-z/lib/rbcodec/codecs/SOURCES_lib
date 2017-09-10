@@ -1,0 +1,6 @@
+lib/codeclib.c
+lib/ffmpeg_bitstream.c
+lib/mdct_lookup.c
+lib/fft-ffmpeg.c
+lib/mdct.c
+codec_crt0.c
