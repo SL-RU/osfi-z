@@ -38,3 +38,4 @@ TARGET_LINK_LIBRARIES(rbcodec fixedpoint)
 TARGET_LINK_LIBRARIES(rbcodec tlsf)
 
 add_subdirectory (codecs)
+TARGET_LINK_LIBRARIES(rbcodec codecs)

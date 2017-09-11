@@ -33,18 +33,6 @@ static struct mad_stream stream IBSS_ATTR;
 static struct mad_frame frame IBSS_ATTR;
 static struct mad_synth synth IBSS_ATTR;
 
-#ifdef MPA_SYNTH_ON_COP
-static volatile short die IBSS_ATTR = 0;          /*thread should die*/
-
-#if (CONFIG_CPU == PP5024) || (CONFIG_CPU == PP5022)
-static mad_fixed_t sbsample_prev[2][36][32] IBSS_ATTR;
-#else
-static mad_fixed_t sbsample_prev[2][36][32] SHAREDBSS_ATTR; 
-#endif
-
-static struct semaphore synth_done_sem IBSS_ATTR;
-static struct semaphore synth_pending_sem IBSS_ATTR;
-#endif
 
 #define INPUT_CHUNK_SIZE   8192
 
@@ -62,13 +50,9 @@ static void init_mad(void)
     ci->memset(&frame , 0, sizeof(struct mad_frame));
     ci->memset(&synth , 0, sizeof(struct mad_synth));
 
-#ifdef MPA_SYNTH_ON_COP
-    frame.sbsample_prev = &sbsample_prev;
-    frame.sbsample      = &sbsample;
-#else
     frame.sbsample_prev = &sbsample;
     frame.sbsample      = &sbsample;
-#endif
+
 
     /* We do this so libmad doesn't try to call codec_calloc(). This needs to
      * be called before mad_stream_init(), mad_frame_inti() and 
@@ -197,86 +181,6 @@ static void set_elapsed(struct mp3entry* id3)
     ci->set_elapsed(elapsed);
 }
 
-#ifdef MPA_SYNTH_ON_COP
-
-/*
- * Run the synthesis filter on the COProcessor 
- */
-
-static int mad_synth_thread_stack[DEFAULT_STACK_SIZE/sizeof(int)] IBSS_ATTR;
-
-static const unsigned char * const mad_synth_thread_name = "mp3dec";
-static unsigned int mad_synth_thread_id = 0;
-
-
-static void mad_synth_thread(void)
-{
-    while(1) {
-        ci->semaphore_release(&synth_done_sem);
-        ci->semaphore_wait(&synth_pending_sem, TIMEOUT_BLOCK);
-        
-        if(die)
-            break;
-
-        mad_synth_frame(&synth, &frame);
-    }    
-}
-
-/* wait for the synth thread to go idle which indicates a PCM frame has been
- * synthesized */
-static inline void mad_synth_thread_wait_pcm(void)
-{
-    ci->semaphore_wait(&synth_done_sem, TIMEOUT_BLOCK);
-}
-
-/* increment the done semaphore - used after a wait for idle to preserve the
- * semaphore count */
-static inline void mad_synth_thread_unwait_pcm(void)
-{
-    ci->semaphore_release(&synth_done_sem);
-}
-
-/* after synth thread has gone idle - switch decoded frames and commence
- * synthesis on it */
-static void mad_synth_thread_ready(void)
-{
-    mad_fixed_t (*temp)[2][36][32];
-
-    /*circular buffer that holds 2 frames' samples*/
-    temp=frame.sbsample;
-    frame.sbsample = frame.sbsample_prev;
-    frame.sbsample_prev=temp;
-
-    ci->semaphore_release(&synth_pending_sem);
-}
-
-static bool mad_synth_thread_create(void)
-{
-    ci->semaphore_init(&synth_done_sem, 1, 0);
-    ci->semaphore_init(&synth_pending_sem, 1, 0);
-       
-    mad_synth_thread_id = ci->create_thread(mad_synth_thread, 
-                            mad_synth_thread_stack,
-                            sizeof(mad_synth_thread_stack), 0,
-                            mad_synth_thread_name 
-                            IF_PRIO(, PRIORITY_PLAYBACK)
-                            IF_COP(, COP));
-    
-    if (mad_synth_thread_id == 0)
-        return false;
-
-    return true;
-}
-
-static void mad_synth_thread_quit(void)
-{
-    /* mop up COP thread */
-    die = 1;
-    ci->semaphore_release(&synth_pending_sem);
-    ci->thread_wait(mad_synth_thread_id);
-    ci->commit_discard_dcache();
-}
-#else
 static inline void mad_synth_thread_ready(void)
 {
      mad_synth_frame(&synth, &frame);
@@ -298,10 +202,10 @@ static inline void mad_synth_thread_wait_pcm(void)
 static inline void mad_synth_thread_unwait_pcm(void)
 {
 }
-#endif /* MPA_SYNTH_ON_COP */
+
 
 /* this is the codec entry point */
-enum codec_status codec_main(enum codec_entry_call_reason reason)
+enum codec_status mpa_codec_main(enum codec_entry_call_reason reason)
 {
     if (reason == CODEC_LOAD) {
         /* Create a decoder instance */
@@ -323,7 +227,7 @@ enum codec_status codec_main(enum codec_entry_call_reason reason)
 }
 
 /* this is called for each file to process */
-enum codec_status codec_run(void)
+enum codec_status mpa_codec_run(void)
 {
     size_t size;
     int file_end;

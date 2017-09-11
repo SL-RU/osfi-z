@@ -106,51 +106,51 @@ size_t codec_strlen(const char *s)
     return(ci->strlen(s));
 }
 
-char *strcpy(char *dest, const char *src)
-{
-    return(ci->strcpy(dest,src));
-}
+/* char *strcpy(char *dest, const char *src) */
+/* { */
+/*     return(ci->strcpy(dest,src)); */
+/* } */
 
-char *strcat(char *dest, const char *src)
-{
-    return(ci->strcat(dest,src));
-}
+/* char *strcat(char *dest, const char *src) */
+/* { */
+/*     return(ci->strcat(dest,src)); */
+/* } */
 
-int strcmp(const char *s1, const char *s2)
-{
-    return(ci->strcmp(s1,s2));
-}
+/* int strcmp(const char *s1, const char *s2) */
+/* { */
+/*     return(ci->strcmp(s1,s2)); */
+/* } */
 
-void *memcpy(void *dest, const void *src, size_t n)
-{
-    return(ci->memcpy(dest,src,n));
-}
+/* void *memcpy(void *dest, const void *src, size_t n) */
+/* { */
+/*     return(ci->memcpy(dest,src,n)); */
+/* } */
 
-void *memset(void *s, int c, size_t n)
-{
-    return(ci->memset(s,c,n));
-}
+/* void *memset(void *s, int c, size_t n) */
+/* { */
+/*     return(ci->memset(s,c,n)); */
+/* } */
 
-int memcmp(const void *s1, const void *s2, size_t n)
-{
-    return(ci->memcmp(s1,s2,n));
-}
+/* int memcmp(const void *s1, const void *s2, size_t n) */
+/* { */
+/*     return(ci->memcmp(s1,s2,n)); */
+/* } */
 
-void* memchr(const void *s, int c, size_t n)
-{
-    return(ci->memchr(s,c,n));
-}
+/* void* memchr(const void *s, int c, size_t n) */
+/* { */
+/*     return(ci->memchr(s,c,n)); */
+/* } */
 
-void *memmove(void *dest, const void *src, size_t n)
-{
-    return(ci->memmove(dest,src,n));
-}
+/* void *memmove(void *dest, const void *src, size_t n) */
+/* { */
+/*     return(ci->memmove(dest,src,n)); */
+/* } */
 
-void qsort(void *base, size_t nmemb, size_t size,
-           int(*compar)(const void *, const void *))
-{
-    ci->qsort(base,nmemb,size,compar);
-}
+/* void qsort(void *base, size_t nmemb, size_t size, */
+/*            int(*compar)(const void *, const void *)) */
+/* { */
+/*     ci->qsort(base,nmemb,size,compar); */
+/* } */
 
 /* From ffmpeg - libavutil/common.h */
 const uint8_t bs_log2_tab[256] ICONST_ATTR = {

@@ -23,7 +23,7 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-CODEC_HEADER
+//CODEC_HEADER
 
 /* WAVE (RIFF) codec:
  * 
@@ -39,7 +39,7 @@ CODEC_HEADER
 
 #define PCM_SAMPLE_SIZE (4096*2)
 
-static int32_t samples[PCM_SAMPLE_SIZE] IBSS_ATTR;
+static int32_t __attribute__ ((section (".ccram"))) samples[PCM_SAMPLE_SIZE];
 
 /* This codec support WAVE files with the following formats: */
 enum
@@ -151,7 +151,7 @@ static uint8_t *read_buffer(size_t *realsize)
 }
 
 /* this is the codec entry point */
-enum codec_status codec_main(enum codec_entry_call_reason reason)
+enum codec_status wav_codec_main(enum codec_entry_call_reason reason)
 {
     if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
@@ -162,7 +162,7 @@ enum codec_status codec_main(enum codec_entry_call_reason reason)
 }
 
 /* this is called for each file to process */
-enum codec_status codec_run(void)
+enum codec_status wav_codec_run(void)
 {
     uint32_t decodedsamples;
     size_t n;

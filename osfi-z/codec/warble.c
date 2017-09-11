@@ -9,9 +9,9 @@
 #include <unistd.h>
 #include "core_alloc.h"
 #include "codecs.h"
-#include "dsp_core.h"
+//#include "dsp_core.h"
 #include "metadata.h"
-#include "tdspeed.h"
+//#include "tdspeed.h"
 #include "platform.h"
 #include "load_code.h"
 #include "i2s.h"
@@ -59,7 +59,7 @@ off_t filesize(int fd)
 /***************** INTERNAL *****************/
 
 static enum { MODE_PLAY, MODE_WRITE } mode;
-static bool use_dsp = true;
+static bool use_dsp = false;
 static bool enable_loop = false;
 static const char *config = "";
 
@@ -72,7 +72,8 @@ static int input_fd;
 static enum codec_command_action codec_action;
 static intptr_t codec_action_param = 0;
 static unsigned long num_output_samples = 0;
-static struct codec_api ci;
+static struct codec_api cic;
+struct codec_api *ci = &cic;
 
 xSemaphoreHandle xI2S_semaphore;
 
@@ -98,7 +99,7 @@ static bool playback_running = false;
 static char playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_play_ind, playback_decode_ind;
 static int playback_play_pos, playback_decode_pos;
-static int playback_sem;
+
 
 
 static void playback_init(void)
@@ -192,7 +193,7 @@ static void playback_start(void)
 {
     playback_running = true;
     /* SDL_AudioSpec spec = {0}; */
-    printf("dsp freq: %d\n", dsp_get_output_frequency(ci.dsp));
+    //printf("dsp freq: %d\n", dsp_get_output_frequency(ci->dsp));
     
     HAL_I2S_Transmit_DMA(&hi2s3, playback_buffer, PLAYBACK_BUFFER_SIZE/2);
     printf("buf trans\n");
@@ -268,21 +269,21 @@ static void perform_config(void)
             if (atoi(val) > num_output_samples)
                 return;
         } else if (!strncmp(name, "dither=", 7)) {
-            dsp_dither_enable(atoi(val) ? true : false);
+            //dsp_dither_enable(atoi(val) ? true : false);
         } else if (!strncmp(name, "halt=", 5)) {
             if (atoi(val))
                 codec_action = CODEC_ACTION_HALT;
         } else if (!strncmp(name, "loop=", 5)) {
             enable_loop = atoi(val) != 0;
         } else if (!strncmp(name, "offset=", 7)) {
-            ci.id3->offset = atoi(val);
+            ci->id3->offset = atoi(val);
         } else if (!strncmp(name, "rate=", 5)) {
-            dsp_set_pitch(atof(val) * PITCH_SPEED_100);
+            //dsp_set_pitch(atof(val) * PITCH_SPEED_100);
         } else if (!strncmp(name, "seek=", 5)) {
             codec_action = CODEC_ACTION_SEEK_TIME;
             codec_action_param = atoi(val);
         } else if (!strncmp(name, "tempo=", 6)) {
-            dsp_set_timestretch(atof(val) * PITCH_SPEED_100);
+            //dsp_set_timestretch(atof(val) * PITCH_SPEED_100);
         } else if (!strncmp(name, "vol=", 4)) {
             playback_set_volume(atoi(val));
         } else {
@@ -315,29 +316,29 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
     //printf("get insert");
     if (use_dsp) {
 	//printf(" dsp\n");
-        struct dsp_buffer src;
-        src.remcount = count;
-        src.pin[0] = ch1;
-        src.pin[1] = ch2;
-        src.proc_mask = 0;
-        while (1) {
-            int out_count = MAX(count, 512);
-            int16_t buf[2 * out_count];
-            struct dsp_buffer dst;
+    /*     struct dsp_buffer src; */
+    /*     src.remcount = count; */
+    /*     src.pin[0] = ch1; */
+    /*     src.pin[1] = ch2; */
+    /*     src.proc_mask = 0; */
+    /*     while (1) { */
+    /*         int out_count = MAX(count, 512); */
+    /*         int16_t buf[2 * out_count]; */
+    /*         struct dsp_buffer dst; */
 
-            dst.remcount = 0;
-            dst.p16out = buf;
-            dst.bufcount = out_count;
+    /*         dst.remcount = 0; */
+    /*         dst.p16out = buf; */
+    /*         dst.bufcount = out_count; */
 
-            dsp_process(ci.dsp, &src, &dst);
+    /*         dsp_process(ci->dsp, &src, &dst); */
 
-            if (dst.remcount > 0) {
-                if (mode == MODE_PLAY)
-                    playback_pcm(buf, dst.remcount);
-            } else if (src.remcount <= 0) {
-                break;
-            }
-        }
+    /*         if (dst.remcount > 0) { */
+    /*             if (mode == MODE_PLAY) */
+    /*                 playback_pcm(buf, dst.remcount); */
+    /*         } else if (src.remcount <= 0) { */
+    /*             break; */
+    /*         } */
+    /*     } */
     } else {
 	//printf("\n");
         /* Convert to 32-bit interleaved. */
@@ -416,7 +417,7 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
     ssize_t actual = read(input_fd, ptr, size);
     if (actual < 0)
         actual = 0;
-    ci.curpos += actual;
+    ci->curpos += actual;
     return actual;
 }
 
@@ -431,7 +432,7 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
 static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
     //free(input_buffer);
-    if (!rbcodec_format_is_atomic(ci.id3->codectype))
+    if (!rbcodec_format_is_atomic(ci->id3->codectype))
         reqsize = MIN(reqsize, 8 * 1024);
     //printf("Request buffer size: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
@@ -455,8 +456,8 @@ static void ci_advance_buffer(size_t amount)
     //printf("Advance buffer %d\n", amount);
 
     lseek(input_fd, amount, SEEK_CUR);
-    ci.curpos += amount;
-    ci.id3->offset = ci.curpos;
+    ci->curpos += amount;
+    ci->id3->offset = ci->curpos;
 }
 
 /*
@@ -472,7 +473,7 @@ static bool ci_seek_buffer(size_t newpos)
 
     off_t actual = lseek(input_fd, newpos, SEEK_SET);
     if (actual >= 0)
-        ci.curpos = actual;
+        ci->curpos = actual;
     return actual != -1;
 }
 
@@ -484,14 +485,14 @@ static void ci_seek_complete(void)
 static void ci_set_offset(size_t value)
 {
     //printf("ci set offset\n");
-    ci.id3->offset = value;
+    ci->id3->offset = value;
 }
 
 static void ci_configure(int setting, intptr_t value)
 {
     printf("ci configure\n");
     if (use_dsp) {
-        dsp_configure(ci.dsp, setting, value);
+        //dsp_configure(ci->dsp, setting, value);
     } else {
         if (setting == DSP_SET_FREQUENCY
 	    || setting == DSP_SET_FREQUENCY)
@@ -554,7 +555,7 @@ static void ci_logf(const char *fmt, ...)
 
 static void stub_void_void(void) { }
 
-static struct codec_api ci = {
+static struct codec_api cic = {
 
     0,                   /* filesize */
     0,                   /* curpos */
@@ -669,7 +670,7 @@ static void decode_file(const char *input_fn)
 {
     /* Initialize DSP before any sort of interaction */
     printf("dsp init\n");
-    dsp_init();
+    //dsp_init();
 
     /* /\* Set up global settings *\/ */
     /* memset(&global_settings, 0, sizeof(global_settings)); */
@@ -677,7 +678,7 @@ static void decode_file(const char *input_fn)
     printf("dsp timestretch\n");
     //dsp_timestretch_enable(true);
 
-    //xI2S_semaphore = xSemaphoreCreateCounting(100, 1);
+    xI2S_semaphore = xSemaphoreCreateCounting(100, 1);
     
     /* Open file */
     printf("open file\n");
@@ -694,13 +695,13 @@ static void decode_file(const char *input_fn)
         //exit(1);
     }
     print_mp3entry(&id3, stderr);
-    ci.filesize = filesize(input_fd);
-    ci.id3 = &id3;
+    ci->filesize = filesize(input_fd);
+    ci->id3 = &id3;
     if (use_dsp) {
-        ci.dsp = dsp_get_config(CODEC_IDX_AUDIO);
-        dsp_configure(ci.dsp, DSP_SET_OUT_FREQUENCY, DSP_OUT_DEFAULT_HZ);
-        dsp_configure(ci.dsp, DSP_RESET, 0);
-        dsp_dither_enable(false);
+        /* ci->dsp = dsp_get_config(CODEC_IDX_AUDIO); */
+        /* dsp_configure(ci->dsp, DSP_SET_OUT_FREQUENCY, DSP_OUT_DEFAULT_HZ); */
+        /* dsp_configure(ci->dsp, DSP_RESET, 0); */
+        //dsp_dither_enable(false);
     }
     perform_config();
 
@@ -714,44 +715,49 @@ static void decode_file(const char *input_fn)
     /*     exit(1); */
     /* } */
     
-    struct codec_header *c_hdr = lc_open(str, _plug_start, _plug_end - _plug_start);
-    if(c_hdr == 1)
-    {
-	printf("Binary doesn't fit into memory\n");
-	exit(1);
-    } else if(c_hdr == 2)
-    {
-	printf("Could not open file\n");
-	exit(1);
-    } else if(c_hdr == 3)
-    {
-	printf("Could not read from file\n");
-	exit(1);
-    }
-    //c_hdr = dlsym(dlcodec, "__header");
-    if (c_hdr->lc_hdr.magic != CODEC_MAGIC) {
-        printf("error: %s invalid: incorrect magic\n", str);
-        exit(1);
-    }
-    if (c_hdr->lc_hdr.target_id != TARGET_ID) {
-        printf("error: %s invalid: incorrect target id\n", str);
-        exit(1);
-    }
-    if (c_hdr->lc_hdr.api_version != CODEC_API_VERSION) {
-        printf("error: %s invalid: incorrect API version\n", str);
-        exit(1);
-    }
+    //struct codec_header *c_hdr = lc_open(str, _plug_start, _plug_end - _plug_start);
+    /* if(c_hdr == 1) */
+    /* { */
+    /* 	printf("Binary doesn't fit into memory\n"); */
+    /* 	exit(1); */
+    /* } else if(c_hdr == 2) */
+    /* { */
+    /* 	printf("Could not open file\n"); */
+    /* 	exit(1); */
+    /* } else if(c_hdr == 3) */
+    /* { */
+    
+    /* 	printf("Could not read from file\n"); */
+    /* 	exit(1); */
+    /* } */
+    /* //c_hdr = dlsym(dlcodec, "__header"); */
+    /* if (c_hdr->lc_hdr.magic != CODEC_MAGIC) { */
+    /*     printf("error: %s invalid: incorrect magic\n", str); */
+    /*     exit(1); */
+    /* } */
+    /* if (c_hdr->lc_hdr.target_id != TARGET_ID) { */
+    /*     printf("error: %s invalid: incorrect target id\n", str); */
+    /*     exit(1); */
+    /* } */
+    /* if (c_hdr->lc_hdr.api_version != CODEC_API_VERSION) { */
+    /*     printf("error: %s invalid: incorrect API version\n", str); */
+    /*     exit(1); */
+    /* } */
 
     /* Run the codec */
-    *c_hdr->api = &ci;
-    uint8_t res = c_hdr->entry_point(CODEC_LOAD);
+    //*c_hdr->api = &ci;
+    uint8_t res;// = mpa_codec_main(CODEC_LOAD);
+    res = wav_codec_main(CODEC_LOAD);
     //printf("ep %d\n", res);
+    
     if(res != CODEC_OK)
     {
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    res = c_hdr->run_proc();
+    //res = mpa_codec_run();
+    res = wav_codec_run();
+    
     //printf("proc %d\n", res);
     if (res != CODEC_OK) {
         printf("error: codec error\n");

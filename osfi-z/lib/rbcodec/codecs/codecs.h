@@ -232,9 +232,9 @@ struct codec_header {
     void * rec_extension[]; /* extension for encoders */
 };
 
+extern struct codec_api *ci;
 #ifdef CODEC
 /* plugin_* is correct, codecs use the plugin linker script */
-extern struct codec_api *ci;
 extern unsigned char plugin_start_addr[];
 extern unsigned char plugin_end_addr[];
 /* decoders */
@@ -282,5 +282,10 @@ enum codec_status codec_run(void);
 #if CONFIG_CODEC == SWCODEC && defined(HAVE_RECORDING)
 int enc_callback(enum enc_callback_reason reason, void *params);
 #endif
+
+enum codec_status wav_codec_run(void);
+enum codec_status wav_codec_main(enum codec_entry_call_reason reason);
+enum codec_status mpa_codec_main(enum codec_entry_call_reason reason);
+enum codec_status mpa_codec_run(void);
 
 #endif /* _CODECS_H_ */

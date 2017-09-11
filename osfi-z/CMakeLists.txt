@@ -231,7 +231,7 @@ foreach(def ${STM32_PRJ_DEFS})
 endforeach()
 
 #setup flags
-set(CMAKE_C_FLAGS "${STM32_PRJ_CFLAGS} -dM -Wno-pointer-sign -std=c99 -g -gdwarf-2 ${USER_CFLAGS} ${OPT} -fdata-sections -ffunction-sections -Wa,-mimplicit-it=thumb")
+set(CMAKE_C_FLAGS "${STM32_PRJ_CFLAGS} -dM -std=c99 -g -gdwarf-2 ${USER_CFLAGS} ${OPT} -fdata-sections -ffunction-sections -Wa,-mimplicit-it=thumb")
 set(LDSCRIPT "-T${CMAKE_CURRENT_SOURCE_DIR}/linker_main.ld -Wl,-Map=foo.map -specs=nosys.specs -Wa,-mimplicit-it=thumb -Wl,--gc-sections -lnosys")
 set(LINKER_FLAGS "-lc -lm  ${USER_LINKER_FLAGS}")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}")
