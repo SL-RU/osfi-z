@@ -94,7 +94,7 @@ static struct {
  * has long latency. ALSA buffer underruns still occur sometimes, but this is
  * SDL's fault. */
 
-#define PLAYBACK_BUFFER_SIZE 1024
+#define PLAYBACK_BUFFER_SIZE 4096
 static bool playback_running = false;
 static char playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_play_ind, playback_decode_ind;
@@ -148,7 +148,7 @@ static void playback_set_volume(int volume)
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-//    printf("h\n");
+    //printf("h\n");
     static BaseType_t xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(xI2S_semaphore, &xHigherPriorityTaskWoken);
@@ -156,7 +156,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 }
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-//    printf("c\n");
+    //printf("c\n");
     static BaseType_t xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(xI2S_semaphore, &xHigherPriorityTaskWoken);
@@ -193,9 +193,8 @@ static void playback_start(void)
 {
     playback_running = true;
     /* SDL_AudioSpec spec = {0}; */
-    //printf("dsp freq: %d\n", dsp_get_output_frequency(ci->dsp));
     
-    HAL_I2S_Transmit_DMA(&hi2s3, playback_buffer, PLAYBACK_BUFFER_SIZE/2);
+    HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)playback_buffer, PLAYBACK_BUFFER_SIZE/2);
     printf("buf trans\n");
     /* spec.format = AUDIO_S16SYS; */
     /* spec.channels = 2; */
@@ -302,7 +301,7 @@ static void perform_config(void)
 static void *ci_codec_get_buffer(size_t *size)
 {
     static char buffer[2 * 1024];
-    //printf("get buffet %lu\n", size);
+    printf("get buffet %lu\n", size);
     char *ptr = buffer;
     *size = sizeof(buffer);
     if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
@@ -313,7 +312,7 @@ static void *ci_codec_get_buffer(size_t *size)
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
     num_output_samples += count;
-    //printf("get insert");
+    printf("get insert\n");
     if (use_dsp) {
 	//printf(" dsp\n");
     /*     struct dsp_buffer src; */
@@ -340,10 +339,10 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
     /*         } */
     /*     } */
     } else {
-	//printf("\n");
-        /* Convert to 32-bit interleaved. */
-        /* count *= format.channels; */
-        /* int i; */
+        //Convert to 32-bit interleaved.
+        count *= format.channels;
+	/* int32_t buf[count]; */
+        int i;
         /* if (format.depth > 16) { */
         /*     if (format.stereo_mode == STEREO_NONINTERLEAVED) { */
         /*         for (i = 0; i < count; i += 2) { */
@@ -365,28 +364,28 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
         /*         } */
         /*     } */
         /* } */
-	/* printf("b %d\n", count); */
-        /* //int16_t buf[count]; */
-	/* for (i = 0; i < count; i ++) { */
+	//printf("b %d\n", count);
+        //int16_t buf[count];
+	for (i = 0; i < count; i ++) {
 
-	/*     ((uint16_t*)(playback_buffer[playback_decode_ind]))[playback_decode_pos] = */
-	/* 	((uint32_t*)ch1)[i] / 4096; */
-        /*     playback_decode_pos ++; */
-	/*     ((uint16_t*)(playback_buffer[playback_decode_ind]))[playback_decode_pos] = */
-	/* 	((uint32_t*)ch2)[i] / 4096; */
-        /*     playback_decode_pos ++; */
-	/*     if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE/4) */
-	/*     { */
-	/* 	if (!playback_running) */
-	/* 	    playback_start(); */
+	    ((uint16_t*)(playback_buffer[playback_decode_ind]))[playback_decode_pos] =
+		((uint32_t*)ch1)[i];
+            playback_decode_pos ++;
+	    ((uint16_t*)(playback_buffer[playback_decode_ind]))[playback_decode_pos] =
+		((uint32_t*)ch2)[i];
+            playback_decode_pos ++;
+	    if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE/4)
+	    {
+		if (!playback_running)
+		    playback_start();
 
-	/* 	xSemaphoreTake(xI2S_semaphore, portMAX_DELAY); */
+		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
 		
-	/* 	playback_decode_pos = 0; */
-	/* 	playback_decode_ind = !playback_decode_ind; */
-	/*     } */
+		playback_decode_pos = 0;
+		playback_decode_ind = !playback_decode_ind;
+	    }
 	    
-	/* } */
+	}
 
     }
 
@@ -746,19 +745,19 @@ static void decode_file(const char *input_fn)
 
     /* Run the codec */
     //*c_hdr->api = &ci;
-    uint8_t res;// = mpa_codec_main(CODEC_LOAD);
-    res = wav_codec_main(CODEC_LOAD);
-    //printf("ep %d\n", res);
+    uint8_t res  = mpa_codec_main(CODEC_LOAD);
+    //res = wav_codec_main(CODEC_LOAD);
+    printf("ep %d\n", res);
     
     if(res != CODEC_OK)
     {
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    //res = mpa_codec_run();
-    res = wav_codec_run();
+    res = mpa_codec_run();
+    //res = wav_codec_run();
     
-    //printf("proc %d\n", res);
+    printf("proc %d\n", res);
     if (res != CODEC_OK) {
         printf("error: codec error\n");
     }
@@ -813,7 +812,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/w.wav");
+    decode_file("/m.mp3");
 
     playback_quit();
 

@@ -132,7 +132,7 @@ void StartDefaultTask(void const * argument)
     	printf("no sd %d\n", res);
     }
 
-    
+    HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
     dmain();
 
     /* Infinite loop */

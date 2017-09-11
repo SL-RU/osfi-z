@@ -161,14 +161,15 @@ static int getsonglength(int fd, struct mp3entry *entry)
   Note, that this returns true for successful, false for error! */
 bool get_mp3_metadata(int fd, struct mp3entry *entry)
 {
+    printf("mp3\n");
     entry->title = NULL;
     entry->filesize = filesize(fd);
     entry->id3v2len = getid3v2len(fd);
     entry->tracknum = 0;
     entry->discnum = 0;
 
-    if (entry->id3v2len)
-        setid3v2title(fd, entry);
+    /* if (entry->id3v2len) */
+    /*     setid3v2title(fd, entry); */
     int len = getsonglength(fd, entry);
     if (len < 0)
         return false;
