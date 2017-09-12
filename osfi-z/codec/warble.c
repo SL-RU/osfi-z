@@ -76,6 +76,7 @@ static struct codec_api cic;
 struct codec_api *ci = &cic;
 
 xSemaphoreHandle xI2S_semaphore;
+xSemaphoreHandle xI2S_semaphore_h;
 
 static struct {
     intptr_t freq;
@@ -94,9 +95,9 @@ static struct {
  * has long latency. ALSA buffer underruns still occur sometimes, but this is
  * SDL's fault. */
 
-#define PLAYBACK_BUFFER_SIZE 4096
+#define PLAYBACK_BUFFER_SIZE 2048
 static bool playback_running = false;
-static char playback_buffer[2][PLAYBACK_BUFFER_SIZE];
+static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_play_ind, playback_decode_ind;
 static int playback_play_pos, playback_decode_pos;
 
@@ -110,33 +111,13 @@ static void playback_init(void)
     /*     exit(1); */
     /* } */
     playback_play_ind = 0;
-    playback_play_pos = PLAYBACK_BUFFER_SIZE;
+    playback_play_pos = 0;
     playback_decode_ind = 0;
     playback_decode_pos = 0;
     /* playback_play_sema = SDL_CreateSemaphore(0); */
     /* playback_decode_sema = SDL_CreateSemaphore(0); */
 }
 
-static void playback_copy_audio_buffer_S16SYS(
-    void *dst, const void *src, int len)
-{
-    //int64_t factor = playback_vol_factor;
-
-    /* if (factor == VOL_FACTOR_UNITY) { */
-    /*     memcpy(dst, src, len); */
-    /* } else { */
-    const int16_t *s = src;
-    uint16_t *d = dst;
-    uint32_t i = 0;
-    
-    while (len) {
-	d[i] = (uint16_t)((int32_t)(s[i]) + 32768);
-	//printf("%d %d\n", d[i], s[i]);
-	i++;
-	len -= sizeof (int16_t);
-    }
-//}
-}
 
 static void playback_set_volume(int volume)
 {
@@ -151,7 +132,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
     //printf("h\n");
     static BaseType_t xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(xI2S_semaphore, &xHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(xI2S_semaphore_h, &xHigherPriorityTaskWoken);
     portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
@@ -163,38 +144,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
     portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }
 
-/* static void playback_callback(void *userdata, uint8_t *stream, int len) */
-/* { */
-/*     while (len > 0) { */
-/*         if (!playback_running && playback_play_ind == playback_decode_ind */
-/*                 && playback_play_pos >= playback_decode_pos) { */
-/*             /\* end of data *\/ */
-/*             memset(stream, 0, len); */
-/* //            SDL_SemPost(playback_play_sema); */
-/*             return; */
-/*         } */
-/*         if (playback_play_pos >= PLAYBACK_BUFFER_SIZE) { */
-/*             /\* SDL_SemPost(playback_play_sema); *\/ */
-/*             /\* SDL_SemWait(playback_decode_sema); *\/ */
-/*             playback_play_ind = !playback_play_ind; */
-/*             playback_play_pos = 0; */
-/*         } */
-/*         char *play_buffer = playback_buffer[playback_play_ind]; */
-/*         int copy_len = MIN(len, PLAYBACK_BUFFER_SIZE - playback_play_pos); */
-/*         playback_copy_audio_buffer_S16SYS(stream, */
-/*             play_buffer + playback_play_pos, copy_len); */
-/*         len -= copy_len; */
-/*         stream += copy_len; */
-/*         playback_play_pos += copy_len; */
-/*     } */
-/* } */
 
 static void playback_start(void)
 {
     playback_running = true;
     /* SDL_AudioSpec spec = {0}; */
     
-    HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)playback_buffer, PLAYBACK_BUFFER_SIZE/2);
+    HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)playback_buffer, PLAYBACK_BUFFER_SIZE*2);
     printf("buf trans\n");
     /* spec.format = AUDIO_S16SYS; */
     /* spec.channels = 2; */
@@ -221,33 +177,6 @@ static void playback_quit(void)
     /* SDL_SemWait(playback_play_sema); */
     /* SDL_SemWait(playback_play_sema); */
     /* SDL_Quit(); */
-}
-
-static void playback_pcm(int16_t *pcm, int count)
-{
-    const char *stream = (const char *)pcm;
-    count *= 4;
-
-    while (count > 0) {
-        if (playback_decode_pos >= PLAYBACK_BUFFER_SIZE) {
-            if (!playback_running)
-                playback_start();
-	    xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
-	    /* uint16_t *decode_buffer = playback_buffer[playback_decode_ind]; */
-	    /* for (uint32_t i = 0; i < PLAYBACK_BUFFER_SIZE/4; i++) */
-	    /* { */
-	    /* 	printf("b%hu\n", decode_buffer[i]); */
-	    /* } */
-            playback_decode_ind = !playback_decode_ind;
-            playback_decode_pos = 0;
-        }
-        char *decode_buffer = playback_buffer[playback_decode_ind];
-        int copy_len = MIN(count, PLAYBACK_BUFFER_SIZE - playback_decode_pos);
-        playback_copy_audio_buffer_S16SYS(decode_buffer + playback_decode_pos, stream, copy_len);
-        stream += copy_len;
-        count -= copy_len;
-        playback_decode_pos += copy_len;
-    }
 }
 
 
@@ -301,7 +230,7 @@ static void perform_config(void)
 static void *ci_codec_get_buffer(size_t *size)
 {
     static char buffer[2 * 1024];
-    printf("get buffet %lu\n", size);
+    printf("get buffer\n", size);
     char *ptr = buffer;
     *size = sizeof(buffer);
     if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
@@ -312,74 +241,32 @@ static void *ci_codec_get_buffer(size_t *size)
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
     num_output_samples += count;
-    printf("get insert\n");
     if (use_dsp) {
-	//printf(" dsp\n");
-    /*     struct dsp_buffer src; */
-    /*     src.remcount = count; */
-    /*     src.pin[0] = ch1; */
-    /*     src.pin[1] = ch2; */
-    /*     src.proc_mask = 0; */
-    /*     while (1) { */
-    /*         int out_count = MAX(count, 512); */
-    /*         int16_t buf[2 * out_count]; */
-    /*         struct dsp_buffer dst; */
 
-    /*         dst.remcount = 0; */
-    /*         dst.p16out = buf; */
-    /*         dst.bufcount = out_count; */
-
-    /*         dsp_process(ci->dsp, &src, &dst); */
-
-    /*         if (dst.remcount > 0) { */
-    /*             if (mode == MODE_PLAY) */
-    /*                 playback_pcm(buf, dst.remcount); */
-    /*         } else if (src.remcount <= 0) { */
-    /*             break; */
-    /*         } */
-    /*     } */
     } else {
         //Convert to 32-bit interleaved.
-        count *= format.channels;
-	/* int32_t buf[count]; */
+        //count *= format.channels;
         int i;
-        /* if (format.depth > 16) { */
-        /*     if (format.stereo_mode == STEREO_NONINTERLEAVED) { */
-        /*         for (i = 0; i < count; i += 2) { */
-        /*             buf[i+0] = ((int32_t*)ch1)[i/2]; */
-        /*             buf[i+1] = ((int32_t*)ch2)[i/2]; */
-        /*         } */
-        /*     } else { */
-        /*         memcpy(buf, ch1, sizeof(buf)); */
-        /*     } */
-        /* } else { */
-        /*     if (format.stereo_mode == STEREO_NONINTERLEAVED) { */
-        /*         for (i = 0; i < count; i += 2) { */
-        /*             buf[i+0] = ((int16_t*)ch1)[i/2]; */
-        /*             buf[i+1] = ((int16_t*)ch2)[i/2]; */
-        /*         } */
-        /*     } else { */
-        /*         for (i = 0; i < count; i++) { */
-        /*             buf[i] = ((int16_t*)ch1)[i]; */
-        /*         } */
-        /*     } */
-        /* } */
-	//printf("b %d\n", count);
-        //int16_t buf[count];
+	count /= 2;
+
 	for (i = 0; i < count; i ++) {
 
-	    ((uint16_t*)(playback_buffer[playback_decode_ind]))[playback_decode_pos] =
-		((uint32_t*)ch1)[i];
+	    playback_buffer[playback_decode_ind][playback_decode_pos] =
+		(uint16_t)(((uint32_t*)ch1)[i] >> 13);
             playback_decode_pos ++;
-	    ((uint16_t*)(playback_buffer[playback_decode_ind]))[playback_decode_pos] =
-		((uint32_t*)ch2)[i];
+	    playback_buffer[playback_decode_ind][playback_decode_pos] =
+		(uint16_t)(((uint32_t*)ch2)[i] >> 13);
             playback_decode_pos ++;
-	    if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE/4)
-	    {
-		if (!playback_running)
-		    playback_start();
 
-		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+	    if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
+	    {
+		if (!playback_running && playback_decode_ind)
+		    playback_start();
+		if (playback_running && playback_decode_ind)
+		    xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
+		if (playback_running && !playback_decode_ind)
+		    xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+
 		
 		playback_decode_pos = 0;
 		playback_decode_ind = !playback_decode_ind;
@@ -394,10 +281,10 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 
 static void ci_set_elapsed(unsigned long value)
 {
-    //debugf("Time elapsed: %lu\n", value);
+    debugf("Time elapsed: %lu\n", value);
 }
 
-static char input_buffer[8*1024];
+static char __attribute__ ((section (".ccram"))) input_buffer[6*1024];
 
 /*
  * Read part of the input file into a provided buffer.
@@ -432,7 +319,7 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
     //free(input_buffer);
     if (!rbcodec_format_is_atomic(ci->id3->codectype))
-        reqsize = MIN(reqsize, 8 * 1024);
+        reqsize = MIN(reqsize, 6 * 1024);
     //printf("Request buffer size: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
     *realsize = read(input_fd, input_buffer, reqsize);
@@ -677,7 +564,8 @@ static void decode_file(const char *input_fn)
     printf("dsp timestretch\n");
     //dsp_timestretch_enable(true);
 
-    xI2S_semaphore = xSemaphoreCreateCounting(100, 1);
+    xI2S_semaphore = xSemaphoreCreateCounting(100, 0);
+    xI2S_semaphore_h = xSemaphoreCreateCounting(100, 0);
     
     /* Open file */
     printf("open file\n");
@@ -745,7 +633,9 @@ static void decode_file(const char *input_fn)
 
     /* Run the codec */
     //*c_hdr->api = &ci;
-    uint8_t res  = mpa_codec_main(CODEC_LOAD);
+    uint8_t res;
+    res = flac_codec_main(CODEC_LOAD);
+    //res = mpa_codec_main(CODEC_LOAD);
     //res = wav_codec_main(CODEC_LOAD);
     printf("ep %d\n", res);
     
@@ -754,7 +644,8 @@ static void decode_file(const char *input_fn)
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    res = mpa_codec_run();
+    //res = mpa_codec_run();
+    res = flac_codec_run();
     //res = wav_codec_run();
     
     printf("proc %d\n", res);
@@ -812,7 +703,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/m.mp3");
+    decode_file("/ff.flac");
 
     playback_quit();
 

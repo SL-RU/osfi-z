@@ -285,7 +285,9 @@ int enc_callback(enum enc_callback_reason reason, void *params);
 
 enum codec_status wav_codec_run(void);
 enum codec_status wav_codec_main(enum codec_entry_call_reason reason);
-enum codec_status mpa_codec_main(enum codec_entry_call_reason reason);
+enum codec_status flac_codec_main(enum codec_entry_call_reason reason);
+enum codec_status flac_codec_run(void);
 enum codec_status mpa_codec_run(void);
+enum codec_status mpa_codec_main(enum codec_entry_call_reason reason);
 
 #endif /* _CODECS_H_ */

@@ -31,7 +31,7 @@ static AVPacket avpkt;
 #define MAX_FRAMES           3   /*maximum number of frames per superframe*/
 #define MAX_FRAMESIZE        160 /* maximum number of samples per frame */
 #define BUFSIZE              MAX_FRAMES*MAX_FRAMESIZE
-static int32_t decoded[BUFSIZE] IBSS_ATTR;
+static int32_t decoded[BUFSIZE] __attribute__ ((section (".ccram")));
 
 
 /* This function initialises AVCodecContext with the data needed for the wmapro

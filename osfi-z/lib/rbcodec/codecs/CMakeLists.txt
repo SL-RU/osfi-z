@@ -40,6 +40,7 @@ add_subdirectory(libmad)
 
 TARGET_LINK_LIBRARIES(codecs libpcm)
 TARGET_LINK_LIBRARIES(codecs libmad)
+TARGET_LINK_LIBRARIES(codecs libffmpegFLAC)
 #add_custom_target(codecs.dir ALL
 #  COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/codecs/)
 

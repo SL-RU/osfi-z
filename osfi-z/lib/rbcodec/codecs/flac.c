@@ -22,19 +22,19 @@
 #include "codeclib.h"
 #include <libffmpegFLAC/decoder.h>
 
-CODEC_HEADER
+//CODEC_HEADER
 
 static FLACContext fc IBSS_ATTR_FLAC;
 
 /* The output buffers containing the decoded samples (channels 0 and 1) */
 static int32_t decoded0[MAX_BLOCKSIZE] IBSS_ATTR_FLAC;
 static int32_t decoded1[MAX_BLOCKSIZE] IBSS_ATTR_FLAC;
-static int32_t decoded2[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_LARGE_IRAM;
-static int32_t decoded3[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_LARGE_IRAM;
-static int32_t decoded4[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM;
-static int32_t decoded5[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM;
+/* static int32_t decoded2[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_LARGE_IRAM; */
+/* static int32_t decoded3[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_LARGE_IRAM; */
+/* static int32_t decoded4[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
+/* static int32_t decoded5[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
 
-#define MAX_SUPPORTED_SEEKTABLE_SIZE 5000
+#define MAX_SUPPORTED_SEEKTABLE_SIZE 5
 
 /* Notes about seeking:
 
@@ -95,18 +95,18 @@ static bool flac_init(FLACContext* fc, int first_frame_offset)
     /* Reset sample buffers */
     memset(decoded0, 0, sizeof(decoded0));
     memset(decoded1, 0, sizeof(decoded1));
-    memset(decoded2, 0, sizeof(decoded2));
-    memset(decoded3, 0, sizeof(decoded3));
-    memset(decoded4, 0, sizeof(decoded4));
-    memset(decoded5, 0, sizeof(decoded5));
+    /* memset(decoded2, 0, sizeof(decoded2)); */
+    /* memset(decoded3, 0, sizeof(decoded3)); */
+    /* memset(decoded4, 0, sizeof(decoded4)); */
+    /* memset(decoded5, 0, sizeof(decoded5)); */
     
     /* Set sample buffers in decoder structure */
     fc->decoded[0] = decoded0;
     fc->decoded[1] = decoded1;
-    fc->decoded[2] = decoded2;
-    fc->decoded[3] = decoded3;
-    fc->decoded[4] = decoded4;
-    fc->decoded[5] = decoded5;
+    /* fc->decoded[2] = decoded2; */
+    /* fc->decoded[3] = decoded3; */
+    /* fc->decoded[4] = decoded4; */
+    /* fc->decoded[5] = decoded5; */
 
 
     /* Skip any foreign tags at start of file */
@@ -441,7 +441,7 @@ static bool flac_seek_offset(FLACContext* fc, uint32_t offset) {
 }
 
 /* this is the codec entry point */
-enum codec_status codec_main(enum codec_entry_call_reason reason)
+enum codec_status flac_codec_main(enum codec_entry_call_reason reason)
 {
     if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
@@ -452,7 +452,7 @@ enum codec_status codec_main(enum codec_entry_call_reason reason)
 }
 
 /* this is called for each file to process */
-enum codec_status codec_run(void)
+enum codec_status flac_codec_run(void)
 {
     int8_t *buf;
     uint32_t samplesdone;
@@ -500,20 +500,20 @@ enum codec_status codec_run(void)
     while (bytesleft) {
         enum codec_command_action action = ci->get_command(&param);
 
-        if (action == CODEC_ACTION_HALT)
-            break;
+        /* if (action == CODEC_ACTION_HALT) */
+        /*     break; */
 
-        /* Deal with any pending seek requests */
-        if (action == CODEC_ACTION_SEEK_TIME) {
-            if (flac_seek(&fc,(uint32_t)(((uint64_t)param
-                *ci->id3->frequency)/1000))) {
-                /* Refill the input buffer */
-                buf = ci->request_buffer(&bytesleft, MAX_FRAMESIZE);
-            }
+        /* /\* Deal with any pending seek requests *\/ */
+        /* if (action == CODEC_ACTION_SEEK_TIME) { */
+        /*     if (flac_seek(&fc,(uint32_t)(((uint64_t)param */
+        /*         *ci->id3->frequency)/1000))) { */
+        /*         /\* Refill the input buffer *\/ */
+        /*         buf = ci->request_buffer(&bytesleft, MAX_FRAMESIZE); */
+        /*     } */
 
-            ci->set_elapsed(param);
-            ci->seek_complete();
-        }
+        /*     ci->set_elapsed(param); */
+        /*     ci->seek_complete(); */
+        /* } */
 
         if((res=flac_decode_frame(&fc,buf,
                              bytesleft,ci->yield)) < 0) {
@@ -526,7 +526,7 @@ enum codec_status codec_run(void)
         ci->yield();
         ci->pcmbuf_insert(&fc.decoded[0][fc.sample_skip], &fc.decoded[1][fc.sample_skip],
                           fc.blocksize - fc.sample_skip);
-        
+        printf("inserted\n");
         fc.sample_skip = 0;
 
         /* Update the elapsed-time indicator */
