@@ -51,7 +51,7 @@ void MX_I2S3_Init(void)
 
   hi2s3.Instance = SPI3;
   hi2s3.Init.Mode = I2S_MODE_MASTER_TX;
-  hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s3.Init.Standard = I2S_STANDARD_MSB;
   hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B;
   hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
   hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_48K;
@@ -83,12 +83,12 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     PB3     ------> I2S3_CK
     PB5     ------> I2S3_SD 
     */
-    GPIO_InitStruct.Pin = D_WS_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_4;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
-    HAL_GPIO_Init(D_WS_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = D_MCK_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -97,7 +97,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
     HAL_GPIO_Init(D_MCK_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = D_CK_Pin|D_SD_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_5;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -152,11 +152,11 @@ void HAL_I2S_MspDeInit(I2S_HandleTypeDef* i2sHandle)
     PB3     ------> I2S3_CK
     PB5     ------> I2S3_SD 
     */
-    HAL_GPIO_DeInit(D_WS_GPIO_Port, D_WS_Pin);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
 
     HAL_GPIO_DeInit(D_MCK_GPIO_Port, D_MCK_Pin);
 
-    HAL_GPIO_DeInit(GPIOB, D_CK_Pin|D_SD_Pin);
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3|GPIO_PIN_5);
 
     /* Peripheral DMA DeInit*/
     HAL_DMA_DeInit(i2sHandle->hdmatx);

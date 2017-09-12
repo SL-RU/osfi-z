@@ -85,16 +85,16 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_SDIO_SD_Init();
-  MX_I2S3_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_UART4_Init();
+  MX_I2S3_Init();
 
   /* USER CODE BEGIN 2 */
     MX_FATFS_Init();
     printf("Starting...\n");
 
     FATFS fs;
-    FRESULT r = f_mount(&fs, SD_Path, 0);
+    FRESULT r = f_mount(&fs, SD_Path, 1);
     printf("Mount %d\n", r);
     if(r == FR_OK)
     {
@@ -121,9 +121,17 @@ int main(void)
 	f_close(&f);
 
     }
-
+    else
+    {
+	while (1) {
+	    
+	}
+    }
     FIL wa;
-    HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(D_PDN_GPIO_Port, D_PDN_Pin, GPIO_PIN_RESET);
+    HAL_Delay(10);
+    HAL_GPIO_WritePin(D_PDN_GPIO_Port, D_PDN_Pin, GPIO_PIN_SET);
+    
     f_open(&wa, "w.wav", FA_READ | FA_OPEN_EXISTING);
     open_f(&wa);
 	
@@ -139,10 +147,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1)
     {
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	HAL_Delay(100);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */

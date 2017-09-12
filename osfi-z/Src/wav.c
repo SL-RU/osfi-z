@@ -10,11 +10,14 @@ unsigned long WAV_pos = 0;
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
     wav_swch(1);
     wav_decode();
 }
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
     wav_swch(0);
     wav_decode();
 }
