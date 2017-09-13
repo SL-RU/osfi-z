@@ -209,7 +209,7 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 
 static void ci_set_elapsed(unsigned long value)
 {
-    printf("Time elapsed: %lu\n", value);
+    //printf("Time elapsed: %lu\n", value);
 }
 
 static char __attribute__ ((section (".ccram"))) input_buffer[6*1024];
@@ -260,12 +260,16 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
 {
     if(dec_id + reqsize > DEC_BUFFER_MAX)
     {
-	printf("ERROR: request dec buffer %d %d\n", reqsize, DEC_BUFFER_MAX - dec_id);
+	printf("ERROR: request dec buffer %ld %d\n", reqsize, DEC_BUFFER_MAX - dec_id);
 	reqsize = *realsize = DEC_BUFFER_MAX - dec_id;
     }
-    printf("req %d %ld", dec_id, reqsize);
-    uint8_t *b = &dec_buffer[dec_id];
+    printf("req %d %ld ", dec_id, reqsize);
+    uint8_t *b = dec_buffer + dec_id;
+    *realsize = reqsize;
     dec_id += reqsize;
+    while (dec_id % 4) //align(4) !!!
+	dec_id ++;
+    printf("%d\n", dec_id);
     return b;
 }
 /*
@@ -486,8 +490,13 @@ static void decode_file(const char *input_fn)
 	res = mpa_codec_main(CODEC_LOAD);
     else if(id3.codectype == 5)
 	res = wav_codec_main(CODEC_LOAD);
-    else
+    else if(id3.codectype == 4)
 	res = aiff_codec_main(CODEC_LOAD);
+    else
+    {
+	printf("Codec wrong!\n");
+	exit(1);
+    }
     
     printf("codec_main %d\n", res);
     
@@ -500,7 +509,7 @@ static void decode_file(const char *input_fn)
 	res = mpa_codec_run();
     if(id3.codectype == 5)
 	res = wav_codec_run();
-    else
+    else if(id3.codectype == 4)
 	res = aiff_codec_run();
     //res = flac_codec_run();
     
@@ -525,7 +534,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/m.mp3");
+    decode_file("/a.aiff");
 
     playback_quit();
 

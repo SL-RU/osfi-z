@@ -25,42 +25,42 @@
 
 
 static struct mad_stream* stream;
-static struct mad_frame* frame;
-static struct mad_synth* synth;
+static struct mad_frame * frame;
+static struct mad_synth * synth;
 
 
 #define MPA_INPUT_CHUNK_SIZE   6000
 
-static mad_fixed_t *mad_frame_overlap[2][32];
-static mad_fixed_t *sbsample[2][36];
+static mad_fixed_t (*mad_frame_overlap)[2][32][18];
+static mad_fixed_t (*sbsample)[2][36][32];
 
-static unsigned char *mad_main_data;
+static unsigned char (*mad_main_data)[MAD_BUFFER_MDLEN];
 /* TODO: what latency does layer 1 have? */
 static int mpeg_latency[3] = { 0, 481, 529 };
 static int mpeg_framesize[3] = {384, 1152, 1152};
 
 static void init_mad(void)
 {
-    ci->memset(&stream, 0, sizeof(struct mad_stream));
-    ci->memset(&frame , 0, sizeof(struct mad_frame));
-    ci->memset(&synth , 0, sizeof(struct mad_synth));
+    ci->memset(stream, 0, sizeof(struct mad_stream));
+    ci->memset(frame , 0, sizeof(struct mad_frame));
+    ci->memset(synth , 0, sizeof(struct mad_synth));
 
-    frame->sbsample_prev = &sbsample;
-    frame->sbsample      = &sbsample;
+    frame->sbsample_prev = sbsample;
+    frame->sbsample      = sbsample;
 
 
     /* We do this so libmad doesn't try to call codec_calloc(). This needs to
      * be called before mad_stream_init(), mad_frame_inti() and 
      * mad_synth_init(). */
-    frame->overlap    = &mad_frame_overlap;
-    stream->main_data = &mad_main_data;
+    frame->overlap    = mad_frame_overlap;
+    stream->main_data = mad_main_data;
     
     /* Call mad initialization. Those will zero the arrays frame->overlap,
      * frame->sbsample and frame->sbsample_prev. Therefore there is no need to 
      * zero them here. */
-    mad_stream_init(&stream);
-    mad_frame_init(&frame);
-    mad_synth_init(&synth);
+    mad_stream_init(stream);
+    mad_frame_init (frame );
+    mad_synth_init (synth );
 }
 
 static int get_file_pos(int newtime)
@@ -178,7 +178,7 @@ static void set_elapsed(struct mp3entry* id3)
 
 static inline void mad_synth_thread_ready(void)
 {
-     mad_synth_frame(&synth, &frame);
+     mad_synth_frame(synth, frame);
 }
 
 static inline bool mad_synth_thread_create(void)
@@ -202,6 +202,14 @@ static inline void mad_synth_thread_unwait_pcm(void)
 /* this is the codec entry point */
 enum codec_status mpa_codec_main(enum codec_entry_call_reason reason)
 {
+    size_t len;
+    frame = ci->request_dec_buffer(&len, sizeof(struct mad_frame));
+    stream = ci->request_dec_buffer(&len, sizeof(struct mad_stream));
+    synth = ci->request_dec_buffer(&len, sizeof(struct mad_synth));
+    mad_main_data = ci->request_dec_buffer(&len, MAD_BUFFER_MDLEN);
+    mad_frame_overlap = ci->request_dec_buffer(&len, sizeof(mad_fixed_t) * 2 * 32 * 18);
+    sbsample = ci->request_dec_buffer(&len, sizeof(mad_fixed_t) * 2 * 36 * 32);
+
     if (reason == CODEC_LOAD) {
         /* Create a decoder instance */
         if (codec_init())
@@ -217,13 +225,6 @@ enum codec_status mpa_codec_main(enum codec_entry_call_reason reason)
         /* mop up COP thread - MT only */
         mad_synth_thread_quit();
     }
-
-    size_t len;
-    mad_main_data = ci->request_dec_buffer(&len, MAD_BUFFER_MDLEN);
-    stream = ci->request_dec_buffer(&len, sizeof(struct mad_stream));
-    frame = ci->request_dec_buffer(&len, sizeof(struct mad_frame));
-    synth = ci->request_dec_buffer(&len, sizeof(struct mad_synth));
-    //mad_frame_overlap = ci->request_dec_buffer(&len, sizeof(mad_fixed_t) * 2 * 32 * 18);
 
     return CODEC_OK;
 }
@@ -337,11 +338,11 @@ enum codec_status mpa_codec_run(void)
             inputbuffer = ci->request_buffer(&size, MPA_INPUT_CHUNK_SIZE);
             if (size == 0 || inputbuffer == NULL)
                 break;
-            mad_stream_buffer(&stream, (unsigned char *)inputbuffer,
+            mad_stream_buffer(stream, (unsigned char *)inputbuffer,
                               size + padding);
         }
 
-        if (mad_frame_decode(&frame, &stream)) {
+        if (mad_frame_decode(frame, stream)) {
             if (stream->error == MAD_ERROR_BUFLEN) {
                 /* This makes the codec support partially corrupted files */
                 if (file_end == 30)

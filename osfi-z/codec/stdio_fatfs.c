@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include "ff.h"
 #include "rbcodecconfig.h"
-
+#include <stdio.h>
 
 typedef struct
 {
