@@ -29,9 +29,9 @@
 #define MPA_SYNTH_ON_COP
 #endif
 
-static struct mad_stream stream;
-static struct mad_frame frame;
-static struct mad_synth synth;
+static struct mad_stream* stream;
+static struct mad_frame* frame;
+static struct mad_synth* synth;
 
 
 #define INPUT_CHUNK_SIZE   6000
@@ -39,7 +39,7 @@ static struct mad_synth synth;
 static mad_fixed_t __attribute__ ((section (".ccram"))) mad_frame_overlap[2][32][18];
 static mad_fixed_t __attribute__ ((section (".ccram"))) sbsample[2][36][32];
 
-static unsigned char mad_main_data[MAD_BUFFER_MDLEN];
+static unsigned char *mad_main_data;
 /* TODO: what latency does layer 1 have? */
 static int mpeg_latency[3] = { 0, 481, 529 };
 static int mpeg_framesize[3] = {384, 1152, 1152};
@@ -50,18 +50,18 @@ static void init_mad(void)
     ci->memset(&frame , 0, sizeof(struct mad_frame));
     ci->memset(&synth , 0, sizeof(struct mad_synth));
 
-    frame.sbsample_prev = &sbsample;
-    frame.sbsample      = &sbsample;
+    frame->sbsample_prev = &sbsample;
+    frame->sbsample      = &sbsample;
 
 
     /* We do this so libmad doesn't try to call codec_calloc(). This needs to
      * be called before mad_stream_init(), mad_frame_inti() and 
      * mad_synth_init(). */
-    frame.overlap    = &mad_frame_overlap;
-    stream.main_data = &mad_main_data;
+    frame->overlap    = &mad_frame_overlap;
+    stream->main_data = &mad_main_data;
     
-    /* Call mad initialization. Those will zero the arrays frame.overlap,
-     * frame.sbsample and frame.sbsample_prev. Therefore there is no need to 
+    /* Call mad initialization. Those will zero the arrays frame->overlap,
+     * frame->sbsample and frame->sbsample_prev. Therefore there is no need to 
      * zero them here. */
     mad_stream_init(&stream);
     mad_frame_init(&frame);
@@ -223,6 +223,13 @@ enum codec_status mpa_codec_main(enum codec_entry_call_reason reason)
         mad_synth_thread_quit();
     }
 
+    size_t len;
+    mad_main_data = ci->request_dec_buffer(&len, MAD_BUFFER_MDLEN);
+    stream = ci->request_dec_buffer(&len, sizeof(struct mad_stream));
+    frame = ci->request_dec_buffer(&len, sizeof(struct mad_frame));
+    synth = ci->request_dec_buffer(&len, sizeof(struct mad_synth));
+
+
     return CODEC_OK;
 }
 
@@ -331,7 +338,7 @@ enum codec_status mpa_codec_run(void)
         }
 
         /* Lock buffers */
-        if (stream.error == 0) {
+        if (stream->error == 0) {
             inputbuffer = ci->request_buffer(&size, INPUT_CHUNK_SIZE);
             if (size == 0 || inputbuffer == NULL)
                 break;
@@ -340,20 +347,20 @@ enum codec_status mpa_codec_run(void)
         }
 
         if (mad_frame_decode(&frame, &stream)) {
-            if (stream.error == MAD_ERROR_BUFLEN) {
+            if (stream->error == MAD_ERROR_BUFLEN) {
                 /* This makes the codec support partially corrupted files */
                 if (file_end == 30)
                     break;
 
                 /* Fill the buffer */
-                if (stream.next_frame)
-                    ci->advance_buffer(stream.next_frame - stream.buffer);
+                if (stream->next_frame)
+                    ci->advance_buffer(stream->next_frame - stream->buffer);
                 else
                     ci->advance_buffer(size);
-                stream.error = 0; /* Must get new inputbuffer next time */
+                stream->error = 0; /* Must get new inputbuffer next time */
                 file_end++;
                 continue;
-            } else if (MAD_RECOVERABLE(stream.error)) {
+            } else if (MAD_RECOVERABLE(stream->error)) {
                 /* Probably syncing after a seek */
                 continue;
             } else {
@@ -370,8 +377,8 @@ enum codec_status mpa_codec_run(void)
         if (framelength > 0) {
             
             /* In case of a mono file, the second array will be ignored. */
-            ci->pcmbuf_insert(&synth.pcm.samples[0][samples_to_skip],
-                              &synth.pcm.samples[1][samples_to_skip],
+            ci->pcmbuf_insert(&synth->pcm.samples[0][samples_to_skip],
+                              &synth->pcm.samples[1][samples_to_skip],
                               framelength);
 
             /* Only skip samples for the first frame added. */
@@ -381,12 +388,12 @@ enum codec_status mpa_codec_run(void)
         /* Initiate PCM synthesis on the COP (MT) or perform it here (ST) */
         mad_synth_thread_ready();
 
-        /* Check if sample rate and stereo settings changed in this frame. */
-        if (frame.header.samplerate != current_frequency) {
-            current_frequency = frame.header.samplerate;
+        /* Check if sample rate and stereo settings changed in this frame-> */
+        if (frame->header.samplerate != current_frequency) {
+            current_frequency = frame->header.samplerate;
             ci->configure(DSP_SET_FREQUENCY, current_frequency);
         }
-        if (MAD_NCHANNELS(&frame.header) == 2) {
+        if (MAD_NCHANNELS(&frame->header) == 2) {
             if (current_stereo_mode != STEREO_NONINTERLEAVED) {
                 ci->configure(DSP_SET_STEREO_MODE, STEREO_NONINTERLEAVED);
                 current_stereo_mode = STEREO_NONINTERLEAVED;
@@ -398,17 +405,17 @@ enum codec_status mpa_codec_run(void)
             }
         }
 
-        if (stream.next_frame)
-            ci->advance_buffer(stream.next_frame - stream.buffer);
+        if (stream->next_frame)
+            ci->advance_buffer(stream->next_frame - stream->buffer);
         else
             ci->advance_buffer(size);
-        stream.error = 0; /* Must get new inputbuffer next time */
+        stream->error = 0; /* Must get new inputbuffer next time */
         file_end = 0;
 
-        framelength = synth.pcm.length - samples_to_skip;
+        framelength = synth->pcm.length - samples_to_skip;
         if (framelength < 0) {
             framelength = 0;
-            samples_to_skip -= synth.pcm.length;
+            samples_to_skip -= synth->pcm.length;
         }
 
         samplesdone += framelength;
@@ -419,10 +426,10 @@ enum codec_status mpa_codec_run(void)
     mad_synth_thread_wait_pcm();
     mad_synth_thread_unwait_pcm();
 
-    /* Finish the remaining decoded frame.
+    /* Finish the remaining decoded frame->
        Cut the required samples from the end. */
     if (framelength > stop_skip){
-        ci->pcmbuf_insert(synth.pcm.samples[0], synth.pcm.samples[1],
+        ci->pcmbuf_insert(synth->pcm.samples[0], synth->pcm.samples[1],
                           framelength - stop_skip);
     }
 

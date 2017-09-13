@@ -100,8 +100,8 @@ static bool playback_running = false;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_play_ind, playback_decode_ind;
 static int playback_play_pos, playback_decode_pos;
-#define DEC_BUFFER_MAX 10*1024
-static uint8_t dec_buffer[DEC_BUFFER_MAX];
+#define DEC_BUFFER_MAX 30*1024
+static uint8_t  __attribute__ ((section (".ccram"))) dec_buffer[DEC_BUFFER_MAX];
 static uint32_t dec_id = 0;
 
 
@@ -340,6 +340,7 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
 	printf("ERROR: request dec buffer %d %d\n", reqsize, DEC_BUFFER_MAX - dec_id);
 	reqsize = *realsize = DEC_BUFFER_MAX - dec_id;
     }
+    printf("req %d %ld", dec_id, reqsize);
     uint8_t *b = &dec_buffer[dec_id];
     dec_id += reqsize;
     return b;
@@ -653,7 +654,7 @@ static void decode_file(const char *input_fn)
     //res = flac_codec_main(CODEC_LOAD);
     res = mpa_codec_main(CODEC_LOAD);
     //res = wav_codec_main(CODEC_LOAD);
-    printf("ep %d\n", res);
+    printf("codec_main %d\n", res);
     
     if(res != CODEC_OK)
     {
