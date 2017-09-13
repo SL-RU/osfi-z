@@ -392,7 +392,6 @@ mad_fixed_t const imdct_s[6][6] ICONST_ATTR MEM_ALIGN_ATTR = {
 # include "imdct_s.dat"
 };
 
-# if !defined(FPM_ARM)
 /*
  * windowing coefficients for long blocks
  * derived from section 2.4.3.4.10.3 of ISO/IEC 11172-3
@@ -422,7 +421,6 @@ mad_fixed_t const window_l[36] ICONST_ATTR MEM_ALIGN_ATTR = {
   MAD_F(0x04cfb0e2) /* 0.300705800 */, MAD_F(0x03768962) /* 0.216439614 */,
   MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x00b2aa3e) /* 0.043619387 */,
 };
-# endif  /* FPM_ARM */
 
 /*
  * windowing coefficients for short blocks
@@ -1557,9 +1555,6 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
   return MAD_ERROR_NONE;
 }
 
-#if defined(CPU_ARM)
-void III_aliasreduce(mad_fixed_t xr[576], int lines);
-#else
 /*
  * NAME:        III_aliasreduce()
  * DESCRIPTION: perform frequency line alias reduction
@@ -1592,11 +1587,6 @@ void III_aliasreduce(mad_fixed_t xr[576], int lines)
     }
   }
 }
-#endif
-
-# if defined(FPM_ARM)
-void III_imdct_l(mad_fixed_t const [18], mad_fixed_t [36], unsigned int);
-# else
 /*
  * NAME:        imdct36
  * DESCRIPTION: perform X[18]->x[36] IMDCT
@@ -1912,7 +1902,6 @@ void III_imdct_l(mad_fixed_t const X[18], mad_fixed_t z[36],
     break;
   }
 }
-# endif  /* FPM_ARM */
 
 /*
  * NAME:        III_imdct_s()
@@ -1995,11 +1984,6 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
 }
 
 
-#ifdef CPU_ARM
-void III_overlap(mad_fixed_t const output[36], mad_fixed_t overlap[18],
-                 mad_fixed_t sample[18][32], unsigned int sb);
-#else
-
 /*
  * NAME:        III_overlap()
  * DESCRIPTION: perform overlap-add of windowed IMDCT outputs
@@ -2014,7 +1998,7 @@ void III_overlap(mad_fixed_t const output[36], mad_fixed_t overlap[18],
     overlap[i]    = output[i + 18];
   }
 }
-#endif
+
 
 /*
  * NAME:        III_overlap_z()

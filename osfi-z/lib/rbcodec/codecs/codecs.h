@@ -136,6 +136,7 @@ struct codec_api {
        how much data it should try to allocate. If <realsize> is 0,
        end of file is reached. */
     void* (*request_buffer)(size_t *realsize, size_t reqsize);
+    void* (*request_dec_buffer)(size_t *realsize, size_t reqsize);
     /* Advance file buffer position by <amount> amount of bytes. */
     void (*advance_buffer)(size_t amount);
     /* Seek file buffer to position <newpos> beginning of file. */

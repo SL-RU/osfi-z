@@ -23,23 +23,23 @@
 #include <codecs/libmad/mad.h>
 #include <inttypes.h>
 
-CODEC_HEADER
+//CODEC_HEADER
 
 #if NUM_CORES > 1 && !defined(MPEGPLAYER)
 #define MPA_SYNTH_ON_COP
 #endif
 
-static struct mad_stream stream IBSS_ATTR;
-static struct mad_frame frame IBSS_ATTR;
-static struct mad_synth synth IBSS_ATTR;
+static struct mad_stream stream;
+static struct mad_frame frame;
+static struct mad_synth synth;
 
 
-#define INPUT_CHUNK_SIZE   8192
+#define INPUT_CHUNK_SIZE   6000
 
-static mad_fixed_t mad_frame_overlap[2][32][18] IBSS_ATTR;
-static mad_fixed_t sbsample[2][36][32] IBSS_ATTR;
+static mad_fixed_t __attribute__ ((section (".ccram"))) mad_frame_overlap[2][32][18];
+static mad_fixed_t __attribute__ ((section (".ccram"))) sbsample[2][36][32];
 
-static unsigned char mad_main_data[MAD_BUFFER_MDLEN] IBSS_ATTR;
+static unsigned char mad_main_data[MAD_BUFFER_MDLEN];
 /* TODO: what latency does layer 1 have? */
 static int mpeg_latency[3] = { 0, 481, 529 };
 static int mpeg_framesize[3] = {384, 1152, 1152};

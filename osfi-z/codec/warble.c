@@ -100,6 +100,9 @@ static bool playback_running = false;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_play_ind, playback_decode_ind;
 static int playback_play_pos, playback_decode_pos;
+#define DEC_BUFFER_MAX 10*1024
+static uint8_t dec_buffer[DEC_BUFFER_MAX];
+static uint32_t dec_id = 0;
 
 
 
@@ -240,6 +243,7 @@ static void *ci_codec_get_buffer(size_t *size)
 
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
+    //printf("insert\n");
     num_output_samples += count;
     if (use_dsp) {
 
@@ -247,7 +251,7 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
         //Convert to 32-bit interleaved.
         //count *= format.channels;
         int i;
-	count /= 2;
+	//count;
 
 	for (i = 0; i < count; i ++) {
 
@@ -255,9 +259,10 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 		(uint16_t)(((uint32_t*)ch1)[i] >> 13);
             playback_decode_pos ++;
 	    playback_buffer[playback_decode_ind][playback_decode_pos] =
-		(uint16_t)(((uint32_t*)ch2)[i] >> 13);
+	    	(uint16_t)(((uint32_t*)ch2)[i] >> 13);
             playback_decode_pos ++;
 
+	    
 	    if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
 	    {
 		if (!playback_running && playback_decode_ind)
@@ -281,7 +286,7 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 
 static void ci_set_elapsed(unsigned long value)
 {
-    debugf("Time elapsed: %lu\n", value);
+    //debugf("Time elapsed: %lu\n", value);
 }
 
 static char __attribute__ ((section (".ccram"))) input_buffer[6*1024];
@@ -328,7 +333,17 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
     lseek(input_fd, -*realsize, SEEK_CUR);
     return input_buffer;
 }
-
+void* request_dec_buffer(size_t *realsize, size_t reqsize)
+{
+    if(dec_id + reqsize > DEC_BUFFER_MAX)
+    {
+	printf("ERROR: request dec buffer %d %d\n", reqsize, DEC_BUFFER_MAX - dec_id);
+	reqsize = *realsize = DEC_BUFFER_MAX - dec_id;
+    }
+    uint8_t *b = &dec_buffer[dec_id];
+    dec_id += reqsize;
+    return b;
+}
 /*
  * Advance the current position in the input file.
  *
@@ -453,6 +468,7 @@ static struct codec_api cic = {
     ci_set_elapsed,
     ci_read_filebuf,
     ci_request_buffer,
+    request_dec_buffer,
     ci_advance_buffer,
     ci_seek_buffer,
     ci_seek_complete,
@@ -634,8 +650,8 @@ static void decode_file(const char *input_fn)
     /* Run the codec */
     //*c_hdr->api = &ci;
     uint8_t res;
-    res = flac_codec_main(CODEC_LOAD);
-    //res = mpa_codec_main(CODEC_LOAD);
+    //res = flac_codec_main(CODEC_LOAD);
+    res = mpa_codec_main(CODEC_LOAD);
     //res = wav_codec_main(CODEC_LOAD);
     printf("ep %d\n", res);
     
@@ -644,8 +660,8 @@ static void decode_file(const char *input_fn)
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    //res = mpa_codec_run();
-    res = flac_codec_run();
+    res = mpa_codec_run();
+    //res = flac_codec_run();
     //res = wav_codec_run();
     
     printf("proc %d\n", res);
@@ -703,7 +719,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/ff.flac");
+    decode_file("/m.mp3");
 
     playback_quit();
 

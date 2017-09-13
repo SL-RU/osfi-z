@@ -1,9 +1,9 @@
 file(STRINGS SOURCES src)
 
-if(${IS_ARM})
-  file(STRINGS SOURCES_arm s_a)
-  set(src ${src} ${s_a})
-endif(${IS_ARM})
+#if(${IS_ARM})
+#  file(STRINGS SOURCES_arm s_a)
+#  set(src ${src} ${s_a})
+#endif(${IS_ARM})
 
 add_library (libmad ${src})
 
