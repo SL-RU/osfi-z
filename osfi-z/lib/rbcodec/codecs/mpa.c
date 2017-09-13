@@ -23,21 +23,16 @@
 #include <codecs/libmad/mad.h>
 #include <inttypes.h>
 
-//CODEC_HEADER
-
-#if NUM_CORES > 1 && !defined(MPEGPLAYER)
-#define MPA_SYNTH_ON_COP
-#endif
 
 static struct mad_stream* stream;
 static struct mad_frame* frame;
 static struct mad_synth* synth;
 
 
-#define INPUT_CHUNK_SIZE   6000
+#define MPA_INPUT_CHUNK_SIZE   6000
 
-static mad_fixed_t __attribute__ ((section (".ccram"))) mad_frame_overlap[2][32][18];
-static mad_fixed_t __attribute__ ((section (".ccram"))) sbsample[2][36][32];
+static mad_fixed_t *mad_frame_overlap[2][32];
+static mad_fixed_t *sbsample[2][36];
 
 static unsigned char *mad_main_data;
 /* TODO: what latency does layer 1 have? */
@@ -228,7 +223,7 @@ enum codec_status mpa_codec_main(enum codec_entry_call_reason reason)
     stream = ci->request_dec_buffer(&len, sizeof(struct mad_stream));
     frame = ci->request_dec_buffer(&len, sizeof(struct mad_frame));
     synth = ci->request_dec_buffer(&len, sizeof(struct mad_synth));
-
+    //mad_frame_overlap = ci->request_dec_buffer(&len, sizeof(mad_fixed_t) * 2 * 32 * 18);
 
     return CODEC_OK;
 }
@@ -339,7 +334,7 @@ enum codec_status mpa_codec_run(void)
 
         /* Lock buffers */
         if (stream->error == 0) {
-            inputbuffer = ci->request_buffer(&size, INPUT_CHUNK_SIZE);
+            inputbuffer = ci->request_buffer(&size, MPA_INPUT_CHUNK_SIZE);
             if (size == 0 || inputbuffer == NULL)
                 break;
             mad_stream_buffer(&stream, (unsigned char *)inputbuffer,

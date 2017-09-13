@@ -6,3 +6,4 @@ lib/mdct.c
 mpa.c
 wav.c
 flac.c
+aiff.c

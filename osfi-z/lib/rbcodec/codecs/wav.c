@@ -23,12 +23,11 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-//CODEC_HEADER
-
 /* WAVE (RIFF) codec:
  * 
  *  For a good documentation on WAVE files, see:
  *  http://www.tsp.ece.mcgill.ca/MMSP/Documents/AudioFormats/WAVE/WAVE.html
+
  *  and
  *  http://www.sonicspot.com/guide/wavefiles.html
  *
@@ -37,9 +36,9 @@
  *
  */
 
-#define PCM_SAMPLE_SIZE (4096*2)
+#define WAV_PCM_SAMPLE_SIZE (4096*2)
 
-static int32_t __attribute__ ((section (".ccram"))) samples[PCM_SAMPLE_SIZE];
+static int32_t * samples;
 
 /* This codec support WAVE files with the following formats: */
 enum
@@ -158,6 +157,11 @@ enum codec_status wav_codec_main(enum codec_entry_call_reason reason)
         ci->configure(DSP_SET_SAMPLE_DEPTH, PCM_OUTPUT_DEPTH-1);
     }
 
+    size_t len;
+    samples =
+	ci->request_dec_buffer(&len,
+			       WAV_PCM_SAMPLE_SIZE * sizeof(uint32_t));
+    
     return CODEC_OK;
 }
 
@@ -343,8 +347,8 @@ enum codec_status wav_codec_run(void)
 
     /* check chunksize */
     if ((format.chunksize / format.blockalign) * format.samplesperblock * format.channels
-           > PCM_SAMPLE_SIZE)
-        format.chunksize = (PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
+           > WAV_PCM_SAMPLE_SIZE)
+        format.chunksize = (WAV_PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
     if (format.chunksize == 0)
     {
         DEBUGF("CODEC_ERROR: chunksize is 0\n");

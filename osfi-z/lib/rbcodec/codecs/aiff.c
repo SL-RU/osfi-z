@@ -23,7 +23,6 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-CODEC_HEADER
 
 #define FOURCC(c1, c2, c3, c4) \
 ((((uint32_t)c1)<<24)|(((uint32_t)c2)<<16)|(((uint32_t)c3)<<8)|((uint32_t)c4))
@@ -47,9 +46,9 @@ static const struct pcm_entry pcm_codecs[] = {
     { AIFC_FORMAT_QT_IMA_ADPCM, get_qt_ima_adpcm_codec    },
 };
 
-#define PCM_SAMPLE_SIZE (1024*2)
+#define AIFF_PCM_SAMPLE_SIZE (1024*2)
 
-static int32_t samples[PCM_SAMPLE_SIZE] IBSS_ATTR;
+static int32_t *samples;
 
 static const struct pcm_codec *get_codec(uint32_t formattag)
 {
@@ -62,18 +61,21 @@ static const struct pcm_codec *get_codec(uint32_t formattag)
 }
 
 /* this is the codec entry point */
-enum codec_status codec_main(enum codec_entry_call_reason reason)
+enum codec_status aiff_codec_main(enum codec_entry_call_reason reason)
 {
     if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_SAMPLE_DEPTH, PCM_OUTPUT_DEPTH-1);
     }
 
+    size_t l;
+    samples = ci->request_dec_buffer(&l, AIFF_PCM_SAMPLE_SIZE);
+    
     return CODEC_OK;
 }
 
 /* this is called for each file to process */
-enum codec_status codec_run(void)
+enum codec_status aiff_codec_run(void)
 {
     struct pcm_format format;
     uint32_t bytesdone, decodedsamples;
@@ -259,8 +261,8 @@ enum codec_status codec_run(void)
 
     /* check chunksize */
     if ((format.chunksize / format.blockalign) * format.samplesperblock * format.channels
-           > PCM_SAMPLE_SIZE)
-        format.chunksize = (PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
+           > AIFF_PCM_SAMPLE_SIZE)
+        format.chunksize = (AIFF_PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
     if (format.chunksize == 0)
     {
         DEBUGF("CODEC_ERROR: chunksize is 0\n");

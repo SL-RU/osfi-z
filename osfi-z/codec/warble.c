@@ -9,18 +9,12 @@
 #include <unistd.h>
 #include "core_alloc.h"
 #include "codecs.h"
-//#include "dsp_core.h"
 #include "metadata.h"
-//#include "tdspeed.h"
 #include "platform.h"
 #include "load_code.h"
 #include "i2s.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
-
-extern char _plug_start[];
-extern char _plug_end[];
-
 
 void debugf(const char *fmt, ...)
 {
@@ -98,9 +92,11 @@ static struct {
 #define PLAYBACK_BUFFER_SIZE 2048
 static bool playback_running = false;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
-static int playback_play_ind, playback_decode_ind;
-static int playback_play_pos, playback_decode_pos;
-#define DEC_BUFFER_MAX 30*1024
+static int playback_decode_ind;
+static int playback_decode_pos;
+
+//Buffer for codec's purposes
+#define DEC_BUFFER_MAX 40*1024
 static uint8_t  __attribute__ ((section (".ccram"))) dec_buffer[DEC_BUFFER_MAX];
 static uint32_t dec_id = 0;
 
@@ -109,16 +105,11 @@ static uint32_t dec_id = 0;
 static void playback_init(void)
 {
     mode = MODE_PLAY;
-    /* if (SDL_Init(SDL_INIT_AUDIO)) { */
-    /*     printf("error: Can't initialize SDL: %s\n", SDL_GetError()); */
-    /*     exit(1); */
-    /* } */
-    playback_play_ind = 0;
-    playback_play_pos = 0;
+
     playback_decode_ind = 0;
     playback_decode_pos = 0;
-    /* playback_play_sema = SDL_CreateSemaphore(0); */
-    /* playback_decode_sema = SDL_CreateSemaphore(0); */
+
+    dec_id = 0;
 }
 
 
@@ -132,7 +123,6 @@ static void playback_set_volume(int volume)
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    //printf("h\n");
     static BaseType_t xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(xI2S_semaphore_h, &xHigherPriorityTaskWoken);
@@ -150,21 +140,10 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 
 static void playback_start(void)
 {
+    printf("Playback start\n");
     playback_running = true;
-    /* SDL_AudioSpec spec = {0}; */
     
     HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)playback_buffer, PLAYBACK_BUFFER_SIZE*2);
-    printf("buf trans\n");
-    /* spec.format = AUDIO_S16SYS; */
-    /* spec.channels = 2; */
-    /* spec.samples = 0x400; */
-    /* spec.callback = playback_callback; */
-    /* spec.userdata = NULL; */
-    /* if (SDL_OpenAudio(&spec, NULL)) { */
-    /*     printf("error: Can't open SDL audio: %s\n", SDL_GetError()); */
-    /*     exit(1); */
-    /* } */
-    /* SDL_PauseAudio(0); */
 }
 
 static void playback_quit(void)
@@ -176,64 +155,14 @@ static void playback_quit(void)
            PLAYBACK_BUFFER_SIZE - playback_decode_pos);
     playback_running = false;
     HAL_I2S_DMAStop(&hi2s3);
-    /* SDL_SemPost(playback_decode_sema); */
-    /* SDL_SemWait(playback_play_sema); */
-    /* SDL_SemWait(playback_play_sema); */
-    /* SDL_Quit(); */
 }
 
 
 /***** ALL MODES *****/
 
-static void perform_config(void)
-{
-    /* TODO: equalizer, etc. */
-    while (config) {
-        const char *name = config;
-        const char *eq = strchr(config, '=');
-        if (!eq)
-            break;
-        const char *val = eq + 1;
-        const char *end = val + strcspn(val, ": \t\n");
-
-        if (!strncmp(name, "wait=", 5)) {
-            if (atoi(val) > num_output_samples)
-                return;
-        } else if (!strncmp(name, "dither=", 7)) {
-            //dsp_dither_enable(atoi(val) ? true : false);
-        } else if (!strncmp(name, "halt=", 5)) {
-            if (atoi(val))
-                codec_action = CODEC_ACTION_HALT;
-        } else if (!strncmp(name, "loop=", 5)) {
-            enable_loop = atoi(val) != 0;
-        } else if (!strncmp(name, "offset=", 7)) {
-            ci->id3->offset = atoi(val);
-        } else if (!strncmp(name, "rate=", 5)) {
-            //dsp_set_pitch(atof(val) * PITCH_SPEED_100);
-        } else if (!strncmp(name, "seek=", 5)) {
-            codec_action = CODEC_ACTION_SEEK_TIME;
-            codec_action_param = atoi(val);
-        } else if (!strncmp(name, "tempo=", 6)) {
-            //dsp_set_timestretch(atof(val) * PITCH_SPEED_100);
-        } else if (!strncmp(name, "vol=", 4)) {
-            playback_set_volume(atoi(val));
-        } else {
-            printf("error: unrecognized config \"%.*s\"\n",
-		   (int)(eq - name), name);
-            exit(1);
-        }
-
-        if (*end)
-            config = end + 1;
-        else
-            config = NULL;
-    }
-}
-
 static void *ci_codec_get_buffer(size_t *size)
 {
     static char buffer[2 * 1024];
-    printf("get buffer\n", size);
     char *ptr = buffer;
     *size = sizeof(buffer);
     if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
@@ -243,50 +172,44 @@ static void *ci_codec_get_buffer(size_t *size)
 
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
-    //printf("insert\n");
     num_output_samples += count;
-    if (use_dsp) {
-
-    } else {
-        //Convert to 32-bit interleaved.
-        //count *= format.channels;
-        int i;
-	//count;
-
-	for (i = 0; i < count; i ++) {
-
-	    playback_buffer[playback_decode_ind][playback_decode_pos] =
-		(uint16_t)(((uint32_t*)ch1)[i] >> 13);
-            playback_decode_pos ++;
-	    playback_buffer[playback_decode_ind][playback_decode_pos] =
-	    	(uint16_t)(((uint32_t*)ch2)[i] >> 13);
-            playback_decode_pos ++;
-
-	    
-	    if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
-	    {
-		if (!playback_running && playback_decode_ind)
-		    playback_start();
-		if (playback_running && playback_decode_ind)
-		    xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
-		if (playback_running && !playback_decode_ind)
-		    xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
-
-		
-		playback_decode_pos = 0;
-		playback_decode_ind = !playback_decode_ind;
-	    }
-	    
-	}
-
+    int i;
+    if(format.stereo_mode == STEREO_INTERLEAVED)
+    {
+	count *= 2;
     }
 
-    perform_config();
+    for (i = 0; i < count; i ++) {
+	playback_buffer[playback_decode_ind][playback_decode_pos] =
+	    (uint16_t)(((uint32_t*)ch1)[i] >> 13);
+	playback_decode_pos ++;
+	if(format.stereo_mode == STEREO_NONINTERLEAVED)
+	{
+	    playback_buffer[playback_decode_ind][playback_decode_pos] =
+		(uint16_t)(((uint32_t*)ch2)[i] >> 13);
+	    playback_decode_pos ++;
+	}
+	    
+	if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
+	{
+	    if (!playback_running && playback_decode_ind)
+		playback_start();
+	    if (playback_running && playback_decode_ind)
+		xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
+	    if (playback_running && !playback_decode_ind)
+		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+
+		
+	    playback_decode_pos = 0;
+	    playback_decode_ind = !playback_decode_ind;
+	}
+	    
+    }
 }
 
 static void ci_set_elapsed(unsigned long value)
 {
-    //debugf("Time elapsed: %lu\n", value);
+    printf("Time elapsed: %lu\n", value);
 }
 
 static char __attribute__ ((section (".ccram"))) input_buffer[6*1024];
@@ -353,10 +276,6 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
  */
 static void ci_advance_buffer(size_t amount)
 {
-    //free(input_buffer);
-    //input_buffer = NULL;
-    //printf("Advance buffer %d\n", amount);
-
     lseek(input_fd, amount, SEEK_CUR);
     ci->curpos += amount;
     ci->id3->offset = ci->curpos;
@@ -369,10 +288,6 @@ static void ci_advance_buffer(size_t amount)
  */
 static bool ci_seek_buffer(size_t newpos)
 {
-    /* free(input_buffer); */
-    /* input_buffer = NULL; */
-    //printf("seek buffer\n");
-
     off_t actual = lseek(input_fd, newpos, SEEK_SET);
     if (actual >= 0)
         ci->curpos = actual;
@@ -381,43 +296,36 @@ static bool ci_seek_buffer(size_t newpos)
 
 static void ci_seek_complete(void)
 {
-    //printf("ci seek completed\n");
 }
 
 static void ci_set_offset(size_t value)
 {
-    //printf("ci set offset\n");
     ci->id3->offset = value;
 }
 
 static void ci_configure(int setting, intptr_t value)
 {
     printf("ci configure\n");
-    if (use_dsp) {
-        //dsp_configure(ci->dsp, setting, value);
-    } else {
-        if (setting == DSP_SET_FREQUENCY
-	    || setting == DSP_SET_FREQUENCY)
-	{
-            format.freq = value;
-	    printf("dsp set freq %d\n", value);
-	}
-        else if (setting == DSP_SET_SAMPLE_DEPTH)
-	{
-	    printf("dsp set depth %d\n", value);
-	    format.depth = value;
-	}
-        else if (setting == DSP_SET_STEREO_MODE) {
-	    printf("dsp set stereo %d\n", (value == STEREO_MONO) ? 1 : 2);
-            format.stereo_mode = value;
-            format.channels = (value == STEREO_MONO) ? 1 : 2;
-        }
+    if (setting == DSP_SET_FREQUENCY
+	|| setting == DSP_SET_FREQUENCY)
+    {
+	format.freq = value;
+	printf("dsp set freq %d\n", value);
+    }
+    else if (setting == DSP_SET_SAMPLE_DEPTH)
+    {
+	printf("dsp set depth %d\n", value);
+	format.depth = value;
+    }
+    else if (setting == DSP_SET_STEREO_MODE) {
+	printf("dsp set stereo %d\n", (value == STEREO_MONO) ? 1 : 2);
+	format.stereo_mode = value;
+	format.channels = (value == STEREO_MONO) ? 1 : 2;
     }
 }
 
 static enum codec_command_action ci_get_command(intptr_t *param)
 {
-    //printf("ci get command\n");
     enum codec_command_action ret = codec_action;
     *param = codec_action_param;
     codec_action = CODEC_ACTION_NULL;
@@ -481,15 +389,6 @@ static struct codec_api cic = {
     ci_sleep,
     stub_void_void, /* yield */
 
-#if NUM_CORES > 1
-    ci_create_thread,
-    ci_thread_thaw,
-    ci_thread_wait,
-    ci_semaphore_init,
-    ci_semaphore_wait,
-    ci_semaphore_release,
-#endif
-
     stub_void_void, /* commit_dcache */
     stub_void_void, /* commit_discard_dcache */
     stub_void_void, /* commit_discard_idcache */
@@ -512,24 +411,6 @@ static struct codec_api cic = {
 #endif
 
     qsort,
-
-#ifdef HAVE_RECORDING
-    ci_enc_get_inputs,
-    ci_enc_set_parameters,
-    ci_enc_get_chunk,
-    ci_enc_finish_chunk,
-    ci_enc_get_pcm_data,
-    ci_enc_unget_pcm_data,
-
-    /* file */
-    open,
-    close,
-    read,
-    lseek,
-    write,
-    ci_round_value_to_list32,
-
-#endif /* HAVE_RECORDING */
 };
 
 static void print_mp3entry(const struct mp3entry *id3, FILE *f)
@@ -570,17 +451,7 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
 }
 
 static void decode_file(const char *input_fn)
-{
-    /* Initialize DSP before any sort of interaction */
-    printf("dsp init\n");
-    //dsp_init();
-
-    /* /\* Set up global settings *\/ */
-    /* memset(&global_settings, 0, sizeof(global_settings)); */
-    /* globael_settings.timestretch_enabled = true; */
-    printf("dsp timestretch\n");
-    //dsp_timestretch_enable(true);
-
+{    
     xI2S_semaphore = xSemaphoreCreateCounting(100, 0);
     xI2S_semaphore_h = xSemaphoreCreateCounting(100, 0);
     
@@ -599,61 +470,25 @@ static void decode_file(const char *input_fn)
         //exit(1);
     }
     print_mp3entry(&id3, stderr);
+    
     ci->filesize = filesize(input_fd);
     ci->id3 = &id3;
-    if (use_dsp) {
-        /* ci->dsp = dsp_get_config(CODEC_IDX_AUDIO); */
-        /* dsp_configure(ci->dsp, DSP_SET_OUT_FREQUENCY, DSP_OUT_DEFAULT_HZ); */
-        /* dsp_configure(ci->dsp, DSP_RESET, 0); */
-        //dsp_dither_enable(false);
-    }
-    perform_config();
 
     /* Load codec */
     char str[MAX_PATH];
     snprintf(str, sizeof(str), "codecs/%s.codec", audio_formats[id3.codectype].codec_root_fn);
     debugf("Loading %s\n", str);
-    //void *dlcodec = dlopen(str, RTLD_NOW);
-    /* if (!dlcodec) { */
-    /*     printf("error: dlopen failed: %s\n", dlerror()); */
-    /*     exit(1); */
-    /* } */
-    
-    //struct codec_header *c_hdr = lc_open(str, _plug_start, _plug_end - _plug_start);
-    /* if(c_hdr == 1) */
-    /* { */
-    /* 	printf("Binary doesn't fit into memory\n"); */
-    /* 	exit(1); */
-    /* } else if(c_hdr == 2) */
-    /* { */
-    /* 	printf("Could not open file\n"); */
-    /* 	exit(1); */
-    /* } else if(c_hdr == 3) */
-    /* { */
-    
-    /* 	printf("Could not read from file\n"); */
-    /* 	exit(1); */
-    /* } */
-    /* //c_hdr = dlsym(dlcodec, "__header"); */
-    /* if (c_hdr->lc_hdr.magic != CODEC_MAGIC) { */
-    /*     printf("error: %s invalid: incorrect magic\n", str); */
-    /*     exit(1); */
-    /* } */
-    /* if (c_hdr->lc_hdr.target_id != TARGET_ID) { */
-    /*     printf("error: %s invalid: incorrect target id\n", str); */
-    /*     exit(1); */
-    /* } */
-    /* if (c_hdr->lc_hdr.api_version != CODEC_API_VERSION) { */
-    /*     printf("error: %s invalid: incorrect API version\n", str); */
-    /*     exit(1); */
-    /* } */
 
     /* Run the codec */
-    //*c_hdr->api = &ci;
     uint8_t res;
     //res = flac_codec_main(CODEC_LOAD);
-    res = mpa_codec_main(CODEC_LOAD);
-    //res = wav_codec_main(CODEC_LOAD);
+    if(id3.codectype == 3)
+	res = mpa_codec_main(CODEC_LOAD);
+    else if(id3.codectype == 5)
+	res = wav_codec_main(CODEC_LOAD);
+    else
+	res = aiff_codec_main(CODEC_LOAD);
+    
     printf("codec_main %d\n", res);
     
     if(res != CODEC_OK)
@@ -661,9 +496,13 @@ static void decode_file(const char *input_fn)
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    res = mpa_codec_run();
+    if(id3.codectype == 3)
+	res = mpa_codec_run();
+    if(id3.codectype == 5)
+	res = wav_codec_run();
+    else
+	res = aiff_codec_run();
     //res = flac_codec_run();
-    //res = wav_codec_run();
     
     printf("proc %d\n", res);
     if (res != CODEC_OK) {
@@ -680,43 +519,9 @@ static void decode_file(const char *input_fn)
 
 int dmain()
 {
-    int opt;
-    /* while ((opt = getopt(argc, argv, "c:fhr")) != -1) { */
-    /*     switch (opt) { */
-    /*     case 'c': */
-    /*         config = optarg; */
-    /*         break; */
-    /*     case 'f': */
-    /*         use_dsp = false; */
-    /*         break; */
-    /*     case 'r': */
-    /*         use_dsp = false; */
-    /*         write_raw = true; */
-    /*         break; */
-    /*     case 'h': /\* fallthrough *\/ */
-    /*     default: */
-    /*         print_help(argv[0]); */
-    /*         exit(1); */
-    /*     } */
-    /* } */
-
-    /* if (argc == optind + 2) { */
-    /*     write_init(argv[optind + 1]); */
-    /* } else if (argc == optind + 1) { */
-    /*     if (!use_dsp) { */
-    /*         printf("error: -r can't be used for playback\n"); */
-    /*         print_help(argv[0]); */
-    /*         exit(1); */
-    /*     } */
-    /*     //core_allocator_init(); */
     printf("playback init...\n");
     playback_init();
-    /* } else { */
-    /*     if (argc > 1) */
-    /*         printf("error: wrong number of arguments\n"); */
-    /*     print_help(argv[0]); */
-    /*     exit(1); */
-    /* } */
+    
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
