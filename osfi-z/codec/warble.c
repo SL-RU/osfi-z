@@ -485,16 +485,17 @@ static void decode_file(const char *input_fn)
 
     /* Run the codec */
     uint8_t res;
-    //res = flac_codec_main(CODEC_LOAD);
     if(id3.codectype == 3)
 	res = mpa_codec_main(CODEC_LOAD);
     else if(id3.codectype == 5)
 	res = wav_codec_main(CODEC_LOAD);
     else if(id3.codectype == 4)
 	res = aiff_codec_main(CODEC_LOAD);
+    else if(id3.codectype == 7)
+	res = flac_codec_main(CODEC_LOAD);
     else
     {
-	printf("Codec wrong!\n");
+	printf("Codec wrong %d!\n", id3.codectype);
 	exit(1);
     }
     
@@ -511,7 +512,8 @@ static void decode_file(const char *input_fn)
 	res = wav_codec_run();
     else if(id3.codectype == 4)
 	res = aiff_codec_run();
-    //res = flac_codec_run();
+    else if(id3.codectype == 7)
+	res = flac_codec_run();
     
     printf("proc %d\n", res);
     if (res != CODEC_OK) {
@@ -534,7 +536,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/a.aiff");
+    decode_file("/fff.flac");
 
     playback_quit();
 
