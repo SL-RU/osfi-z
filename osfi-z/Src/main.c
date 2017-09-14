@@ -34,6 +34,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "dma.h"
+#include "i2c.h"
 #include "i2s.h"
 #include "sdio.h"
 #include "usart.h"
@@ -88,6 +89,7 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   MX_UART4_Init();
   MX_I2S3_Init();
+  MX_I2C2_Init();
 
   /* USER CODE BEGIN 2 */
     MX_FATFS_Init();
@@ -115,7 +117,7 @@ int main(void)
 	f_close(&f);
 	r = f_open(&f, "le.txt", FA_WRITE | FA_CREATE_ALWAYS);
 	printf("Open %d\n", r);
-	char cdd[] = "I WANT TO SLEEEP!\n";
+	char cdd[] = "TEST TEST TEST!\n";
 	r = f_write(&f, cdd, 17, &bw);
 	printf("read %d %d %s\n", r, bw, cdd);
 	f_close(&f);

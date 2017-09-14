@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * File Name          : I2C.h
+  * Description        : This file provides code for the configuration
+  *                      of the I2C instances.
   ******************************************************************************
   *
   * COPYRIGHT(c) 2017 STMicroelectronics
@@ -31,42 +32,45 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
+#ifndef __i2c_H
+#define __i2c_H
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
+#include "main.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-/* Private define ------------------------------------------------------------*/
-
-#define LED_Pin GPIO_PIN_7
-#define LED_GPIO_Port GPIOA
-#define B_HOLD_Pin GPIO_PIN_13
-#define B_HOLD_GPIO_Port GPIOB
-#define CH_5V_Pin GPIO_PIN_15
-#define CH_5V_GPIO_Port GPIOB
-#define D_MCK_Pin GPIO_PIN_7
-#define D_MCK_GPIO_Port GPIOC
-#define D_PDN_Pin GPIO_PIN_15
-#define D_PDN_GPIO_Port GPIOA
-#define B_STOP_Pin GPIO_PIN_8
-#define B_STOP_GPIO_Port GPIOB
-#define B_NEXT_Pin GPIO_PIN_9
-#define B_NEXT_GPIO_Port GPIOB
+extern I2C_HandleTypeDef hi2c2;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-/**
-  * @}
-  */ 
+extern void Error_Handler(void);
+
+void MX_I2C2_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
+
+#ifdef __cplusplus
+}
+#endif
+#endif /*__ i2c_H */
 
 /**
   * @}
-*/ 
+  */
 
-#endif /* __MAIN_H */
+/**
+  * @}
+  */
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
