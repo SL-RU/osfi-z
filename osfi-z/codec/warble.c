@@ -89,15 +89,15 @@ static struct {
  * has long latency. ALSA buffer underruns still occur sometimes, but this is
  * SDL's fault. */
 
-#define PLAYBACK_BUFFER_SIZE 2048
+#define PLAYBACK_BUFFER_SIZE 1024
 static bool playback_running = false;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_decode_ind;
 static int playback_decode_pos;
 
 //Buffer for codec's purposes
-#define DEC_BUFFER_MAX 40*1024
-static uint8_t  __attribute__ ((section (".ccram"))) dec_buffer[DEC_BUFFER_MAX];
+#define DEC_BUFFER_MAX 64*1024
+static uint8_t  __attribute__ ((section (".ccmram"))) dec_buffer[DEC_BUFFER_MAX];
 static uint32_t dec_id = 0;
 
 
@@ -164,6 +164,7 @@ static void *ci_codec_get_buffer(size_t *size)
 {
     static char buffer[2 * 1024];
     char *ptr = buffer;
+    printf("get_buffer\n");
     *size = sizeof(buffer);
     if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
         ptr += CACHEALIGN_SIZE - ((intptr_t)ptr & (CACHEALIGN_SIZE - 1));
@@ -212,7 +213,9 @@ static void ci_set_elapsed(unsigned long value)
     //printf("Time elapsed: %lu\n", value);
 }
 
-static char __attribute__ ((section (".ccram"))) input_buffer[6*1024];
+static char
+//__attribute__ ((section (".ccram")))
+input_buffer[40*1024];
 
 /*
  * Read part of the input file into a provided buffer.

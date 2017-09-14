@@ -88,19 +88,19 @@ static inline av_const int sign_extend(int val, unsigned bits)
 #   define ALT_BITSTREAM_READER
 #endif
 
-/*
+
 #if !defined(LIBMPEG2_BITSTREAM_READER) && !defined(A32_BITSTREAM_READER) && !defined(ALT_BITSTREAM_READER)
 #   if ARCH_ARM && !HAVE_FAST_UNALIGNED
 #       define A32_BITSTREAM_READER
 #   else
-*/
+
 #       define ALT_BITSTREAM_READER
-/*
-//#define LIBMPEG2_BITSTREAM_READER
-//#define A32_BITSTREAM_READER
+
+#define LIBMPEG2_BITSTREAM_READER
+#define A32_BITSTREAM_READER
 #   endif
 #endif
-*/
+
 
 /* bit input */
 /* buffer, buffer_end and size_in_bits must be present and used by every reader */

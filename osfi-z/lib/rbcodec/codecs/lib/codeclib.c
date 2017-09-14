@@ -62,9 +62,10 @@ void* codec_malloc(size_t size)
 {
     void* x;
 
+    printf("Size malloc: %ld\n", size);
     if (mem_ptr + (long)size > bufsize)
         return NULL;
-    
+
     x=&mallocbuf[mem_ptr];
     
     /* Keep memory aligned to CACHEALIGN_SIZE. */

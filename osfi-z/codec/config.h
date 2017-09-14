@@ -40,7 +40,7 @@
 #define GCCNUM 701
 
 /* Define this if you build rockbox to support the logf logging and display */
-#undef ROCKBOX_HAS_LOGF
+#define ROCKBOX_HAS_LOGF
 
 /* Define this if you want logf to output to the serial port */
 #undef LOGF_SERIAL

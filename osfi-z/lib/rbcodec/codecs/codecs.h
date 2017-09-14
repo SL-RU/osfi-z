@@ -69,6 +69,8 @@
 
 #endif //codec
 
+#define ALT_BITSTREAM_READER
+
 /* magic for normal codecs */
 #define CODEC_MAGIC 0x52434F44 /* RCOD */
 /* magic for encoder codecs */
