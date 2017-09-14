@@ -1,8 +1,8 @@
-if(${IS_ARM})
-  file(STRINGS SOURCES_arm src)
-else(${IS_ARM})
-  file(STRINGS SOURCES src)
-endif(${IS_ARM})
+#if(${IS_ARM})
+#  file(STRINGS SOURCES_arm src)
+#else(${IS_ARM})
+file(STRINGS SOURCES src)
+#endif(${IS_ARM})
   
 
 add_library (libffmpegFLAC ${src})

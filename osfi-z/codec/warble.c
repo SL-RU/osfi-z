@@ -215,7 +215,8 @@ static void ci_set_elapsed(unsigned long value)
 
 static char
 //__attribute__ ((section (".ccram")))
-input_buffer[40*1024];
+input_buffer[10*1024];
+
 
 /*
  * Read part of the input file into a provided buffer.
@@ -539,7 +540,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/fff.flac");
+    decode_file("/ff.flac");
 
     playback_quit();
 

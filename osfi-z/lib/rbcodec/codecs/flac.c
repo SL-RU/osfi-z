@@ -20,21 +20,21 @@
  ****************************************************************************/
 
 #include "codeclib.h"
-#include <libffmpegFLAC/decoder.h>
+#include <codecs/libffmpegFLAC/decoder.h>
 
-//CODEC_HEADER
+CODEC_HEADER
 
 static FLACContext fc;
 
 /* The output buffers containing the decoded samples (channels 0 and 1) */
 static int32_t *decoded0;
 static int32_t *decoded1;
-/* static int32_t *decoded2;  */
-/* static int32_t *decoded3;  */
-/* static int32_t *decoded4; */
-/* static int32_t *decoded5; */
+/* static int32_t decoded2[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_LARGE_IRAM; */
+/* static int32_t decoded3[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_LARGE_IRAM; */
+/* static int32_t decoded4[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
+/* static int32_t decoded5[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
 
-#define MAX_SUPPORTED_SEEKTABLE_SIZE 5
+#define MAX_SUPPORTED_SEEKTABLE_SIZE 500
 
 /* Notes about seeking:
 
@@ -71,7 +71,7 @@ struct FLACseekpoints {
     uint16_t blocksize;
 };
 
-static struct FLACseekpoints seekpoints[MAX_SUPPORTED_SEEKTABLE_SIZE];
+static struct FLACseekpoints *seekpoints;
 static int nseekpoints;
 
 static int8_t *bit_buffer;
@@ -93,8 +93,8 @@ static bool flac_init(FLACContext* fc, int first_frame_offset)
     fc->sample_skip = 0;
     
     /* Reset sample buffers */
-    memset(decoded0, 0, sizeof(uint32_t)*MAX_BLOCKSIZE);
-    memset(decoded1, 0, sizeof(uint32_t)*MAX_BLOCKSIZE);
+    memset(decoded0, 0, MAX_BLOCKSIZE * sizeof(uint32_t));
+    memset(decoded1, 0, MAX_BLOCKSIZE * sizeof(uint32_t));
     /* memset(decoded2, 0, sizeof(decoded2)); */
     /* memset(decoded3, 0, sizeof(decoded3)); */
     /* memset(decoded4, 0, sizeof(decoded4)); */
@@ -446,10 +446,8 @@ enum codec_status flac_codec_main(enum codec_entry_call_reason reason)
     size_t len;
     decoded0 = ci->request_dec_buffer(&len, sizeof(uint32_t) * MAX_BLOCKSIZE);
     decoded1 = ci->request_dec_buffer(&len, sizeof(uint32_t) * MAX_BLOCKSIZE);
-    /* decoded2 = ci->request_dec_buffer(&len, sizeof(uint32_t) * MAX_BLOCKSIZE); */
-    /* decoded3 = ci->request_dec_buffer(&len, sizeof(uint32_t) * MAX_BLOCKSIZE); */
-    /* decoded4 = ci->request_dec_buffer(&len, sizeof(uint32_t) * MAX_BLOCKSIZE); */
-    /* decoded5 = ci->request_dec_buffer(&len, sizeof(uint32_t) * MAX_BLOCKSIZE); */
+    seekpoints = ci->request_dec_buffer(&len, sizeof(struct FLACseekpoints) *
+					MAX_SUPPORTED_SEEKTABLE_SIZE);
     if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_SAMPLE_DEPTH, FLAC_OUTPUT_DEPTH-1);
@@ -533,7 +531,7 @@ enum codec_status flac_codec_run(void)
         ci->yield();
         ci->pcmbuf_insert(&fc.decoded[0][fc.sample_skip], &fc.decoded[1][fc.sample_skip],
                           fc.blocksize - fc.sample_skip);
-        printf("inserted\n");
+        
         fc.sample_skip = 0;
 
         /* Update the elapsed-time indicator */

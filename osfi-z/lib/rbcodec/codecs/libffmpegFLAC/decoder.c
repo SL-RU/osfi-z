@@ -42,11 +42,11 @@
 
 #include "decoder.h"
 
-#if defined(CPU_COLDFIRE)
-#include "coldfire.h"
-#elif defined(CPU_ARM)
-#include "arm.h"
-#endif
+/* #if defined(CPU_COLDFIRE) */
+/* #include "coldfire.h" */
+/* #elif defined(CPU_ARM) */
+/* #include "arm.h" */
+/* #endif */
 
 static const int sample_rate_table[] ICONST_ATTR =
 { 0, 88200, 176400, 192000,
@@ -273,8 +273,14 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
                 sum += coeffs[j] * decoded[i-j-1];
             decoded[i] += sum >> qlevel;
         }
+//#endif
     } else {
-
+        /* #if defined(CPU_COLDFIRE) */
+        /* (void)wsum; */
+        /* (void)j; */
+        /* lpc_decode_emac_wide(s->blocksize - pred_order, qlevel, pred_order, */
+        /*                      decoded + pred_order, coeffs); */
+        /* #else */
         for (i = pred_order; i < s->blocksize; i++)
         {
             wsum = 0;
@@ -282,6 +288,7 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
                 wsum += (int64_t)coeffs[j] * (int64_t)decoded[i-j-1];
             decoded[i] += wsum >> qlevel;
         }
+//#endif
     }
     
     return 0;
@@ -332,7 +339,6 @@ static inline int decode_subframe(FLACContext *s, int channel, int32_t* decoded)
     }
 #endif
 //FIXME use av_log2 for types
-    printf("blocksize %d %d\n", s->blocksize, type);
     if (type == 0)
     {
         //fprintf(stderr,"coding type: constant\n");
@@ -467,7 +473,6 @@ static int decode_frame(FLACContext *s,
     s->bps          = bps;
     s->decorrelation= decorrelation;
 
-    printf("channels: %d\n", ch<s->channels);
     for (ch=0; ch<s->channels; ++ch) {
         yield();
         if ((res=decode_subframe(s, ch, s->decoded[ch])) < 0)
@@ -491,74 +496,74 @@ static int flac_downmix(FLACContext *s)
     int32_t *outR = s->decoded[1];
     int i, scale=FLAC_OUTPUT_DEPTH-s->bps;
 
-    /* switch(s->channels) */
-    /* { */
-    /*     case 3: /\* 3.0 channel order: FL FR FC *\/ */
-    /*         FL = s->decoded[0]; */
-    /*         FR = s->decoded[1]; */
-    /*         FC = s->decoded[2]; */
-    /*         /\* LF = 0.66 LF + 0.33 FC */
-    /*            LR = 0.66 LR + 0.33 FC *\/ */
-    /*         for (i=0; i<s->blocksize; ++i) { */
-    /*             int32_t a = *(FL)*2 + *(FC); */
-    /*             int32_t b = *(FR)*2 + *(FC); */
-    /*             *outL++ = ((a + (a<<2))>>4) << scale; /\* 1/3 ~= 5>>4 *\/ */
-    /*             *outR++ = ((b + (b<<2))>>4) << scale; /\* 1/3 ~= 5>>4 *\/ */
-    /*             FL++; FR++; FC++; */
-    /*         } */
-    /*         break; */
-    /*     case 4: /\* 4.0 channel order: FL FR RL RR *\/ */
-    /*         FL = s->decoded[0]; */
-    /*         FR = s->decoded[1]; */
-    /*         RL = s->decoded[2]; */
-    /*         RR = s->decoded[3]; */
-    /*         /\* LF = 0.50 LF + 0.50 RL + 0.00 RR */
-    /*            LR = 0.50 LR + 0.00 RL + 0.50 RR *\/ */
-    /*         for (i=0; i<s->blocksize; ++i) { */
-    /*             int32_t a = *(FL) + *(RL); */
-    /*             int32_t b = *(FR) + *(RR); */
-    /*             *outL++ = (a>>1) << scale; */
-    /*             *outR++ = (b>>1) << scale; */
-    /*             FL++; FR++; RL++; RR++; */
-    /*         } */
-    /*         break; */
-    /*     case 5: /\* 5.0 channel order: FL FR FC RL RR *\/ */
-    /*         FL = s->decoded[0]; */
-    /*         FR = s->decoded[1]; */
-    /*         FC = s->decoded[2]; */
-    /*         RL = s->decoded[3]; */
-    /*         RR = s->decoded[4]; */
-    /*         /\* LF = 0.40 LF + 0.20 FC + 0.40 RL + 0.00 RR */
-    /*            LR = 0.40 LR + 0.20 FC + 0.00 RL + 0.40 RR *\/ */
-    /*         for (i=0; i<s->blocksize; ++i) { */
-    /*             int32_t a = *(FL)*2 + *(FC) + *(RL)*2; */
-    /*             int32_t b = *(FR)*2 + *(FC) + *(RR)*2; */
-    /*             *outL++ = ((a + (a<<1))>>4) << scale; /\* 3>>4 ~= 1/5 *\/ */
-    /*             *outR++ = ((b + (b<<1))>>4) << scale; /\* 3>>4 ~= 1/5 *\/ */
-    /*             FL++; FR++; FC++; RL++; RR++; */
-    /*         } */
-    /*         break; */
-    /*     case 6: /\* 5.1 channel order: FL FR FC SUB RL RR *\/ */
-    /*         FL = s->decoded[0]; */
-    /*         FR = s->decoded[1]; */
-    /*         FC = s->decoded[2]; */
-    /*         SB = s->decoded[3]; */
-    /*         RL = s->decoded[4]; */
-    /*         RR = s->decoded[5]; */
-    /*         /\* LF = 0.33 LF + 0.16 SUB + 0.16 FC + 0.33 RL + 0.00 RR */
-    /*            LR = 0.33 LR + 0.16 SUB + 0.16 FC + 0.00 RL + 0.33 RR *\/ */
-    /*         for (i=0; i<s->blocksize; ++i) { */
-    /*             int32_t a = *(FL)*2 + *(SB) + *(FC) + *(RL)*2; */
-    /*             int32_t b = *(FR)*2 + *(SB) + *(FC) + *(RR)*2; */
-    /*             *outL++ = ((a + (a<<2))>>5) << scale; /\* 5>>5 ~= 1/6 *\/ */
-    /*             *outR++ = ((b + (b<<2))>>5) << scale; /\* 5>>5 ~= 1/6 *\/ */
-    /*             FL++; FR++; SB++; FC++; RL++; RR++; */
-    /*         } */
-    /*         break; */
-    /*     default: /\* 1.0 and 2.0 do not need downmix, other formats unknown. *\/ */
-    /*         return -501; */
-    /*         break; */
-    /* } */
+    switch(s->channels)
+    {
+        case 3: /* 3.0 channel order: FL FR FC */
+            FL = s->decoded[0];
+            FR = s->decoded[1];
+            FC = s->decoded[2];
+            /* LF = 0.66 LF + 0.33 FC
+               LR = 0.66 LR + 0.33 FC */
+            for (i=0; i<s->blocksize; ++i) {
+                int32_t a = *(FL)*2 + *(FC);
+                int32_t b = *(FR)*2 + *(FC);
+                *outL++ = ((a + (a<<2))>>4) << scale; /* 1/3 ~= 5>>4 */
+                *outR++ = ((b + (b<<2))>>4) << scale; /* 1/3 ~= 5>>4 */
+                FL++; FR++; FC++;
+            }
+            break;
+        case 4: /* 4.0 channel order: FL FR RL RR */
+            FL = s->decoded[0];
+            FR = s->decoded[1];
+            RL = s->decoded[2];
+            RR = s->decoded[3];
+            /* LF = 0.50 LF + 0.50 RL + 0.00 RR
+               LR = 0.50 LR + 0.00 RL + 0.50 RR */
+            for (i=0; i<s->blocksize; ++i) {
+                int32_t a = *(FL) + *(RL);
+                int32_t b = *(FR) + *(RR);
+                *outL++ = (a>>1) << scale;
+                *outR++ = (b>>1) << scale;
+                FL++; FR++; RL++; RR++;
+            }
+            break;
+        case 5: /* 5.0 channel order: FL FR FC RL RR */
+            FL = s->decoded[0];
+            FR = s->decoded[1];
+            FC = s->decoded[2];
+            RL = s->decoded[3];
+            RR = s->decoded[4];
+            /* LF = 0.40 LF + 0.20 FC + 0.40 RL + 0.00 RR
+               LR = 0.40 LR + 0.20 FC + 0.00 RL + 0.40 RR */
+            for (i=0; i<s->blocksize; ++i) {
+                int32_t a = *(FL)*2 + *(FC) + *(RL)*2;
+                int32_t b = *(FR)*2 + *(FC) + *(RR)*2;
+                *outL++ = ((a + (a<<1))>>4) << scale; /* 3>>4 ~= 1/5 */
+                *outR++ = ((b + (b<<1))>>4) << scale; /* 3>>4 ~= 1/5 */
+                FL++; FR++; FC++; RL++; RR++;
+            }
+            break;
+        case 6: /* 5.1 channel order: FL FR FC SUB RL RR */
+            FL = s->decoded[0];
+            FR = s->decoded[1];
+            FC = s->decoded[2];
+            SB = s->decoded[3];
+            RL = s->decoded[4];
+            RR = s->decoded[5];
+            /* LF = 0.33 LF + 0.16 SUB + 0.16 FC + 0.33 RL + 0.00 RR
+               LR = 0.33 LR + 0.16 SUB + 0.16 FC + 0.00 RL + 0.33 RR */
+            for (i=0; i<s->blocksize; ++i) {
+                int32_t a = *(FL)*2 + *(SB) + *(FC) + *(RL)*2;
+                int32_t b = *(FR)*2 + *(SB) + *(FC) + *(RR)*2;
+                *outL++ = ((a + (a<<2))>>5) << scale; /* 5>>5 ~= 1/6 */
+                *outR++ = ((b + (b<<2))>>5) << scale; /* 5>>5 ~= 1/6 */
+                FL++; FR++; SB++; FC++; RL++; RR++;
+            }
+            break;
+        default: /* 1.0 and 2.0 do not need downmix, other formats unknown. */
+            return -501;
+            break;
+    }
     return 0;
 }
 
