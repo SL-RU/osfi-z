@@ -56,8 +56,12 @@
 
 #define MKTAG(a,b,c,d) (a | (b << 8) | (c << 16) | (d << 24))
 
-#define get_le16(gb) bswap_16(get_bits_long(gb, 16))
-#define get_le32(gb) bswap_32(get_bits_long(gb, 32))
+#define get_le16(gb) btss_swap16(get_bits_long(gb, 16))
+#define get_le32(gb) btss_swap32(get_bits_long(gb, 32))
+
+#define FFMAX(a,b) ((a) > (b) ? (a) : (b))
+#define FFMIN(a,b) ((a) > (b) ? (b) : (a))
+
 
 /* converts fourcc string to int */
 static unsigned int ff_get_fourcc(const char *s){
@@ -421,7 +425,7 @@ int shorten_init(ShortenContext* s, uint8_t *buf, int buf_size)
     get_bits(&s->gb, s->bitindex);
 
     /* shorten signature */
-    if (get_bits_long(&s->gb, 32) != bswap_32(ff_get_fourcc("ajkg"))) {
+    if (get_bits_long(&s->gb, 32) != btss_swap32(ff_get_fourcc("ajkg"))) {
         return -1;
     }
 

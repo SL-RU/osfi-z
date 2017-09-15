@@ -247,6 +247,7 @@ add_definitions(-DTARGET_ID=73
 #  -D__PCTOOL__
   -DARM_ARCH=7
   -Dasm=__asm__
+  -DCPU_ARM
 #  -DDEBUG
 )
 add_subdirectory(lib)

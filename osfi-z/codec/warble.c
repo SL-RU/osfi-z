@@ -214,8 +214,8 @@ static void ci_set_elapsed(unsigned long value)
 }
 
 static char
-//__attribute__ ((section (".ccram")))
-input_buffer[10*1024];
+__attribute__ ((section (".ccram")))
+input_buffer[40*1024];
 
 
 /*

@@ -4,7 +4,6 @@
 file(STRINGS SOURCES src)
 #endif(${IS_ARM})
   
-
 add_library (libffmpegFLAC ${src})
 
 target_include_directories (libffmpegFLAC PUBLIC

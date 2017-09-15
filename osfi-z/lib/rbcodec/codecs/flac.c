@@ -531,7 +531,7 @@ enum codec_status flac_codec_run(void)
         ci->yield();
         ci->pcmbuf_insert(&fc.decoded[0][fc.sample_skip], &fc.decoded[1][fc.sample_skip],
                           fc.blocksize - fc.sample_skip);
-        
+        printf("ins\n");
         fc.sample_skip = 0;
 
         /* Update the elapsed-time indicator */

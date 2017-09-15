@@ -45,7 +45,7 @@
 /* #if defined(CPU_COLDFIRE) */
 /* #include "coldfire.h" */
 /* #elif defined(CPU_ARM) */
-/* #include "arm.h" */
+#include "arm.h"
 /* #endif */
 
 static const int sample_rate_table[] ICONST_ATTR =
@@ -257,15 +257,15 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
         return -8;
 
     if ((s->bps + coeff_prec + av_log2(pred_order)) <= 32) {
-        /* #if defined(CPU_COLDFIRE) */
-        /* (void)sum; */
-        /* lpc_decode_emac(s->blocksize - pred_order, qlevel, pred_order, */
-        /*                 decoded + pred_order, coeffs); */
-        /* #elif defined(CPU_ARM) */
-        /* (void)sum; */
-        /* lpc_decode_arm(s->blocksize - pred_order, qlevel, pred_order, */
-        /*                decoded + pred_order, coeffs); */
-        /* #else */
+        #if defined(CPU_COLDFIRE)
+        (void)sum;
+        lpc_decode_emac(s->blocksize - pred_order, qlevel, pred_order,
+                        decoded + pred_order, coeffs);
+        #elif defined(CPU_ARM)
+        (void)sum;
+        lpc_decode_arm(s->blocksize - pred_order, qlevel, pred_order,
+                       decoded + pred_order, coeffs);
+        #else
         for (i = pred_order; i < s->blocksize; i++)
         {
             sum = 0;
@@ -273,14 +273,14 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
                 sum += coeffs[j] * decoded[i-j-1];
             decoded[i] += sum >> qlevel;
         }
-//#endif
+#endif
     } else {
-        /* #if defined(CPU_COLDFIRE) */
-        /* (void)wsum; */
-        /* (void)j; */
-        /* lpc_decode_emac_wide(s->blocksize - pred_order, qlevel, pred_order, */
-        /*                      decoded + pred_order, coeffs); */
-        /* #else */
+        #if defined(CPU_COLDFIRE)
+        (void)wsum;
+        (void)j;
+        lpc_decode_emac_wide(s->blocksize - pred_order, qlevel, pred_order,
+                             decoded + pred_order, coeffs);
+        #else
         for (i = pred_order; i < s->blocksize; i++)
         {
             wsum = 0;
@@ -288,7 +288,7 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
                 wsum += (int64_t)coeffs[j] * (int64_t)decoded[i-j-1];
             decoded[i] += wsum >> qlevel;
         }
-//#endif
+#endif
     }
     
     return 0;
@@ -366,7 +366,7 @@ static inline int decode_subframe(FLACContext *s, int channel, int32_t* decoded)
     }
     else
     {
-        //fprintf(stderr,"Unknown coding type: %d\n",type);
+        printf("Unknown coding type: %d\n",type);
         return -12;
     }
         
@@ -476,7 +476,10 @@ static int decode_frame(FLACContext *s,
     for (ch=0; ch<s->channels; ++ch) {
         yield();
         if ((res=decode_subframe(s, ch, s->decoded[ch])) < 0)
+	{
+	    printf("sub %d %d\n", ch, res);
             return res-100;
+	}
     }
     
     yield();
@@ -624,4 +627,30 @@ int flac_decode_frame(FLACContext *s,
     s->framesize = (get_bits_count(&s->gb)+7)>>3;
 
     return 0;
+}
+unsigned int get_bits_long(GetBitContext *s, int n){
+    if(n<=17) return get_bits(s, n);
+    else{
+        int ret= get_bits(s, 16) << (n-16);
+        return ret | get_bits(s, n-16);
+    }
+}
+
+/** 
+ * shows 0-32 bits.
+ */
+unsigned int show_bits_long(GetBitContext *s, int n){
+    if(n<=17) return show_bits(s, n);
+    else{
+        GetBitContext gb= *s;
+        int ret= get_bits_long(s, n);
+        *s= gb;
+        return ret;
+    }
+}
+
+void align_get_bits(GetBitContext *s)
+{
+    int n= (-get_bits_count(s)) & 7;
+    if(n) skip_bits(s, n);
 }
