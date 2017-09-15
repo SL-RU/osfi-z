@@ -1,0 +1,24 @@
+2015-02-22: V1.0
+Initial release, based on STM32CubeMX 4.6.0
+
+2015-10-03: V1.5
+Updated with STM32CubeMX 4.10.1
+Use SW4STM32 instead of TrueStudio
+
+2015-10-04:
+Delete obsolete CubeMX2LD.tpl
+For Linux users (thanks to xaionaro) 
+CubeMX2Makefile.py now uses UNIX format (so you can execute directly under Linux)
+Fix link script path issue
+ST has some upper/lower case issues in their source code which prevent the code to be compiled under Linux. These has to be fixed manually.
+
+2016-02-24:
+Merge PR from rogerdahl (Better Python and fix stray '\'s)
+Update for STM32CubeMX 4.13.0
+
+2016-05-13:
+Update for STM32CubeMX 4.14.0 (ST removed all source reference in project file)
+Merge PR from mmprestine and madcowswe (Walk the project folder for source files)
+ 
+20160-07-14:
+Merged PR from madcowswe (again) for STM32CubeMX 4.15.1 changes.
