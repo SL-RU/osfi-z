@@ -64,7 +64,13 @@ void Error_Handler(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+#define addr 0010000 << 1
 
+void setr(uint8_t reg, uint8_t val)
+{
+    uint8_t tr[2] = {reg, val};
+    HAL_I2C_Master_Transmit(&hi2c2, addr, tr, 2, 100);
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -131,8 +137,9 @@ int main(void)
     }
     FIL wa;
     HAL_GPIO_WritePin(D_PDN_GPIO_Port, D_PDN_Pin, GPIO_PIN_RESET);
-    HAL_Delay(10);
+    HAL_Delay(1000);
     HAL_GPIO_WritePin(D_PDN_GPIO_Port, D_PDN_Pin, GPIO_PIN_SET);
+    setr(0x00, 0b0000000);
     
     f_open(&wa, "w.wav", FA_READ | FA_OPEN_EXISTING);
     open_f(&wa);
