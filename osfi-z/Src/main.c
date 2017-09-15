@@ -69,7 +69,7 @@ void Error_Handler(void);
 void setr(uint8_t reg, uint8_t val)
 {
     uint8_t tr[2] = {reg, val};
-    HAL_I2C_Master_Transmit(&hi2c2, addr, tr, 2, 100);
+    HAL_I2C_Master_Transmit(&hi2c1, addr, tr, 2, 100);
 }
 /* USER CODE END 0 */
 
@@ -95,7 +95,7 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   MX_UART4_Init();
   MX_I2S3_Init();
-  MX_I2C2_Init();
+  MX_I2C1_Init();
 
   /* USER CODE BEGIN 2 */
     MX_FATFS_Init();
@@ -121,9 +121,9 @@ int main(void)
 	    printf("read %d %d %s\n", r, bw, cd);
 	}
 	f_close(&f);
-	r = f_open(&f, "le.txt", FA_WRITE | FA_CREATE_ALWAYS);
+	r = f_open(&f, "test.txt", FA_WRITE | FA_CREATE_ALWAYS);
 	printf("Open %d\n", r);
-	char cdd[] = "TEST TEST TEST!\n";
+	char cdd[] = "I2C sent!\n";
 	r = f_write(&f, cdd, 17, &bw);
 	printf("read %d %d %s\n", r, bw, cdd);
 	f_close(&f);
@@ -139,7 +139,8 @@ int main(void)
     HAL_GPIO_WritePin(D_PDN_GPIO_Port, D_PDN_Pin, GPIO_PIN_RESET);
     HAL_Delay(1000);
     HAL_GPIO_WritePin(D_PDN_GPIO_Port, D_PDN_Pin, GPIO_PIN_SET);
-    setr(0x00, 0b0000000);
+    setr(0x01, 0b0000010);
+    setr(0x00, 0b1000000);
     
     f_open(&wa, "w.wav", FA_READ | FA_OPEN_EXISTING);
     open_f(&wa);
