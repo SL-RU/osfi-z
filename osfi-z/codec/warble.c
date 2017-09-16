@@ -89,7 +89,7 @@ static struct {
  * has long latency. ALSA buffer underruns still occur sometimes, but this is
  * SDL's fault. */
 
-#define PLAYBACK_BUFFER_SIZE 1024
+#define PLAYBACK_BUFFER_SIZE 4096
 static bool playback_running = false;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_decode_ind;
@@ -177,7 +177,7 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
     int i;
     if(format.stereo_mode == STEREO_INTERLEAVED)
     {
-	count *= 2;
+	//count *= 2;
     }
 
     for (i = 0; i < count; i ++) {
@@ -210,12 +210,12 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 
 static void ci_set_elapsed(unsigned long value)
 {
-    //printf("Time elapsed: %lu\n", value);
+    printf("Time elapsed: %lu\n", value);
 }
 
 static char
-__attribute__ ((section (".ccram")))
-input_buffer[40*1024];
+//__attribute__ ((section (".ccram")))
+input_buffer[20*1024];
 
 
 /*
@@ -250,8 +250,8 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
 static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
     //free(input_buffer);
-    if (!rbcodec_format_is_atomic(ci->id3->codectype))
-        reqsize = MIN(reqsize, 6 * 1024);
+//    if (!rbcodec_format_is_atomic(ci->id3->codectype))
+    reqsize = MIN(reqsize, 20 * 1024);
     //printf("Request buffer size: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
     *realsize = read(input_fd, input_buffer, reqsize);
@@ -540,7 +540,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/ff.flac");
+    decode_file("/fff.flac");
 
     playback_quit();
 

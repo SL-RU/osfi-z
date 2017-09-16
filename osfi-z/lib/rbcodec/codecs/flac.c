@@ -468,6 +468,9 @@ enum codec_status flac_codec_run(void)
     int frame;
     intptr_t param;
 
+
+    ci->seek_buffer(0);
+    
     if (codec_init()) {
         LOGF("FLAC: Error initialising codec\n");
         return CODEC_ERROR;
@@ -531,7 +534,6 @@ enum codec_status flac_codec_run(void)
         ci->yield();
         ci->pcmbuf_insert(&fc.decoded[0][fc.sample_skip], &fc.decoded[1][fc.sample_skip],
                           fc.blocksize - fc.sample_skip);
-        printf("ins\n");
         fc.sample_skip = 0;
 
         /* Update the elapsed-time indicator */

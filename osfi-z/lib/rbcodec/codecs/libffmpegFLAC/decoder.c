@@ -583,7 +583,7 @@ int flac_decode_frame(FLACContext *s,
 
     tmp = get_bits(&s->gb, 16);
     if ((tmp & 0xFFFE) != 0xFFF8){
-        return -41;
+        //return -41;
     }
 
     if ((framesize=decode_frame(s,yield)) < 0){
