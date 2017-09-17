@@ -45,6 +45,7 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "dma.h"
+#include "i2c.h"
 #include "i2s.h"
 #include "sdio.h"
 #include "usart.h"
@@ -54,6 +55,7 @@
 /* USER CODE BEGIN Includes */
 #include "fatfs.h"
 #include "string.h"
+#include "gui.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -74,7 +76,19 @@ void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+static char* err_msg = 0;
+static MLable err_labl;
+static void init_error() //show error message with required err_msg
+{
+    gui_init();
+    m_create_lable(&err_labl,
+    		   host->host,
+    		   mp_sall(0, 0, 20, 0), err_msg,
+    		   MDTextPlacement_LeftUp,
+    		   &ts_textfield);
 
+    SSD1306_UpdateScreen(mGui);
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -99,11 +113,14 @@ int main(void)
   MX_I2S3_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_UART4_Init();
+  MX_I2C1_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
   MX_FATFS_Init();
   printf("\n-----\nstart...\n");
+  err_msg = "HELLO!";
+  init_error();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

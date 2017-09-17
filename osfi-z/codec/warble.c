@@ -215,7 +215,7 @@ static void ci_set_elapsed(unsigned long value)
 
 static char
 //__attribute__ ((section (".ccram")))
-input_buffer[20*1024];
+input_buffer[15*1024];
 
 
 /*
@@ -251,7 +251,7 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
     //free(input_buffer);
 //    if (!rbcodec_format_is_atomic(ci->id3->codectype))
-    reqsize = MIN(reqsize, 20 * 1024);
+    reqsize = MIN(reqsize, 15 * 1024);
     //printf("Request buffer size: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
     *realsize = read(input_fd, input_buffer, reqsize);

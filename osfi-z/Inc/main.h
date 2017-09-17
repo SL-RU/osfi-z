@@ -67,8 +67,6 @@
 #define D_MUTE_GPIO_Port GPIOB
 #define D_SD_Pin GPIO_PIN_5
 #define D_SD_GPIO_Port GPIOB
-#define B_PREV_Pin GPIO_PIN_7
-#define B_PREV_GPIO_Port GPIOB
 #define B_STOP_Pin GPIO_PIN_8
 #define B_STOP_GPIO_Port GPIOB
 #define B_NEXT_Pin GPIO_PIN_9
