@@ -124,7 +124,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     hdma_spi3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_spi3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
     hdma_spi3_tx.Init.Mode = DMA_CIRCULAR;
-    hdma_spi3_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_spi3_tx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_spi3_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
     hdma_spi3_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
     hdma_spi3_tx.Init.MemBurst = DMA_MBURST_SINGLE;

@@ -96,9 +96,16 @@ static int playback_decode_ind;
 static int playback_decode_pos;
 
 //Buffer for codec's purposes
-#define DEC_BUFFER_MAX 64*1024
-static uint8_t  __attribute__ ((section (".ccmram"))) dec_buffer[DEC_BUFFER_MAX];
+#define DEC_BUFFER_MAX 38*1024
+static uint8_t
+__attribute__ ((section (".ccmram")))
+dec_buffer[DEC_BUFFER_MAX];
 static uint32_t dec_id = 0;
+#define DEC_INPUT_BUFFER_LEN 26*1024
+static uint32_t
+__attribute__ ((section (".ccmram")))
+input_buffer[DEC_INPUT_BUFFER_LEN/4];
+
 
 
 
@@ -177,7 +184,7 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
     int i;
     if(format.stereo_mode == STEREO_INTERLEAVED)
     {
-	//count *= 2;
+	count *= 2;
     }
 
     for (i = 0; i < count; i ++) {
@@ -210,12 +217,8 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 
 static void ci_set_elapsed(unsigned long value)
 {
-    printf("Time elapsed: %lu\n", value);
+    //printf("Time elapsed: %lu\n", value);
 }
-
-static char
-//__attribute__ ((section (".ccram")))
-input_buffer[15*1024];
 
 
 /*
@@ -251,7 +254,9 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
     //free(input_buffer);
 //    if (!rbcodec_format_is_atomic(ci->id3->codectype))
-    reqsize = MIN(reqsize, 15 * 1024);
+    if(reqsize > DEC_INPUT_BUFFER_LEN)
+	printf("WARNING: request buffer reqsize is too large %ld > %d\n", reqsize, DEC_INPUT_BUFFER_LEN); 
+    reqsize = MIN(reqsize, DEC_INPUT_BUFFER_LEN);
     //printf("Request buffer size: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
     *realsize = read(input_fd, input_buffer, reqsize);
@@ -532,6 +537,12 @@ static void decode_file(const char *input_fn)
 }
 
 
+char p[1024] = {0};
+void w_set_file(char *file)
+{
+    strncpy(p, file, 1024);
+}
+
 int dmain()
 {
     printf("playback init...\n");
@@ -540,7 +551,7 @@ int dmain()
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file("/fff.flac");
+    decode_file(p);
 
     playback_quit();
 

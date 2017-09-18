@@ -52,10 +52,15 @@
 #include "usart.h"
 #include "gpio.h"
 #include "fatfs.h"
+#include "string.h"
+#include "gui.h"
+#include "gui_controls.h"
+#include "fm.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
 osThreadId defaultTaskHandle;
+osThreadId guiThreadHandle;
 
 /* USER CODE BEGIN Variables */
 extern int dmain();
@@ -65,11 +70,30 @@ extern char _plug_end[];
 
 /* Function prototypes -------------------------------------------------------*/
 void StartDefaultTask(void const * argument);
+void guiStart(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
+FATFS fileSystem;
+static char* err_msg = 0;
+static MLable err_labl;
+static void init_error() //show error message with required err_msg
+{
+    gui_init();
+    m_create_lable(&err_labl,
+    		   host->host,
+    		   mp_sall(0, 0, 20, 0), err_msg,
+    		   MDTextPlacement_LeftUp,
+    		   &ts_textfield);
 
+    SSD1306_UpdateScreen(mGui);
+}
+void start_warble()
+{
+    osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 2048);
+    defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+}
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
@@ -82,28 +106,31 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
+    /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
+    /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
+    /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 4096);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+
+  /* definition and creation of guiThread */
+  osThreadDef(guiThread, guiStart, osPriorityIdle, 0, 2048);
+  guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
+    /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
+    /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 }
 
@@ -113,34 +140,48 @@ void StartDefaultTask(void const * argument)
 
   /* USER CODE BEGIN StartDefaultTask */
     printf("addr: %lx - %lx\n", _plug_start, _plug_end);
-    FATFS fileSystem;
-    FRESULT res;
-    
-  
-    if((res = f_mount(&fileSystem, SD_Path, 1)) == FR_OK)
-    {
-    	printf("SD CARD OK\n");
-
-    	/* res = f_open(&testFile, (char*)pathr, FA_READ); */
-    	/* printf("read open result: %d\n", res); */
-    	/* f_read(&testFile, testBuffer, 16, &testBytes); */
-    	/* printf("readed: %s\n", testBuffer);       */
-    	/* res = f_close(&testFile); */
-    }
-    else
-    {
-    	printf("no sd %d\n", res);
-    }
 
     HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
     dmain();
 
     /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+    for(;;)
+    {
+	osDelay(1);
+    }
   /* USER CODE END StartDefaultTask */
+}
+
+/* guiStart function */
+void guiStart(void const * argument)
+{
+  /* USER CODE BEGIN guiStart */
+    FRESULT res;
+    if((res = f_mount(&fileSystem, SD_Path, 1)) == FR_OK)
+    {
+    	printf("SD CARD OK\n");
+    }
+    else
+    {
+    	printf("no sd %d\n", res);
+	err_msg = "NO SD!!!";
+	init_error();
+	return;
+    }
+
+    gui_init();
+    gui_controls_init();
+    fm_init();
+    SSD1306_UpdateScreen(mGui);
+    /* Infinite loop */
+    for(;;)
+    {
+	gui_controls_update();
+	xSemaphoreTake(SSD1306_semaphore, portMAX_DELAY);
+	ssd1306_send();
+	ssd1306_render();
+    }
+  /* USER CODE END guiStart */
 }
 
 /* USER CODE BEGIN Application */

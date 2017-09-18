@@ -45,6 +45,7 @@ static uint8_t draw   (MElement* b)
 			((MLable*)b->data)->place,
 			((MLable*)b->data)->style->font,
 			th->font_col);
+    b->position.left = (b->position.left + 1) % 100;
     
     return M_OK;
 }

@@ -1,3 +1,2 @@
 decoder.c
 shndec.c
-arm.S

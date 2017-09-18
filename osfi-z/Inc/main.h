@@ -51,6 +51,8 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define B_PREV_Pin GPIO_PIN_13
+#define B_PREV_GPIO_Port GPIOC
 #define D_WS_Pin GPIO_PIN_4
 #define D_WS_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_5

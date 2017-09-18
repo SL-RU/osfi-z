@@ -3,13 +3,13 @@
 
 MakiseGUI    *mGui;
 MHost        *host;
-MakiseGUI    Gu;
-MakiseBuffer Bu;
-MakiseDriver Dr;
-MHost        hs;
-MContainer   co;
-uint32_t SSD1306_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 8 + 1];
-uint32_t Makise_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 8 + 1];
+static MakiseGUI    Gu;
+static MakiseBuffer Bu;
+static MakiseDriver Dr;
+static MHost        hs;
+static MContainer   co;
+static uint32_t SSD1306_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
+static uint32_t Makise_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
 
 
 
@@ -88,7 +88,6 @@ MakiseGUI* gui_init()
     printf("%d\n", (uint32_t)(sz));    
     
     mGui = gu;
-    //ili9340_init(gu);
     ssd1306_init(gu);
     makise_start(gu);
 

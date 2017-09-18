@@ -5,7 +5,7 @@
 
 #define MAX_CHANNELS 2       /* Maximum supported channels, only left/right will be played back */
 #define MAX_BLOCKSIZE 4608   /* Maxsize in samples of one uncompressed frame */
-#define MAX_FRAMESIZE 20*1024  /* Maxsize in bytes of one compressed frame */
+#define MAX_FRAMESIZE 26*1024-16  /* Maxsize in bytes of one compressed frame */
 
 #define FLAC_OUTPUT_DEPTH 29 /* Provide samples left-shifted to 28 bits+sign */
 
@@ -44,6 +44,6 @@ typedef struct FLACContext {
 
 int flac_decode_frame(FLACContext *s,
                       uint8_t *buf, int buf_size,
-                      void (*yield)(void)) ICODE_ATTR_FLAC;
+                      void (*yield)(void));
 
 #endif

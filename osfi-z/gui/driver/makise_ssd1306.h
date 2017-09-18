@@ -3,7 +3,8 @@
 #include "i2c.h"
 #include "gpio.h"
 #include <stdio.h>
-
+#include "FreeRTOS.h"
+#include "cmsis_os.h"
 #include <strings.h>
 
 #include "stm32f4xx_hal.h"
@@ -58,6 +59,8 @@
 #define SSD1306_SET_VCOM_DESELECT                       0xDB
 
 
+extern xSemaphoreHandle SSD1306_semaphore;
+
 void ssd1306_driver(MakiseDriver*);
 
 uint8_t ssd1306_init (MakiseGUI* gui);
@@ -92,5 +95,7 @@ void ssd1306_I2C_Write(uint8_t address, uint8_t reg, uint8_t data);
  */
 void ssd1306_I2C_WriteMulti(uint8_t address, uint8_t reg, uint8_t *data, uint16_t count);
 
+void ssd1306_send();
+void ssd1306_render();
 
 #endif

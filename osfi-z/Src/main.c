@@ -76,19 +76,6 @@ void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-static char* err_msg = 0;
-static MLable err_labl;
-static void init_error() //show error message with required err_msg
-{
-    gui_init();
-    m_create_lable(&err_labl,
-    		   host->host,
-    		   mp_sall(0, 0, 20, 0), err_msg,
-    		   MDTextPlacement_LeftUp,
-    		   &ts_textfield);
-
-    SSD1306_UpdateScreen(mGui);
-}
 /* USER CODE END 0 */
 
 int main(void)
@@ -119,8 +106,6 @@ int main(void)
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
   MX_FATFS_Init();
   printf("\n-----\nstart...\n");
-  err_msg = "HELLO!";
-  init_error();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

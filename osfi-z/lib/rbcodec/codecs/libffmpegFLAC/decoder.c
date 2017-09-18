@@ -45,7 +45,7 @@
 /* #if defined(CPU_COLDFIRE) */
 /* #include "coldfire.h" */
 /* #elif defined(CPU_ARM) */
-#include "arm.h"
+//#include "arm.h"
 /* #endif */
 
 static const int sample_rate_table[] ICONST_ATTR =
@@ -257,15 +257,15 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
         return -8;
 
     if ((s->bps + coeff_prec + av_log2(pred_order)) <= 32) {
-        #if defined(CPU_COLDFIRE)
-        (void)sum;
-        lpc_decode_emac(s->blocksize - pred_order, qlevel, pred_order,
-                        decoded + pred_order, coeffs);
-        #elif defined(CPU_ARM)
-        (void)sum;
-        lpc_decode_arm(s->blocksize - pred_order, qlevel, pred_order,
-                       decoded + pred_order, coeffs);
-        #else
+        /* #if defined(CPU_COLDFIRE) */
+        /* (void)sum; */
+        /* lpc_decode_emac(s->blocksize - pred_order, qlevel, pred_order, */
+        /*                 decoded + pred_order, coeffs); */
+        /* #elif defined(CPU_ARM) */
+        /* (void)sum; */
+        /* lpc_decode_arm(s->blocksize - pred_order, qlevel, pred_order, */
+        /*                decoded + pred_order, coeffs); */
+        /* #else */
         for (i = pred_order; i < s->blocksize; i++)
         {
             sum = 0;
@@ -273,7 +273,7 @@ static int decode_subframe_lpc(FLACContext *s, int32_t* decoded, int pred_order)
                 sum += coeffs[j] * decoded[i-j-1];
             decoded[i] += sum >> qlevel;
         }
-#endif
+//#endif
     } else {
         #if defined(CPU_COLDFIRE)
         (void)wsum;

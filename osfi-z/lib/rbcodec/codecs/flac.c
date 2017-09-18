@@ -34,7 +34,7 @@ static int32_t *decoded1;
 /* static int32_t decoded4[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
 /* static int32_t decoded5[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
 
-#define MAX_SUPPORTED_SEEKTABLE_SIZE 500
+#define MAX_SUPPORTED_SEEKTABLE_SIZE 0
 
 /* Notes about seeking:
 
@@ -490,16 +490,16 @@ enum codec_status flac_codec_run(void)
                   STEREO_MONO : STEREO_NONINTERLEAVED);
     codec_set_replaygain(ci->id3);
 
-    if (samplesdone || !elapsedtime) {
-        flac_seek_offset(&fc, samplesdone);
-        samplesdone=fc.samplenumber+fc.blocksize;
-        elapsedtime=((uint64_t)samplesdone*1000)/(ci->id3->frequency);
-    }
-    else if (!flac_seek(&fc,(uint32_t)((uint64_t)elapsedtime
-                            *ci->id3->frequency/1000))) {
-        elapsedtime = 0;
-    }
-
+    /* if (samplesdone || !elapsedtime) { */
+    /*     flac_seek_offset(&fc, samplesdone); */
+    /*     samplesdone=fc.samplenumber+fc.blocksize; */
+    /*     elapsedtime=((uint64_t)samplesdone*1000)/(ci->id3->frequency); */
+    /* } */
+    /* else if (!flac_seek(&fc,(uint32_t)((uint64_t)elapsedtime */
+    /*                         *ci->id3->frequency/1000))) { */
+    /*     elapsedtime = 0; */
+    /* } */
+    elapsedtime = 0;
     ci->set_elapsed(elapsedtime);
 
     /* The main decoding loop */

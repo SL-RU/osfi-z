@@ -8,6 +8,8 @@
 
 static MakiseGUI *mgui;
 
+xSemaphoreHandle SSD1306_semaphore;
+
 void ssd1306_render();
 void ssd1306_send();
 
@@ -40,6 +42,8 @@ void SSD1306_sendCmd(uint8_t cmd)
 uint8_t ssd1306_init (MakiseGUI* gui)
 {
     mgui = gui;
+    SSD1306_semaphore = xSemaphoreCreateCounting(100, 0);
+    
     /* Init I2C */
     /* Check if LCD connected to I2C */
     if (HAL_I2C_IsDeviceReady(&SSD1306_I2C, SSD1306_I2C_ADDR, 1, 20000) != HAL_OK) {
@@ -91,8 +95,12 @@ uint8_t ssd1306_init (MakiseGUI* gui)
     return M_OK;
 }
 
+static uint8_t rendered = 0;
 void ssd1306_render()
 {
+    if(rendered == 1)
+	return;
+    rendered = 1;
     memset(mgui->buffer->buffer, 0, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
     if(mgui->predraw != 0)
     {
@@ -127,6 +135,7 @@ void ssd1306_render()
 
 void ssd1306_send()
 {
+    rendered = 0;
     memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
 
     //printf("send\n");
@@ -150,24 +159,21 @@ void ssd1306_send()
 
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-    ssd1306_send();
-//    printf("s");
-    ssd1306_render();
+    static BaseType_t xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(SSD1306_semaphore, &xHigherPriorityTaskWoken);
+    portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }
+
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
     printf("OLED I2C ERROR!!!\n\r");
 }
-static uint8_t rendered = 0;
-static uint8_t sent = 0;
 void SSD1306_UpdateScreen(MakiseGUI* gui) {
-    if(!rendered)
-    {
-	rendered = 1;
-	ssd1306_render();
-	ssd1306_send();
-	ssd1306_render();
-    }
+    ssd1306_render();
+    ssd1306_send();
+    ssd1306_render();
+
     /* if(HAL_DMA_GetState(SSD1306_I2C.hdmatx) == HAL_DMA_STATE_READY && rendered) */
     /* { */
     /* 	printf("send oled\n"); */

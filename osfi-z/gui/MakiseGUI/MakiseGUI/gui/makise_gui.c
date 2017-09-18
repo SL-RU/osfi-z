@@ -53,7 +53,7 @@ MFocusEnum makise_g_focus  (MElement *el, MFocusEnum event)
     
     if(event & M_G_FOCUS_GET)
     {
-	printf("Focus %d\n", el->id);
+	//printf("Focus %d\n", el->id);
 	//if focus need be recieved
 	MElement *e = el;
 
@@ -111,7 +111,7 @@ MFocusEnum makise_g_focus  (MElement *el, MFocusEnum event)
     }
     else if(event == M_G_FOCUS_LEAVE)
     {
-	printf("Focus leave %d\n", el->id);
+	//printf("Focus leave %d\n", el->id);
 	MElement *e = el;
 
 	MFocusEnum r = 0;
