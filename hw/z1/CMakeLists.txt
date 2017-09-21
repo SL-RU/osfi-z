@@ -201,6 +201,8 @@ SET(TARGET ${CMAKE_PROJECT_NAME})
 
 #setup targets
 get_directory_property(C_DEFS COMPILE_DEFINITIONS)
+
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #.elf
 add_executable(${TARGET}.elf ${SRC} ${asm_SRC})
 

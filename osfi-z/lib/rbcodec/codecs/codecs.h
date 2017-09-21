@@ -46,9 +46,6 @@
 
 #include "gcc_extensions.h"
 //#include "load_code.h"
-
-#ifdef CODEC //codec
-
 #ifdef DEBUG
 #undef DEBUGF
 #define DEBUGF  ci->debugf
@@ -68,7 +65,6 @@
 #define LOGF(...)
 #endif//ROCKBOX_HAS_LOGF
 
-#endif //codec
 
 //#define ALT_BITSTREAM_READER
 

@@ -1,6 +1,6 @@
+add_subdirectory(MakiseGUI)
 add_subdirectory(codec)
 add_subdirectory(lib)
 add_subdirectory(Controls)
 add_subdirectory(fatfs)
 add_subdirectory(gui)
-add_subdirectory(MakiseGUI)
