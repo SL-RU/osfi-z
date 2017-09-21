@@ -20,9 +20,8 @@
  ****************************************************************************/
 
 #include "codeclib.h"
-#include <codecs/libffmpegFLAC/decoder.h>
+#include "libffmpegFLAC/decoder.h"
 
-CODEC_HEADER
 
 static FLACContext fc;
 

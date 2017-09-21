@@ -3,25 +3,29 @@ file(STRINGS SOURCES_lib src_fls)
 message("codecs library")
 #message(${src_fls})
 
-set(CODECS_CFLAGS "-nostartfiles -fstrict-aliasing -DCODEC -gdwarf-2  -fdata-sections -std=c99 -ffunction-sections -Wa,-mimplicit-it=thumb -c -O2 ${global_flags}")
-set(CODECS_LINKER "-T${CMAKE_CURRENT_SOURCE_DIR}/codecs.lds -lgcc -Wl,-z,defs -nostartfiles -specs=nosys.specs -Wa,-mimplicit-it=thumb -Wl,--gc-sections -lnosys -Wl,-z,defs -Wl,--gc-sections -lc -lm ")
+set(CODECS_CFLAGS "")
+set(CODECS_LINKER "")
 
 
 add_library (codecs ${src_fls})
 
 target_include_directories (codecs PUBLIC
+  ../
+  ../dsp
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
   )
 target_include_directories (codecs INTERFACE
+  ../
+  ../dsp
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
   )
-set_target_properties(codecs PROPERTIES COMPILE_FLAGS ${CODECS_CFLAGS})
+#set_target_properties(codecs PROPERTIES COMPILE_FLAGS ${CODECS_CFLAGS})
 TARGET_LINK_LIBRARIES(codecs rockbox_sys)
-TARGET_LINK_LIBRARIES(codecs fixedpoint)
-TARGET_LINK_LIBRARIES(codecs tlsf)
-TARGET_LINK_LIBRARIES(codecs rbcodec)
+#TARGET_LINK_LIBRARIES(codecs fixedpoint)
+#TARGET_LINK_LIBRARIES(codecs tlsf)
+#TARGET_LINK_LIBRARIES(codecs rbcodec)
 
   
 add_subdirectory(libffmpegFLAC)

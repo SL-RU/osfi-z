@@ -21,7 +21,7 @@
  ****************************************************************************/
 
 #include "codeclib.h"
-#include "codecs/libpcm/support_formats.h"
+#include "libpcm/support_formats.h"
 
 /* WAVE (RIFF) codec:
  * 
@@ -107,7 +107,7 @@ static bool set_msadpcm_coeffs(const uint8_t *buf)
     if (size < 50)
     {
         DEBUGF("CODEC_ERROR: microsoft adpcm 'fmt ' chunk size=%lu < 50\n",
-                             (unsigned long)size);
+	       (unsigned long)size);
         return false;
     }
 

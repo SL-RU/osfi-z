@@ -1,10 +1,9 @@
 #include "fm.h"
 #include "ff.h"
-#include "gui_filelist.h"
 
 
 //static MSList list;
-static Filelist flist;
+static MFSViewer flist;
 void start_warble();
 void w_set_file(char *file);
 
@@ -29,7 +28,7 @@ static char* to_uppercase(char *s)
     return (str);
 }
 
-uint8_t onselection(Filelist *l, Filelist_Item *selected)
+uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 {
     if(selected != 0)
     {
@@ -69,14 +68,14 @@ void fm_init()
 {
     printf("FM initing\n");
     //initialize gui elements
-    m_create_filelist(&flist, host->host,
+    m_create_fsviewer(&flist, host->host,
     		      mp_sall(0,0,0,0), //position
     		      0, //header
     		      &onselection, 0, //events
-    		      Filelist_SingleSelect,
-    		      &ts_slist, &ts_slist_item);
+    		      MFSViewer_SingleSelect,
+    		      &ts_fsviewer, &ts_fsviewer_item);
 	
 	
-    filelist_open(&flist, "/");
+    fsviewer_open(&flist, "/");
     makise_g_focus(&flist.el, M_G_FOCUS_GET); //focus file list
 }

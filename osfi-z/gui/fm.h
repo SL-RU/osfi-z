@@ -1,6 +1,7 @@
 #ifndef APPS_H
 #define APPS_H 1
 #include "gui.h"
+#include "makise_e.h"
 #include <string.h>
 
 

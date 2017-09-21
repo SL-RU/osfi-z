@@ -31,21 +31,21 @@
 #include "rbcodecconfig.h"
 #include "metadata.h"
 //#include "audio.h"
-#ifdef RB_PROFILE
-/* #include "profile.h" */
-/* #include "thread.h" */
-#endif
-#if (CONFIG_CODEC == SWCODEC)
-#ifdef HAVE_RECORDING
-#include "enc_base.h"
-#endif
-#include "dsp_core.h"
-#include "dsp_misc.h"
-#include "dsp-util.h"
-#endif
+/* #ifdef RB_PROFILE */
+/* /\* #include "profile.h" *\/ */
+/* /\* #include "thread.h" *\/ */
+/* #endif */
+/* #if (CONFIG_CODEC == SWCODEC) */
+/* #ifdef HAVE_RECORDING */
+/* #include "enc_base.h" */
+/* #endif */
+/* #include "dsp_core.h" */
+/* #include "dsp_misc.h" */
+/* #include "dsp-util.h" */
+/* #endif */
 
 #include "gcc_extensions.h"
-#include "load_code.h"
+//#include "load_code.h"
 
 #ifdef CODEC //codec
 
@@ -60,6 +60,7 @@
 #undef LDEBUGF
 #define LDEBUGF(...)
 #endif //debug
+
 #ifdef ROCKBOX_HAS_LOGF
 #undef LOGF
 #define LOGF ci->logf
@@ -191,37 +192,7 @@ struct codec_api {
        the API gets incompatible */
 };
 
-/* codec header */
-struct codec_header {
-    struct lc_header lc_hdr; /* must be first */
-    enum codec_status(*entry_point)(enum codec_entry_call_reason reason);
-    enum codec_status(*run_proc)(void);
-    struct codec_api **api;
-    void * rec_extension[]; /* extension for encoders */
-};
-
 extern struct codec_api *ci;
-#ifdef CODEC
-/* plugin_* is correct, codecs use the plugin linker script */
-extern unsigned char plugin_start_addr[];
-extern unsigned char plugin_end_addr[];
-/* decoders */
-#define CODEC_HEADER \
-        const struct codec_header __header \
-        __attribute__ ((section (".header")))= { \
-        { CODEC_MAGIC, TARGET_ID, CODEC_API_VERSION, \
-        plugin_start_addr, plugin_end_addr }, codec_start, \
-        codec_run, &ci };
-/* encoders */
-#define CODEC_ENC_HEADER \
-        const struct codec_header __header \
-        __attribute__ ((section (".header")))= { \
-        { CODEC_ENC_MAGIC, TARGET_ID, CODEC_API_VERSION, \
-        plugin_start_addr, plugin_end_addr }, codec_start, \
-        codec_run, &ci, { enc_callback } };
-
-struct codec_api * codec_get_ci();
-#endif /* CODEC */
 
 
 

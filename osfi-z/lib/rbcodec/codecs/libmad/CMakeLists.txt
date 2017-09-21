@@ -13,5 +13,5 @@ target_include_directories (libmad PUBLIC
 target_include_directories (libmad INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
-set_target_properties(libmad PROPERTIES COMPILE_FLAGS ${CODECS_CFLAGS})
+#set_target_properties(libmad PROPERTIES COMPILE_FLAGS ${CODECS_CFLAGS})
 TARGET_LINK_LIBRARIES(libmad codecs)

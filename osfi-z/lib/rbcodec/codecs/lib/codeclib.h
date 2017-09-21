@@ -26,7 +26,7 @@
 #include "codecs.h"
 #include "mdct.h"
 #include "fft.h"
-
+#include "dsp_core.h"
 extern struct codec_api *ci;
 
 /* Standard library functions that are used by the codecs follow here */

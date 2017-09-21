@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 #include "codeclib.h"
-#include <codecs/libmad/mad.h>
+#include "mad.h"
 #include <inttypes.h>
 
 

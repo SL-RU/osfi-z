@@ -3,7 +3,7 @@
 
 #include "rbcodecconfig.h"
 #include "rbcodecplatform.h"
-
+#include <unistd.h>
 /*
 
 #ifndef ROCKBOX

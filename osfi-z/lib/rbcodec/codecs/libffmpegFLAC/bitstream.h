@@ -19,6 +19,10 @@
 #define IBSS_ATTR_FLAC_DECODED0 IBSS_ATTR
 #endif
 
+#ifndef __packed
+#define __packed __attribute__((__packed__))
+#endif /* __packed */
+
 /* Endian conversion routines for standalone compilation */
 #define btss_letoh32(x) (x)
 #define btss_betoh32(x) btss_swap32(x)

@@ -30,26 +30,8 @@ extern void ldebugf(const char* file, int line, const char *fmt, ...)
                     ATTRIBUTE_PRINTF(3, 4);
 
 #ifndef CODEC  
-
-#if defined(SIMULATOR) && !defined(__PCTOOL__) \
-    || (defined(APPLICATION) && defined(DEBUG))
-#define DEBUGF  debugf
-#define LDEBUGF(...) ldebugf(__FILE__, __LINE__, __VA_ARGS__)
-#elif defined(DEBUG) /* DEBUG on native targets */
-
-#ifdef HAVE_GDB_API
-void breakpoint(void);
-#endif
-
-#define DEBUGF  debugf
-#define LDEBUGF debugf
-
-#else /* !DEBUG */
-
 #define DEBUGF(...) do { } while(0)
 #define LDEBUGF(...) do { } while(0)
-
-#endif /* SIMULATOR && !__PCTOOL__ || APPLICATION && DEBUG */
 
 #endif /* CODEC */
 #endif

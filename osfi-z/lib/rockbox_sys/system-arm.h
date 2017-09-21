@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
+
 /* Common to all ARM_ARCH */
 #define nop \
   asm volatile ("nop")

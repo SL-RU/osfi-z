@@ -42,7 +42,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include <time.h>
-#include <codecs/lib/codeclib.h>
+#include "codeclib.h"
 
 #include "codeclib_misc.h"
 #include "mdct_lookup.h"

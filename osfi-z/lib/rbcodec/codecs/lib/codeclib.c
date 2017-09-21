@@ -44,15 +44,15 @@ int codec_init(void)
 
 void codec_set_replaygain(const struct mp3entry *id3)
 {
-    struct dsp_replay_gains gains =
-    {
-        .track_gain = id3->track_gain,
-        .album_gain = id3->album_gain,
-        .track_peak = id3->track_peak,
-        .album_peak = id3->album_peak,
-    };
+    /* struct dsp_replay_gains gains = */
+    /* { */
+    /*     .track_gain = id3->track_gain, */
+    /*     .album_gain = id3->album_gain, */
+    /*     .track_peak = id3->track_peak, */
+    /*     .album_peak = id3->album_peak, */
+    /* }; */
 
-    ci->configure(REPLAYGAIN_SET_GAINS, (intptr_t)&gains);
+    /* ci->configure(REPLAYGAIN_SET_GAINS, (intptr_t)&gains); */
 }
 
 /* Various "helper functions" common to all the xxx2wav decoder plugins  */

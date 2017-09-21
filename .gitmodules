@@ -1,0 +1,3 @@
+[submodule "MakiseGUI"]
+	path = osfi-z/MakiseGUI
+	url = https://github.com/SL-RU/MakiseGUI

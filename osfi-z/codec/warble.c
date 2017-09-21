@@ -15,6 +15,7 @@
 #include "i2s.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
+#include "dsp_core.h"
 
 void debugf(const char *fmt, ...)
 {

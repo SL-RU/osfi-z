@@ -23,9 +23,7 @@
 
 #include "config.h"
 
-#ifndef __MINGW32__
 #include "endian.h"
-#endif
 
 /* clear these out since we redefine them to be truely constant compatible */
 #undef swap16

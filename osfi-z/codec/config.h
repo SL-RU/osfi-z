@@ -22,6 +22,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "stm32f4xx_hal.h"
 
 /* symbolic names for multiple choice configurations: */
 
@@ -51,7 +52,7 @@
 #define HAVE_ASSERT_H
 
 
-#include "sdlapp.h"
+
 
 //#define CONFIG_PLATFORM PLATFORM_NATIVE
 

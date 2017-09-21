@@ -22,5 +22,6 @@ add_library(rockbox_sys ${rockbox_sys_src})
 target_include_directories(rockbox_sys PUBLIC ${rockbox_sys_h})
 target_include_directories(rockbox_sys INTERFACE ${rockbox_sys_h})
 
-TARGET_LINK_LIBRARIES(rockbox_sys tlsf)
+TARGET_LINK_LIBRARIES(rockbox_sys codec hardware)
+target_compile_definitions(rockbox_sys PUBLIC ${GLOBAL_DEFS})
 

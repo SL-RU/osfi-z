@@ -21,7 +21,7 @@
  ****************************************************************************/
 
 #include "codeclib.h"
-#include "codecs/libpcm/support_formats.h"
+#include "libpcm/support_formats.h"
 
 
 #define FOURCC(c1, c2, c3, c4) \
