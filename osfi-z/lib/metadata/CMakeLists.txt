@@ -10,4 +10,4 @@ target_include_directories(metadata
 target_include_directories(metadata
   PUBLIC ${h})
 
-target_link_libraries(metadata codecs codec rockbox_sys fixedpoint)
+target_link_libraries(metadata codecs codec rockbox_sys fixedpoint stddeflib)

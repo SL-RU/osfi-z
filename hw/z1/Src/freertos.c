@@ -56,6 +56,7 @@
 #include "gui.h"
 #include "gui_controls.h"
 #include "fm.h"
+#include "warble.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -66,7 +67,6 @@ osThreadId guiThreadHandle;
 FATFS fileSystem;
 static char* err_msg = 0;
 static MLable err_labl;
-extern int dmain();
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -138,12 +138,6 @@ void StartDefaultTask(void const * argument)
     /* USER CODE BEGIN StartDefaultTask */
     HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
     dmain();
-
-    /* Infinite loop */
-    for(;;)
-    {
-	osDelay(1);
-    }
     /* USER CODE END StartDefaultTask */
 }
 

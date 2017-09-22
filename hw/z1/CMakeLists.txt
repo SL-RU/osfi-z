@@ -206,7 +206,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #.elf
 add_executable(${TARGET}.elf ${SRC} ${asm_SRC})
 
-TARGET_LINK_LIBRARIES(${TARGET}.elf codec gui)
+TARGET_LINK_LIBRARIES(${TARGET}.elf codec gui controls fatfs)
 
 #print size
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD COMMAND ${CMAKE_SIZE} ${TARGET}.elf)
