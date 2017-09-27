@@ -107,7 +107,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-osfi-z/project.el
+*project.el
 
 *.b
 
