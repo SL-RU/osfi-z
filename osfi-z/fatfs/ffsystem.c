@@ -55,10 +55,6 @@ int ff_cre_syncobj (	/* 1:Function succeeded, 0:Could not create the sync object
 	FF_SYNC_t *sobj		/* Pointer to return the created sync object */
 )
 {
-	/* Win32 */
-	*sobj = CreateMutex(NULL, FALSE, NULL);
-	return (int)(*sobj != INVALID_HANDLE_VALUE);
-
 	/* uITRON */
 //	T_CSEM csem = {TA_TPRI,1,1};
 //	*sobj = acre_sem(&csem);
@@ -70,8 +66,8 @@ int ff_cre_syncobj (	/* 1:Function succeeded, 0:Could not create the sync object
 //	return (int)(err == OS_NO_ERR);
 
 	/* FreeRTOS */
-//	*sobj = xSemaphoreCreateMutex();
-//	return (int)(*sobj != NULL);
+	*sobj = xSemaphoreCreateMutex();
+	return (int)(*sobj != NULL);
 
 	/* CMSIS-RTOS */
 //	*sobj = osMutexCreate(Mutex + vol);
@@ -92,7 +88,7 @@ int ff_del_syncobj (	/* 1:Function succeeded, 0:Could not delete due to an error
 )
 {
 	/* Win32 */
-	return (int)CloseHandle(sobj);
+    //return (int)CloseHandle(sobj);
 
 	/* uITRON */
 //	return (int)(del_sem(sobj) == E_OK);
@@ -103,8 +99,8 @@ int ff_del_syncobj (	/* 1:Function succeeded, 0:Could not delete due to an error
 //	return (int)(err == OS_NO_ERR);
 
 	/* FreeRTOS */
-//  vSemaphoreDelete(sobj);
-//	return 1;
+	vSemaphoreDelete(sobj);
+	return 1;
 
 	/* CMSIS-RTOS */
 //	return (int)(osMutexDelete(sobj) == osOK);
@@ -123,7 +119,7 @@ int ff_req_grant (	/* 1:Got a grant to access the volume, 0:Could not get a gran
 )
 {
 	/* Win32 */
-	return (int)(WaitForSingleObject(sobj, FF_FS_TIMEOUT) == WAIT_OBJECT_0);
+//	return (int)(WaitForSingleObject(sobj, FF_FS_TIMEOUT) == WAIT_OBJECT_0);
 
 	/* uITRON */
 //	return (int)(wai_sem(sobj) == E_OK);
@@ -134,7 +130,7 @@ int ff_req_grant (	/* 1:Got a grant to access the volume, 0:Could not get a gran
 //	return (int)(err == OS_NO_ERR);
 
 	/* FreeRTOS */
-//	return (int)(xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
+	return (int)(xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
 
 	/* CMSIS-RTOS */
 //	return (int)(osMutexWait(sobj, FF_FS_TIMEOUT) == osOK);
@@ -152,7 +148,7 @@ void ff_rel_grant (
 )
 {
 	/* Win32 */
-	ReleaseMutex(sobj);
+    //ReleaseMutex(sobj);
 
 	/* uITRON */
 //	sig_sem(sobj);
@@ -161,7 +157,7 @@ void ff_rel_grant (
 //	OSMutexPost(sobj);
 
 	/* FreeRTOS */
-//	xSemaphoreGive(sobj);
+	xSemaphoreGive(sobj);
 
 	/* CMSIS-RTOS */
 //	osMutexRelease(sobj);
