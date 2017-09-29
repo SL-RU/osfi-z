@@ -119,15 +119,16 @@ void ssd1306_render()
 //    printf("u");
 
 
-    /* for (uint8_t x = 0; x < 128; x++) { */
-    /* 	for (uint8_t y = 0; y < 64; y++) { */
-    /* 	    if(makise_pget_fast(gui->buffer, x, y)) */
-    /* 		((uint8_t*)gui->driver->buffer)[x+ (y/8)*SSD1306_WIDTH] |= (1 << y%8); */
-    /* 	    else */
-    /* 		((uint8_t*)gui->driver->buffer)[x+ (y/8)*SSD1306_WIDTH] &= ~(1 << y%8);  */
+    for (uint8_t x = 0; x < 128; x++) {
+    	for (uint8_t y = 0; y < 64; y++) {
+    	    if(makise_pget_fast(mgui->buffer, x, y))
+    		((uint8_t*)mgui->driver->buffer)[x+ (y/8)*SSD1306_WIDTH] |= (1 << y%8);
+    	    else
+    		((uint8_t*)mgui->driver->buffer)[x+ (y/8)*SSD1306_WIDTH] &= ~(1 << y%8);
 	   
-    /* 	}	 */
-    /* } */
+    	}
+    }
+	/* } */
     //memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
     
 
@@ -136,7 +137,7 @@ void ssd1306_render()
 void ssd1306_send()
 {
     rendered = 0;
-    memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
+    //memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
 
     //printf("send\n");
     SSD1306_sendCmd(SSD1306_SET_COLUMN_ADDR);

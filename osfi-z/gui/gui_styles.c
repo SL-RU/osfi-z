@@ -136,24 +136,24 @@ const MakiseBitmap B_folder = {
 };
 
 MakiseStyle_FSViewer ts_fsviewer = {
-    .font               = &F_Default10x20,
+    .font               = &F_Default6x10,
     .font_line_spacing  = 0,
     .bitmap_folder      = &B_folder,
     .left_margin        = 0,
     .item_margin        = 0,
-    .scroll_width       = 7,
+    .scroll_width       = 3,
     .scroll_bg_color    = MC_Black,
     .scroll_color       = MC_White,
     
     .normal  = {MC_Black, MC_Black,  MC_Black, 0},
-    .focused = {MC_Black, MC_White, MC_White, 0},
-    .active  = {MC_Black, MC_White, MC_White, 0},
+    .focused = {MC_Black, MC_White, MC_Black, 0},
+    .active  = {MC_Black, MC_White, MC_Black, 0},
 };
 MakiseStyle_FSViewer_Item ts_fsviewer_item = {
-    .font               = &F_Default10x20,
+    .font               = &F_Default6x10,
     .font_line_spacing  = 0,
 
-    .normal  = {MC_Black, MC_Black,  MC_Black,  MC_White, 0},
+    .normal  = {MC_Black, MC_White,  MC_Black,  MC_White, 0},
     .focused = {MC_White, MC_Black, MC_White, MC_Black, 0},
-    .active  = {MC_Black,  MC_Black, MC_White, MC_Black, 0},
+    .active  = {MC_Black,  MC_White, MC_White, MC_Black, 0},
 };
