@@ -24,7 +24,6 @@
 #define MAKISE_GUI_INPUT_POINTER_ENABLE 0
 
 
-
 //Select used elements
 #define MAKISE_E_SLIST             1
 #define MAKISE_E_BUTTONS           1
@@ -36,6 +35,7 @@
 #define MAKISE_E_TEXT_FIELD        1
 #define MAKISE_E_TOGGLE            1
 #define MAKISE_E_FSVIEWER          MAKISE_E_FSVIEWER_FATFS
+
 #define MAKISE_UNICODE             1
 #define MAKISE_DISPLAY_INVERTED    0
 
