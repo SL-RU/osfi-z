@@ -1,8 +1,9 @@
 file(STRINGS SOURCES s)
 
 set (h
-  ${CMAKE_CURRENT_SOURCE_DIR} 
-  ${CMAKE_CURRENT_SOURCE_DIR}/driver )
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/driver 
+  ${CMAKE_CURRENT_SOURCE_DIR}/windows )
 
 add_library(gui ${s})
 target_include_directories(gui

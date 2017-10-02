@@ -2,7 +2,7 @@
 /  FatFs - Configuration file
 /---------------------------------------------------------------------------*/
 #include "FreeRTOS.h"
-
+#include "semphr.h"
 #define FFCONF_DEF 87030	/* Revision ID */
 
 /*---------------------------------------------------------------------------/
@@ -98,7 +98,7 @@
 */
 
 
-#define FF_USE_LFN		2
+#define FF_USE_LFN		3
 #define FF_MAX_LFN		255
 /* The FF_USE_LFN switches the support for LFN (long file name).
 /
@@ -243,7 +243,7 @@
 /      lock control is independent of re-entrancy. */
 
 
-#define FF_FS_REENTRANT	0
+#define FF_FS_REENTRANT	1
 #define FF_FS_TIMEOUT	1000
 #define FF_SYNC_t	xSemaphoreHandle
 /* The option FF_FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
