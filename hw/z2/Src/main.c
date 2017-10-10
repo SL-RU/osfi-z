@@ -76,7 +76,7 @@ void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-#define addr 0010000 << 1
+uint8_t addr = 0b0010000 << 1;
 
 void setr(uint8_t reg, uint8_t val)
 {
@@ -149,10 +149,10 @@ int main(void)
     }
     FIL wa;
     HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_RESET);
-    HAL_Delay(1000);
+    HAL_Delay(100);
     HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_SET);
     setr(0x00, 0b10000000);
-    setr(0x01, 0b00100011);
+    setr(0x01, 0b00100010);
     setr(0x02, 0b00010000);
     setr(0x03, 0b11111111);
     setr(0x04, 0b11111111);
@@ -172,10 +172,10 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
-//  MX_FREERTOS_Init();
+  MX_FREERTOS_Init();
 
   /* Start scheduler */
-  //osKernelStart();
+  osKernelStart();
   
   /* We should never get here as control is now taken by the scheduler */
 
