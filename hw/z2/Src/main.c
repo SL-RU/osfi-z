@@ -54,8 +54,6 @@
 
 /* USER CODE BEGIN Includes */
 #include "fatfs.h"
-#include "string.h"
-#include "wav.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -76,13 +74,6 @@ void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-uint8_t addr = 0b0010000 << 1;
-
-void setr(uint8_t reg, uint8_t val)
-{
-    uint8_t tr[2] = {reg, val};
-    HAL_I2C_Master_Transmit(&hi2c1, addr, tr, 2, 100);
-}
 /* USER CODE END 0 */
 
 int main(void)
@@ -110,65 +101,9 @@ int main(void)
   MX_I2S3_Init();
 
   /* USER CODE BEGIN 2 */
-      MX_FATFS_Init();
-    printf("Starting...\n");
-
-    FATFS fs;
-    FRESULT r = f_mount(&fs, SD_Path, 1);
-    printf("Mount %d\n", r);
-    if(r == FR_OK)
-    {
-      
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	FIL f;
-	r = f_open(&f, "ox.flac", FA_READ);
-	printf("Open %d\n", r);
-	UINT bw = 1;
-	char cd[] = "I WANT TO SLEEEP!\n";
-	int i = 0;
-	while(bw > 0 && i < 30)
-	{
-	    i++;
-	    r = f_read(&f, cd, 17, &bw);
-	    printf("read %d %d %s\n", r, bw, cd);
-	}
-	f_close(&f);
-	r = f_open(&f, "test.txt", FA_WRITE | FA_CREATE_ALWAYS);
-	printf("Open %d\n", r);
-	char cdd[] = "I2C sent!\n";
-	r = f_write(&f, cdd, 17, &bw);
-	printf("read %d %d %s\n", r, bw, cdd);
-	f_close(&f);
-
-    }
-    else
-    {
-	while (1) {
-	    
-	}
-    }
-    FIL wa;
-    HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_RESET);
-    HAL_Delay(100);
-    HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_SET);
-    setr(0x00, 0b10000000);
-    setr(0x01, 0b00100010);
-    setr(0x02, 0b00010000);
-    setr(0x03, 0b11111111);
-    setr(0x04, 0b11111111);
-    setr(0x05, 0b00000000);
-    setr(0x06, 0b10000000);
-    setr(0x00, 0b10000001);
-    
-    f_open(&wa, "w.wav", FA_READ | FA_OPEN_EXISTING);
-    open_f(&wa);
-	
-    wav_decode();
-  
-    uint16_t *buf = wav_getBuf();
-	
-    HAL_I2S_Transmit_DMA(&hi2s3, buf, WAV_len*2);
-
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+  MX_FATFS_Init();
+  printf("\n-----\nstart Z1...\n");
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

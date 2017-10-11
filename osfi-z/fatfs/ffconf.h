@@ -116,7 +116,7 @@
 /  ff_memfree(), must be added to the project. */
 
 
-#define FF_LFN_UNICODE	1
+#define FF_LFN_UNICODE	0
 /* This option switches character encoding on the API, 0:ANSI/OEM or 1:UTF-16,
 /  when LFN is enabled. Also behavior of string I/O functions will be affected by
 /  this option. When LFN is not enabled, this option has no effect.
