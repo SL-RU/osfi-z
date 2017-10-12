@@ -52,6 +52,30 @@ MInputData inp_handler(MInputData d, MInputResultEnum res)
     return (MInputData){0};
 }
 
+uint8_t m_mutex_create (MAKISE_MUTEX_t *sobj)
+{
+    *sobj = xSemaphoreCreateMutex();
+    return (int)(*sobj != NULL);
+}
+//delete mutex
+uint8_t m_mutex_delete (MAKISE_MUTEX_t *sobj)
+{
+    vSemaphoreDelete(*sobj);
+    return 1;
+}
+//Request Grant to Access some object
+uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj)
+{
+    return (int)(xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
+}
+//Release Grant to Access the Volume
+uint8_t m_mutex_release_grant (MAKISE_MUTEX_t *sobj)
+{
+    xSemaphoreGive(sobj);
+    return 1;
+}
+
+
 MPosition ma_g_hpo;
 MakiseGUI* gui_init()
 {

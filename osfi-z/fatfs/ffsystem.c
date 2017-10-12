@@ -130,7 +130,7 @@ int ff_req_grant (	/* 1:Got a grant to access the volume, 0:Could not get a gran
 //	return (int)(err == OS_NO_ERR);
 
 	/* FreeRTOS */
-	return (int)(xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
+    return (int)(xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
 
 	/* CMSIS-RTOS */
 //	return (int)(osMutexWait(sobj, FF_FS_TIMEOUT) == osOK);

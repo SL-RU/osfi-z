@@ -124,7 +124,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityIdle, 0, 2048);
+    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 2048);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */
@@ -186,6 +186,7 @@ void guiStart(void const * argument)
 	gui_controls_update();
 	xSemaphoreTake(SSD1306_semaphore, portMAX_DELAY);
 	ssd1306_send();
+	makise_gui_input_perform(host);
 	ssd1306_render();
     }
     /* USER CODE END guiStart */

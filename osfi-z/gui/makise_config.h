@@ -39,7 +39,7 @@
 #define MAKISE_UNICODE             1
 #define MAKISE_DISPLAY_INVERTED    0
 
-#define MAKISE_MUTEX               0
+#define MAKISE_MUTEX               1
 
 #if MAKISE_MUTEX
 #include "FreeRTOS.h"
