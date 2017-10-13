@@ -78,4 +78,5 @@ void fm_init()
 	
     fsviewer_open(&flist, "/");
     makise_g_focus(&flist.el, M_G_FOCUS_GET); //focus file list
+    printf("FM inited\n");
 }

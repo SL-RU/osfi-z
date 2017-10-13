@@ -52,9 +52,11 @@ MInputData inp_handler(MInputData d, MInputResultEnum res)
     return (MInputData){0};
 }
 
+#if MAKISE_MUTEX
 uint8_t m_mutex_create (MAKISE_MUTEX_t *sobj)
 {
     *sobj = xSemaphoreCreateMutex();
+    xSemaphoreGive(*sobj);
     return (int)(*sobj != NULL);
 }
 //delete mutex
@@ -66,15 +68,15 @@ uint8_t m_mutex_delete (MAKISE_MUTEX_t *sobj)
 //Request Grant to Access some object
 uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj)
 {
-    return (int)(xSemaphoreTake(sobj, FF_FS_TIMEOUT) == pdTRUE);
+    return (int)(xSemaphoreTake(*sobj, FF_FS_TIMEOUT) == pdTRUE);
 }
 //Release Grant to Access the Volume
 uint8_t m_mutex_release_grant (MAKISE_MUTEX_t *sobj)
 {
-    xSemaphoreGive(sobj);
+    xSemaphoreGive(*sobj);
     return 1;
 }
-
+#endif
 
 MPosition ma_g_hpo;
 MakiseGUI* gui_init()
@@ -85,6 +87,7 @@ MakiseGUI* gui_init()
     MakiseDriver * dr = &Dr;
     host = &hs;
     host->host = &co;
+    makise_g_cont_init(host->host);
     host->host->gui = gu;
     makise_gui_init(host); //init gui host
     //if input event wasn't handled by gui. We need to handle it
