@@ -1,9 +1,11 @@
 #include "fm.h"
 #include "ff.h"
-
+#include "task.h"
 
 //static MSList list;
+static MLable    lable;
 static MFSViewer flist;
+char str[100] = "Hello!";
 void start_warble();
 void w_set_file(char *file);
 
@@ -64,6 +66,19 @@ void vs1053_sd_error()
 				 M_INPUT_CLICK, 100);
 }
 
+void vTaskCode()
+{
+    uint32_t i = 0;
+    for( ;; )
+    {
+	i++;
+        osDelay(20);
+	MAKISE_MUTEX_REQUEST(&lable.el.mutex);
+	sprintf(str, "lol %d", i);
+	MAKISE_MUTEX_RELEASE(&lable.el.mutex);
+    }
+}
+
 void fm_init()
 {
     printf("FM initing\n");
@@ -78,5 +93,16 @@ void fm_init()
 	
     fsviewer_open(&flist, "/");
     makise_g_focus(&flist.el, M_G_FOCUS_GET); //focus file list
+
+    m_create_lable(&lable, host->host,
+		   mp_rel(20, 20, 80, 30),
+		   str,
+		   &ts_lable);
+
+    osThreadDef(FM_Task, vTaskCode, osPriorityNormal, 0, 512);
+    osThreadCreate(osThread(FM_Task), NULL);
+
+		   
+    
     printf("FM inited\n");
 }
