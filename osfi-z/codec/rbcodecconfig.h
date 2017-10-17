@@ -2,9 +2,9 @@
 #define RBCODECCONFIG_H_INCLUDED
 
 #define CONFIG_CODEC SWCODEC
-#define HAVE_PITCHCONTROL
-#define HAVE_SW_TONE_CONTROLS
-#define HAVE_ALBUMART
+//#define HAVE_PITCHCONTROL
+//#define HAVE_SW_TONE_CONTROLS
+
 #define NUM_CORES 1
 /* All the same unless a configuration option is added to warble */
 #define DSP_OUT_MIN_HZ     48000

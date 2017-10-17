@@ -53,6 +53,9 @@ ssize_t read(int fd, void *buf, size_t count)
     UINT br = 0;
     FRESULT res = f_read(&descrs[fd].file, buf, count, &br);
     descrs[fd].offset += br;
+    if(res != FR_OK)
+	printf("readed %dbytes fd%d : %d\n", br, fd, res);
+
     if(STDIO_FATFS_DEBUG)
 	printf("readed %dbytes fd%d : %d\n", br, fd, res);
 
@@ -76,6 +79,8 @@ off_t lseek(int fd, off_t offset, int whence)
 
     descrs[fd].offset = offset;
     FRESULT res = f_lseek(&descrs[fd].file, offset);
+    if(res != FR_OK)
+	printf("lseek fd%d offs%ld : %d\n", fd, offset, res);
     if(STDIO_FATFS_DEBUG)
 	printf("lseek fd%d offs%ld : %d\n", fd, offset, res);
 

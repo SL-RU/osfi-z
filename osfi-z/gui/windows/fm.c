@@ -83,7 +83,7 @@ void vTaskCode()
 static MSList_Item items[10];
 void fm_cre(char *art, char *tit, char *alb)
 {
-    printf("FM cre %s %s %s\n", art, tit, alb);
+    printf("FM cre %ld %s %s %s\n", xPortGetFreeHeapSize(), art, tit, alb);
     items[0].text = art;
     items[1].text = tit;
     //items[2].text = alb;
@@ -94,15 +94,16 @@ void fm_cre(char *art, char *tit, char *alb)
     /* 		   MSList_List, */
     /* 		   &ts_slist, */
     /* 		   &ts_slist_item); */
-        /* m_create_lable(&lable, host->host, */
-    	/* 	   mp_rel(20, 20, 80, 30), */
-    	/* 	   str, */
-    	/* 	   &ts_lable); */
+    /* m_create_lable(&lable, host->host, */
+    /* 	   mp_rel(20, 20, 80, 30), */
+    /* 	   str, */
+    /* 	   &ts_lable); */
 
     /* m_slist_set_array(&slist, items, 3); */
     m_slist_set_array(&slist, items, 3);
     makise_g_cont_rem(&flist.el);
     makise_g_cont_add(host->host, &slist.el);
+    makise_g_focus(&slist.el, M_G_FOCUS_GET);
 }
 
 void fm_init()
@@ -118,7 +119,7 @@ void fm_init()
 	
 	
     fsviewer_open(&flist, "/");
-
+    
     /* m_create_lable(&lable, host->host, */
     /* 		   mp_rel(20, 20, 80, 30), */
     /* 		   str, */
@@ -139,6 +140,8 @@ void fm_init()
     		   &ts_slist_item);
 
     makise_g_cont_rem(&slist.el);
+
+    makise_g_focus(&flist.el, M_G_FOCUS_GET);
     
     printf("FM inited\n");
 }

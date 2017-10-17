@@ -432,7 +432,7 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     if (id3->album)
     {
 	snprintf(alb, 20, "Album: %s", id3->album);
-	printf("Album: %s\n", id3->album);
+	printf("Album: %ld\n", id3->frequency);
     }
     if (id3->genre_string) printf("Genre: %s\n", id3->genre_string);
     if (id3->disc_string || id3->discnum) printf("Disc: %s (%d)\n", id3->disc_string, id3->discnum);
@@ -464,7 +464,7 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     /* TODO: replaygain; albumart; cuesheet */
     if (id3->mb_track_id) printf("Musicbrainz track ID: %s\n", id3->mb_track_id);
 
-    fm_cre(art, tit, alb);
+    //fm_cre(art, tit, alb);
     
 
 }

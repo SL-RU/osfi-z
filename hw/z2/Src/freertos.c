@@ -94,9 +94,11 @@ static void init_error() //show error message with required err_msg
 
     SSD1306_UpdateScreen(mGui);
 }
+osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 4048);
+
 void start_warble()
 {
-    osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 3048);
+    
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 }
 /* USER CODE END FunctionPrototypes */
@@ -124,7 +126,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 1048);
+    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 512);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */

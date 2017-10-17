@@ -181,13 +181,13 @@ struct afmt_entry
 /* database of labels and codecs. add formats per above enum */
 extern const struct afmt_entry audio_formats[AFMT_NUM_CODECS];
 
-#if MEMORYSIZE > 2
-#define ID3V2_BUF_SIZE 900
-#define ID3V2_MAX_ITEM_SIZE 240
-#else
+/* #if MEMORYSIZE > 2 */
+/* #define 1ID3V2_BUF_SIZE 900 */
+/* #define ID3V2_MAX_ITEM_SIZE 240 */
+/* #else */
 #define ID3V2_BUF_SIZE 300
 #define ID3V2_MAX_ITEM_SIZE 90
-#endif
+//#endif
 
 enum {
     ID3_VER_1_0 = 1,
@@ -283,7 +283,7 @@ struct mp3entry {
 
     /* these following two fields are used for local buffering */
     char id3v2buf[ID3V2_BUF_SIZE];
-    char id3v1buf[4][92];
+    char id3v1buf[4][92]; 
 
     /* resume related */
     unsigned long offset;  /* bytes played */
