@@ -13,6 +13,8 @@ typedef enum
 } FM_MODE;
 
 
+void fm_cre(char *art, char *tit, char *alb);
+
 void fm_init();
 void fm_switch();
 void fm_switch_to(uint8_t cur_mode);

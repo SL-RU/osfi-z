@@ -10,6 +10,6 @@ target_include_directories(codec
 target_include_directories(codec
   PUBLIC ${h})
 
-target_link_libraries(codec hardware codecs metadata rockbox_sys fatfs stddeflib)
+target_link_libraries(codec hardware codecs metadata rockbox_sys fatfs stddeflib gui MakiseGUI)
 
 

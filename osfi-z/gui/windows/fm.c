@@ -5,6 +5,7 @@
 //static MSList list;
 static MLable    lable;
 static MFSViewer flist;
+static MSList    slist;
 char str[100] = "Hello!";
 void start_warble();
 void w_set_file(char *file);
@@ -79,6 +80,31 @@ void vTaskCode()
     }
 }
 
+static MSList_Item items[10];
+void fm_cre(char *art, char *tit, char *alb)
+{
+    printf("FM cre %s %s %s\n", art, tit, alb);
+    items[0].text = art;
+    items[1].text = tit;
+    //items[2].text = alb;
+    /* m_create_slist(&slist, host->host, */
+    /* 		   mp_sall(0,0,0,0), */
+    /* 		   "sdf", */
+    /* 		   0, 0, */
+    /* 		   MSList_List, */
+    /* 		   &ts_slist, */
+    /* 		   &ts_slist_item); */
+        /* m_create_lable(&lable, host->host, */
+    	/* 	   mp_rel(20, 20, 80, 30), */
+    	/* 	   str, */
+    	/* 	   &ts_lable); */
+
+    /* m_slist_set_array(&slist, items, 3); */
+    m_slist_set_array(&slist, items, 3);
+    makise_g_cont_rem(&flist.el);
+    makise_g_cont_add(host->host, &slist.el);
+}
+
 void fm_init()
 {
     printf("FM initing\n");
@@ -92,17 +118,27 @@ void fm_init()
 	
 	
     fsviewer_open(&flist, "/");
-    makise_g_focus(&flist.el, M_G_FOCUS_GET); //focus file list
 
-    m_create_lable(&lable, host->host,
-		   mp_rel(20, 20, 80, 30),
-		   str,
-		   &ts_lable);
+    /* m_create_lable(&lable, host->host, */
+    /* 		   mp_rel(20, 20, 80, 30), */
+    /* 		   str, */
+    /* 		   &ts_lable); */
 
-    osThreadDef(FM_Task, vTaskCode, osPriorityNormal, 0, 512);
-    osThreadCreate(osThread(FM_Task), NULL);
+    /* osThreadDef(FM_Task, vTaskCode, osPriorityNormal, 0, 512); */
+    /* osThreadCreate(osThread(FM_Task), NULL); */
 
-		   
+    items[0].text = "lol";
+    items[1].text = "kek";
+    items[2].text = "Привет";
+    m_create_slist(&slist, host->host,
+    		   mp_sall(0,0,0,0),
+    		   "sdf",
+    		   0, 0,
+    		   MSList_List,
+    		   &ts_slist,
+    		   &ts_slist_item);
+
+    makise_g_cont_rem(&slist.el);
     
     printf("FM inited\n");
 }

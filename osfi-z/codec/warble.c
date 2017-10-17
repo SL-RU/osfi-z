@@ -1,4 +1,5 @@
 #include "warble.h"
+#include "fm.h"
 
 void debugf(const char *fmt, ...)
 {
@@ -410,12 +411,29 @@ static struct codec_api cic = {
     qsort,
 };
 
+
+static char alb[20] = "Album: ";
+static char tit[20] = "Title: ";
+static char art[20] = "Artist: ";
+
 static void print_mp3entry(const struct mp3entry *id3, FILE *f)
 {
     printf("Path: %s\n", id3->path);
-    if (id3->title) printf("Title: %s\n", id3->title);
-    if (id3->artist) printf("Artist: %s\n", id3->artist);
-    if (id3->album) printf("Album: %s\n", id3->album);
+    if (id3->title)
+    {
+	snprintf(tit, 20, "Title: %s", id3->title);
+	printf("Title: %s\n", id3->title);
+    }
+    if (id3->artist)
+    {
+	snprintf(art, 20, "Artist: %s", id3->artist);
+	printf("Artist: %s\n", id3->artist);
+    }
+    if (id3->album)
+    {
+	snprintf(alb, 20, "Album: %s", id3->album);
+	printf("Album: %s\n", id3->album);
+    }
     if (id3->genre_string) printf("Genre: %s\n", id3->genre_string);
     if (id3->disc_string || id3->discnum) printf("Disc: %s (%d)\n", id3->disc_string, id3->discnum);
     if (id3->track_string || id3->tracknum) printf("Track: %s (%d)\n", id3->track_string, id3->tracknum);
@@ -445,6 +463,10 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     if (id3->needs_upsampling_correction) printf("Needs upsampling correction: true\n");
     /* TODO: replaygain; albumart; cuesheet */
     if (id3->mb_track_id) printf("Musicbrainz track ID: %s\n", id3->mb_track_id);
+
+    fm_cre(art, tit, alb);
+    
+
 }
 
 static void decode_file(const char *input_fn)

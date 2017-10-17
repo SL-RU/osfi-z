@@ -79,7 +79,7 @@ MakiseStyle_SListItem ts_slist_item =
     &F_Default6x10,
     0,
     //bg       font     border   double_border
-    {MC_Black, MC_Black, MC_White, 0},  //normal
+    {MC_Black, MC_White, MC_White, 0},  //normal
     {MC_White, MC_Black, MC_White,   0},  //focused
     {MC_Black, MC_White, MC_White, 0},  //active
 };
@@ -93,7 +93,7 @@ MakiseStyle_SList ts_slist =
     //width  bg color        scroll color
     5,     MC_Transparent, MC_White,
     //bg       font     border   double_border
-    {MC_Black, MC_Black, MC_Black, 0},  //normal
+    {MC_Black, MC_White, MC_Black, 0},  //normal
     {MC_Black, MC_White, MC_White,   0},  //focused
     {MC_Black, MC_White, MC_White, 0},  //active
 };
