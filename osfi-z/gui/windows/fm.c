@@ -86,7 +86,7 @@ void fm_cre(char *art, char *tit, char *alb)
     printf("FM cre %ld %s %s %s\n", xPortGetFreeHeapSize(), art, tit, alb);
     items[0].text = art;
     items[1].text = tit;
-    //items[2].text = alb;
+    items[2].text = alb;
     /* m_create_slist(&slist, host->host, */
     /* 		   mp_sall(0,0,0,0), */
     /* 		   "sdf", */

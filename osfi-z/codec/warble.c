@@ -426,15 +426,19 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     }
     if (id3->artist)
     {
-	snprintf(art, 20, "Artist: %s", id3->artist);
+	snprintf(tit, 20, "Artist: %s", id3->artist);
 	printf("Artist: %s\n", id3->artist);
     }
     if (id3->album)
     {
-	snprintf(alb, 20, "Album: %s", id3->album);
+	
 	printf("Album: %ld\n", id3->frequency);
     }
-    if (id3->genre_string) printf("Genre: %s\n", id3->genre_string);
+    if (id3->genre_string)
+    {
+	snprintf(tit, 20, "Genre: %s", id3->genre_string);
+	printf("Genre: %s\n", id3->genre_string);
+    }
     if (id3->disc_string || id3->discnum) printf("Disc: %s (%d)\n", id3->disc_string, id3->discnum);
     if (id3->track_string || id3->tracknum) printf("Track: %s (%d)\n", id3->track_string, id3->tracknum);
     if (id3->year_string || id3->year) printf("Year: %s (%d)\n", id3->year_string, id3->year);
@@ -447,11 +451,13 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     printf("Codec: %s\n", audio_formats[id3->codectype].label);
     printf("Bitrate: %d kb/s\n", id3->bitrate);
     printf("Frequency: %lu Hz\n", id3->frequency);
+    snprintf(alb, 20, "Freq: %ld Hz", id3->frequency);	
     if (id3->id3v2len) printf("ID3v2 length: %lu\n", id3->id3v2len);
     if (id3->id3v1len) printf("ID3v1 length: %lu\n", id3->id3v1len);
     if (id3->first_frame_offset) printf("First frame offset: %lu\n", id3->first_frame_offset);
     printf("File size without headers: %lu\n", id3->filesize);
     printf("Song length: %lu ms\n", id3->length);
+    snprintf(tit, 20, "Len: %ld s", id3->length/1000);	
     if (id3->lead_trim > 0 || id3->tail_trim > 0) printf("Trim: %d/%d\n", id3->lead_trim, id3->tail_trim);
     if (id3->samples) printf("Number of samples: %lu\n", id3->samples);
     if (id3->frame_count) printf("Number of frames: %lu\n", id3->frame_count);
@@ -464,7 +470,7 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     /* TODO: replaygain; albumart; cuesheet */
     if (id3->mb_track_id) printf("Musicbrainz track ID: %s\n", id3->mb_track_id);
 
-    //fm_cre(art, tit, alb);
+    fm_cre(art, tit, alb);
     
 
 }

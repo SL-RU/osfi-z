@@ -72,27 +72,27 @@ off_t filesize(int fd);
 /* #endif */
 /* #endif */
 
-static inline bool tdspeed_alloc_buffers(int32_t **buffers,
-    const int *buf_s, int nbuf)
-{
-    int i;
-    for (i = 0; i < nbuf; i++)
-    {
-        buffers[i] = malloc(buf_s[i]);
-        if (!buffers[i])
-            return false;
-    }
-    return true;
-}
+/* static inline bool tdspeed_alloc_buffers(int32_t **buffers, */
+/*     const int *buf_s, int nbuf) */
+/* { */
+/*     int i; */
+/*     for (i = 0; i < nbuf; i++) */
+/*     { */
+/*         buffers[i] = malloc(buf_s[i]); */
+/*         if (!buffers[i]) */
+/*             return false; */
+/*     } */
+/*     return true; */
+/* } */
 
-static inline void tdspeed_free_buffers(int32_t **buffers, int nbuf)
-{
-    int i;
-    for (i = 0; i < nbuf; i++)
-    {
-        free(buffers[i]);
-    }
-}
+/* static inline void tdspeed_free_buffers(int32_t **buffers, int nbuf) */
+/* { */
+/*     int i; */
+/*     for (i = 0; i < nbuf; i++) */
+/*     { */
+/*         free(buffers[i]); */
+/*     } */
+/* } */
 
 #endif
 

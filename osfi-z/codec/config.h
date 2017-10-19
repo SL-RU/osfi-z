@@ -63,29 +63,7 @@
 #include "system-arm.h"
 #endif
 
-#define CPU_ARM
-
 #define ROCKBOX_STRICT_ALIGN 1
-
-#if defined(CPU_ARM) && defined(__ASSEMBLER__)
-/* ARMv4T doesn't switch the T bit when popping pc directly, we must use BX */
-.macro ldmpc cond="", order="ia", regs
-#if ARM_ARCH == 4 && defined(USE_THUMB)
-    ldm\cond\order sp!, { \regs, lr }
-    bx\cond lr
-#else
-    ldm\cond\order sp!, { \regs, pc }
-#endif
-.endm
-.macro ldrpc cond=""
-#if ARM_ARCH == 4 && defined(USE_THUMB)
-    ldr\cond lr, [sp], #4
-    bx\cond  lr
-#else
-    ldr\cond pc, [sp], #4
-#endif
-.endm
-#endif
 
 #define ICODE_ATTR
 #define ICONST_ATTR
@@ -94,8 +72,5 @@
 #define INIT_ATTR
 #define INITDATA_ATTR
 
-#define IF_COP(...)
-#define IF_COP_VOID(...)    void
-#define IF_COP_CORE(core)   CURRENT_CORE
 
 #endif /* __CONFIG_H__ */
