@@ -13,5 +13,6 @@ target_include_directories(gui
   PUBLIC ${h})
 
 
+
 TARGET_LINK_LIBRARIES(gui hardware MakiseGUI fatfs controls stddeflib)
 target_compile_definitions(gui PUBLIC ${GLOBAL_DEFS})

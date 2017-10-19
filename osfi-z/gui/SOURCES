@@ -1,4 +1,5 @@
 windows/fm.c
+windows/window_play.c
 gui.c
 gui_controls.c
 gui_styles.c

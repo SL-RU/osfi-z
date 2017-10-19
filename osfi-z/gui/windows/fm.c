@@ -1,6 +1,7 @@
 #include "fm.h"
 #include "ff.h"
 #include "task.h"
+#include "window_play.h"
 
 //static MSList list;
 static MLable    lable;
@@ -109,6 +110,10 @@ void fm_cre(char *art, char *tit, char *alb)
 void fm_init()
 {
     printf("FM initing\n");
+
+    window_play_init(host->host);
+    
+    return ;
     //initialize gui elements
     m_create_fsviewer(&flist, host->host,
     		      mp_sall(0,0,0,0), //position

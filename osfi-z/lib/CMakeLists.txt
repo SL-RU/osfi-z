@@ -1,5 +1,6 @@
-add_subdirectory (rbcodec)
+#add_subdirectory (rbcodec)
 add_subdirectory (metadata)
+add_subdirectory (codecs)
 #add_subdirectory (tlsf)
 add_subdirectory (fixedpoint)
 add_subdirectory (rockbox_sys)
