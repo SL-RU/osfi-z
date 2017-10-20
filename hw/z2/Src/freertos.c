@@ -89,8 +89,9 @@ static void init_error() //show error message with required err_msg
     gui_init();
     m_create_lable(&err_labl,
     		   host->host,
-    		   mp_sall(0, 0, 20, 0), err_msg,
+    		   mp_sall(0, 0, 20, 0),
     		   &ts_lable);
+    m_lable_set_text(&err_labl, err_msg);
 
     SSD1306_UpdateScreen(mGui);
 }
@@ -126,7 +127,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 512);
+    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 750);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */
@@ -145,6 +146,7 @@ void StartDefaultTask(void const * argument)
 
     /* USER CODE BEGIN StartDefaultTask */
     dmain();
+    vTaskDelete( NULL );
     /* USER CODE END StartDefaultTask */
 }
 

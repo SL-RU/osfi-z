@@ -117,11 +117,9 @@ void fm_init()
     //initialize gui elements
     m_create_fsviewer(&flist, host->host,
     		      mp_sall(0,0,0,0), //position
-    		      0, //header
-    		      &onselection, 0, //events
     		      MFSViewer_SingleSelect,
     		      &ts_fsviewer, &ts_fsviewer_item);
-	
+    m_fsviewer_set_onselection(&flist, &onselection);
 	
     fsviewer_open(&flist, "/");
     

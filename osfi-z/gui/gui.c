@@ -13,15 +13,16 @@ static uint32_t Makise_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
 
 
 
-void gui_predraw(MakiseGUI * g)
+void gui_predraw(MakiseGUI * gui)
 {
     makise_gui_input_perform(host);
-    makise_g_host_call(host, M_G_CALL_PREDRAW);
+    makise_g_host_call(host, gui, M_G_CALL_PREDRAW);
 }
 void gui_draw(MakiseGUI* gui)
 {
-    makise_g_host_call(host, M_G_CALL_DRAW);
+    makise_g_host_call(host, gui, M_G_CALL_DRAW);
 }
+
 
 MInputData inp_handler(MInputData d, MInputResultEnum res)
 {
@@ -68,7 +69,10 @@ uint8_t m_mutex_delete (MAKISE_MUTEX_t *sobj)
 //Request Grant to Access some object
 uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj)
 {
-    return (int)(xSemaphoreTake(*sobj, FF_FS_TIMEOUT) == pdTRUE);
+    int res = (int)(xSemaphoreTake(*sobj, FF_FS_TIMEOUT) == pdTRUE);
+    if(res == 0)
+	printf("Mutex err\n");
+    return res;
 }
 //Release Grant to Access the Volume
 uint8_t m_mutex_release_grant (MAKISE_MUTEX_t *sobj)
@@ -88,7 +92,6 @@ MakiseGUI* gui_init()
     host = &hs;
     host->host = &co;
     makise_g_cont_init(host->host);
-    host->host->gui = gu;
     makise_gui_init(host); //init gui host
     //if input event wasn't handled by gui. We need to handle it
     host->input.result_handler = &inp_handler;
