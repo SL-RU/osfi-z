@@ -103,7 +103,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
   MX_FATFS_Init();
-  printf("\n-----\nstart Z1...\n");
+  printf("\n-----\nstart Z2...\n");
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

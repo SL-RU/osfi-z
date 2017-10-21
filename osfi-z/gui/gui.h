@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "gui_styles.h"
+#include "gui_bitmaps.h"
 
 extern MHost     *host;
 extern MakiseGUI *mGui;

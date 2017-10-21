@@ -4,6 +4,14 @@
 
 extern const MakiseBitmap B_folder;
 
-extern const MakiseBitmap B_fucky;
+extern const MakiseBitmap B_playButton;
+
+extern const MakiseBitmap B_nextButton;
+
+extern const MakiseBitmap B_backButton;
+
+extern const MakiseBitmap B_repeatButton;
+
+extern const MakiseBitmap B_battery_full;
 
 #endif

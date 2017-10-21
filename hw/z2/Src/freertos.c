@@ -127,7 +127,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 750);
+    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 2048);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */

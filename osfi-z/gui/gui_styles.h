@@ -3,6 +3,7 @@
 #include "makise_gui.h"
 #include "makise_colors.h"
 #include "makise_e.h"
+#include "gui_bitmaps.h"
 #include "fonts.h"
 
 extern MakiseStyle_Button ts_button;
@@ -20,5 +21,4 @@ extern MakiseStyle_SList ts_slist;
 extern MakiseStyle_FSViewer ts_fsviewer;
 extern MakiseStyle_FSViewer_Item ts_fsviewer_item;
 
-extern const MakiseBitmap B_folder;
 #endif

@@ -1,6 +1,7 @@
 windows/fm.c
 windows/window_play.c
 gui.c
+gui_bitmaps.c
 gui_controls.c
 gui_styles.c
 driver/makise_ssd1306.c
