@@ -19,4 +19,6 @@ extern MakiseStyle_SList ts_slist_small;
 extern MakiseStyle_SList ts_slist;
 extern MakiseStyle_FSViewer ts_fsviewer;
 extern MakiseStyle_FSViewer_Item ts_fsviewer_item;
+
+extern const MakiseBitmap B_folder;
 #endif

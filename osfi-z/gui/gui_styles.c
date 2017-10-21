@@ -2,16 +2,18 @@
 
 MakiseStyle_Button ts_button =
 {
-    &F_Default10x20,
+    .font = &F_Default10x20,
+    .bitmap_gap = 10,
     //bg       font     border   double_border
-    {MC_Black, MC_White, MC_White, 0},//normal
-    {MC_White, MC_Black, MC_White, 0}, //focused
-    {MC_Black, MC_White, MC_White, 0}, //active
+    .normal =  {MC_Black, MC_White, MC_White, 0}, //normal
+    .focused = {MC_White, MC_Black, MC_White, 0}, //focused
+    .active =  {MC_Black, MC_White, MC_White, 0}, //active
 };
 
 MakiseStyle_Button ts_button_small =
 {
     &F_Default8x13,
+    3,
      //bg       font     border   double_border
     {MC_Black, MC_White, MC_White, 0},//normal
     {MC_White, MC_Black, MC_White, 0}, //focused
@@ -121,14 +123,13 @@ MakiseStyle_SListItem ts_slist_item_big =
     {MC_Black, MC_Black, MC_Transparent, 0},   //active
 };
 
-uint8_t B_folder_a[] = {
-    0x1e, 0xc2, 0x05, 0xcc, 0x5f, 0xb0, 0x60, 0x41, 0x7f, 0x00
-};
+static const uint8_t B_folder_data[] = {
+    0x1e, 0xc2, 0x05, 0xcc, 0x5f, 0xb0, 0x60, 0x41, 0x7f, 
+    0x00,  };
 const MakiseBitmap B_folder = { 
-// lol
-    9,
-    8,
-    B_folder_a
+    .width = 9,
+    .height = 8,
+    .data = B_folder_data
 };
 
 MakiseStyle_FSViewer ts_fsviewer = {
