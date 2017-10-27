@@ -22,7 +22,7 @@ target_include_directories (codecs INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
   )
 #set_target_properties(codecs PROPERTIES COMPILE_FLAGS ${CODECS_CFLAGS})
-TARGET_LINK_LIBRARIES(codecs rockbox_sys stddeflib)
+TARGET_LINK_LIBRARIES(codecs rockbox_sys stddeflib metadata)
 #TARGET_LINK_LIBRARIES(codecs fixedpoint)
 #TARGET_LINK_LIBRARIES(codecs tlsf)
 #TARGET_LINK_LIBRARIES(codecs rbcodec)

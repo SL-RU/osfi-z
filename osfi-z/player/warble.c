@@ -416,7 +416,7 @@ static char alb[20] = "Album: ";
 static char tit[20] = "Title: ";
 static char art[20] = "Artist: ";
 
-static void print_mp3entry(const struct mp3entry *id3, FILE *f)
+static void print_mp3entry(const struct mp3entry *id3)
 {
     printf("Path: %s\n", id3->path);
     if (id3->title)
@@ -494,7 +494,7 @@ static void decode_file(const char *input_fn)
         printf("error: metadata parsing failed\n");
         //exit(1);
     }
-    print_mp3entry(&id3, stderr);
+    print_mp3entry(&id3);
     
     ci->filesize = filesize(input_fd);
     ci->id3 = &id3;

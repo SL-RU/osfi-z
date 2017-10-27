@@ -65,12 +65,5 @@
 
 #define ROCKBOX_STRICT_ALIGN 1
 
-#define ICODE_ATTR
-#define ICONST_ATTR
-#define IDATA_ATTR
-#define IBSS_ATTR
-#define INIT_ATTR
-#define INITDATA_ATTR
-
 
 #endif /* __CONFIG_H__ */

@@ -13,12 +13,26 @@
 #include "codecs.h"
 #include "metadata.h"
 #include "platform.h"
-#include "load_code.h"
 #include "i2s.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "dsp_core.h"
 
+typedef struct {
+    int descriptor;
+    struct mp3entry *id3;
+} WTrack;
+
+typedef struct {
+    WTrack current_track;
+    WTrack next_track;
+    
+    enum codec_command_action codec_action;
+    intptr_t codec_action_param;
+    uint32_t num_output_samples;
+    
+    uint32_t time_elapsed;
+} WPlayer;
 
 int dmain();
 #endif

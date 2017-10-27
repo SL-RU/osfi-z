@@ -24,7 +24,8 @@
 #include <inttypes.h>
 #include "structec.h"
 #include "system.h"
-#include "file.h"
+#include <unistd.h>
+#include <fcntl.h>
 
 #define MAX_STRUCT_SIZE 128
 

@@ -99,7 +99,7 @@ osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 4048);
 
 void start_warble()
 {
-    
+    dmain();
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 }
 /* USER CODE END FunctionPrototypes */
@@ -153,6 +153,7 @@ void StartDefaultTask(void const * argument)
 /* guiStart function */
 void guiStart(void const * argument)
 {
+    dmain();
     /* USER CODE BEGIN guiStart */
     /* Infinite loop */
     FRESULT res;

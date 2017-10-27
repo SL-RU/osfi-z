@@ -28,30 +28,9 @@
 #define _LIBMAD_IRAM_H
 
 //#include "config.h"
-
-#if (CONFIG_PLATFORM&PLATFORM_HOSTED)
-#define ICODE_SECTION_MPA_ARM .text
-#define IBSS_SECTION_MPA_ARM .bss
-#define ICODE_ATTR_MPA_SYNTH
+#define ICONST_ATTR
+#define MEM_ALIGN_ATTR
 #define ICONST_ATTR_MPA_HUFFMAN
-#else
-/* Code performs slower in IRAM on PP502x and there is no space in
-   mpegplayer on the PP5002.  S3C2440 doesn't have any IRAM available for
-   codecs */
-#if defined(CPU_PP502x) || (CONFIG_CPU == PP5002 && defined(MPEGPLAYER))
-#define ICODE_SECTION_MPA_ARM .text
-#define ICODE_ATTR_MPA_SYNTH
-#else
-#define ICODE_SECTION_MPA_ARM .icode
-#define ICODE_ATTR_MPA_SYNTH ICODE_ATTR
-#endif
-
-#define IBSS_SECTION_MPA_ARM .ibss
-
-#ifndef ICONST_ATTR_MPA_HUFFMAN
-#define ICONST_ATTR_MPA_HUFFMAN ICONST_ATTR
-#endif
-
-#endif
+#define ICODE_ATTR
 
 #endif /* MAD_IRAM_H */
