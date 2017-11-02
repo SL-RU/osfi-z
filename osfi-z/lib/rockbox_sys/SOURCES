@@ -1,4 +1,3 @@
-core_alloc.c
 unicode.c
 structec.c
 strlcpy.c

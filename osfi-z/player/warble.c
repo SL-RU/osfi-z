@@ -33,75 +33,29 @@ off_t filesize(int fd)
     return st.st_size;
 }
 
-
-
 /***************** INTERNAL *****************/
+static WPlayer player;
 
-static enum { MODE_PLAY, MODE_WRITE } mode;
-static bool use_dsp = false;
-static bool enable_loop = false;
-static const char *config = "";
-
-/* Volume control */
-#define VOL_FRACBITS 31
-#define VOL_FACTOR_UNITY (1u << VOL_FRACBITS)
-static uint32_t playback_vol_factor = VOL_FACTOR_UNITY;
-
-static int input_fd;
-static enum codec_command_action codec_action;
-static intptr_t codec_action_param = 0;
-static unsigned long num_output_samples = 0;
 static struct codec_api cic;
 struct codec_api *ci = &cic;
 
-xSemaphoreHandle xI2S_semaphore;
-xSemaphoreHandle xI2S_semaphore_h;
-
-static struct {
-    intptr_t freq;
-    intptr_t stereo_mode;
-    intptr_t depth;
-    int channels;
-} format;
-
+//Buffer for codec's purposes
+static uint8_t
+    __attribute__ ((section (".ccmram")))
+    dec_buffer[DEC_BUFFER_MAX];
+static uint32_t dec_id = 0;
+static uint32_t
+    __attribute__ ((section (".ccmram")))
+    input_buffer[DEC_INPUT_BUFFER_LEN/4];
 
 /***** MODE_PLAY *****/
-
-/* MODE_PLAY uses a double buffer: one half is read by the playback thread and
- * the other half is written to by the main thread. When a thread is done with
- * its current half, it waits for the other thread and then switches. The main
- * advantage of this method is its simplicity; the main disadvantage is that it
- * has long latency. ALSA buffer underruns still occur sometimes, but this is
- * SDL's fault. */
-
-#define PLAYBACK_BUFFER_SIZE 4096
-static bool playback_running = false;
-static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
-static int playback_decode_ind;
-static int playback_decode_pos;
-
-//Buffer for codec's purposes
-#define DEC_BUFFER_MAX 38*1024
-static uint8_t
-__attribute__ ((section (".ccmram")))
-dec_buffer[DEC_BUFFER_MAX];
-static uint32_t dec_id = 0;
-#define DEC_INPUT_BUFFER_LEN 26*1024
-static uint32_t
-__attribute__ ((section (".ccmram")))
-input_buffer[DEC_INPUT_BUFFER_LEN/4];
 
 
 
 
 static void playback_init(void)
 {
-    mode = MODE_PLAY;
-
-    playback_decode_ind = 0;
-    playback_decode_pos = 0;
-
-    dec_id = 0;
+    warble_hw_init();
 }
 
 
@@ -110,43 +64,14 @@ static void playback_set_volume(int volume)
     if (volume > 0)
         volume = 0;
 
-    playback_vol_factor = pow(10, (double)volume / 20.0) * VOL_FACTOR_UNITY;
-}
-
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
-{
-    static BaseType_t xHigherPriorityTaskWoken;
-    xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(xI2S_semaphore_h, &xHigherPriorityTaskWoken);
-    portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
-}
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
-{
-    //printf("c\n");
-    static BaseType_t xHigherPriorityTaskWoken;
-    xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(xI2S_semaphore, &xHigherPriorityTaskWoken);
-    portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    player.playback_vol_factor = pow(10, (double)volume / 20.0) * VOL_FACTOR_UNITY;
 }
 
 
-static void playback_start(void)
-{
-    printf("Playback start\n");
-    playback_running = true;
-    
-    HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)playback_buffer, PLAYBACK_BUFFER_SIZE*2);
-}
 
 static void playback_quit(void)
 {
-    printf("Playback stop\n");
-    if (!playback_running)
-        playback_start();
-    memset(playback_buffer[playback_decode_ind] + playback_decode_pos, 0,
-           PLAYBACK_BUFFER_SIZE - playback_decode_pos);
-    playback_running = false;
-    HAL_I2S_DMAStop(&hi2s3);
+    warble_hw_stop();
 }
 
 
@@ -165,39 +90,7 @@ static void *ci_codec_get_buffer(size_t *size)
 
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
-    num_output_samples += count;
-    int i;
-    if(format.stereo_mode == STEREO_INTERLEAVED)
-    {
-	count *= 2;
-    }
-
-    for (i = 0; i < count; i ++) {
-	playback_buffer[playback_decode_ind][playback_decode_pos] =
-	    (uint16_t)(((uint32_t*)ch1)[i] >> 13);
-	playback_decode_pos ++;
-	if(format.stereo_mode == STEREO_NONINTERLEAVED)
-	{
-	    playback_buffer[playback_decode_ind][playback_decode_pos] =
-		(uint16_t)(((uint32_t*)ch2)[i] >> 13);
-	    playback_decode_pos ++;
-	}
-	    
-	if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
-	{
-	    if (!playback_running && playback_decode_ind)
-		playback_start();
-	    if (playback_running && playback_decode_ind)
-		xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
-	    if (playback_running && !playback_decode_ind)
-		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
-
-		
-	    playback_decode_pos = 0;
-	    playback_decode_ind = !playback_decode_ind;
-	}
-	    
-    }
+    warble_hw_insert(ch1, ch2, count, player.format.stereo_mode);
 }
 
 static void ci_set_elapsed(unsigned long value)
@@ -220,7 +113,8 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
     //input_buffer = NULL;
     //printf("read file buf\n");
 
-    ssize_t actual = read(input_fd, ptr, size);
+    ssize_t actual = read(player.current_track.descriptor,
+			  ptr, size);
     if (actual < 0)
         actual = 0;
     ci->curpos += actual;
@@ -244,10 +138,11 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
     reqsize = MIN(reqsize, DEC_INPUT_BUFFER_LEN);
     //printf("Request buffer size: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
-    *realsize = read(input_fd, input_buffer, reqsize);
-    if (*realsize < 0)
-        *realsize = 0;
-    lseek(input_fd, -*realsize, SEEK_CUR);
+    *realsize = read(player.current_track.descriptor,
+		     input_buffer, reqsize);
+    //if ((int32_t)(*realsize) < 0)
+    //    *realsize = 0;
+    lseek(player.current_track.descriptor, -*realsize, SEEK_CUR);
     return input_buffer;
 }
 void* request_dec_buffer(size_t *realsize, size_t reqsize)
@@ -274,7 +169,7 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
  */
 static void ci_advance_buffer(size_t amount)
 {
-    lseek(input_fd, amount, SEEK_CUR);
+    lseek(player.current_track.descriptor, amount, SEEK_CUR);
     ci->curpos += amount;
     ci->id3->offset = ci->curpos;
 }
@@ -286,7 +181,8 @@ static void ci_advance_buffer(size_t amount)
  */
 static bool ci_seek_buffer(size_t newpos)
 {
-    off_t actual = lseek(input_fd, newpos, SEEK_SET);
+    off_t actual = lseek(player.current_track.descriptor,
+			 newpos, SEEK_SET);
     if (actual >= 0)
         ci->curpos = actual;
     return actual != -1;
@@ -307,33 +203,33 @@ static void ci_configure(int setting, intptr_t value)
     if (setting == DSP_SET_FREQUENCY
 	|| setting == DSP_SET_FREQUENCY)
     {
-	format.freq = value;
+	player.format.freq = value;
 	printf("dsp set freq %d\n", value);
     }
     else if (setting == DSP_SET_SAMPLE_DEPTH)
     {
 	printf("dsp set depth %d\n", value);
-	format.depth = value;
+	player.format.depth = value;
     }
     else if (setting == DSP_SET_STEREO_MODE) {
 	printf("dsp set stereo %d\n", (value == STEREO_MONO) ? 1 : 2);
-	format.stereo_mode = value;
-	format.channels = (value == STEREO_MONO) ? 1 : 2;
+	player.format.stereo_mode = value;
+	player.format.channels = (value == STEREO_MONO) ? 1 : 2;
     }
 }
 
 static enum codec_command_action ci_get_command(intptr_t *param)
 {
-    enum codec_command_action ret = codec_action;
-    *param = codec_action_param;
-    codec_action = CODEC_ACTION_NULL;
+    enum codec_command_action ret = player.codec_action;
+    *param = player.codec_action_param;
+    player.codec_action = CODEC_ACTION_NULL;
     return ret;
 }
 
 static bool ci_should_loop(void)
 {
     printf("ci should loop\n");
-    return enable_loop;
+    return player.enable_loop;
 }
 
 static unsigned ci_sleep(unsigned ticks)
@@ -410,23 +306,15 @@ static struct codec_api cic = {
 
     qsort,
 };
-
-
-static char alb[20] = "Album: ";
-static char tit[20] = "Title: ";
-static char art[20] = "Artist: ";
-
 static void print_mp3entry(const struct mp3entry *id3)
 {
     printf("Path: %s\n", id3->path);
     if (id3->title)
     {
-	snprintf(tit, 20, "Title: %s", id3->title);
 	printf("Title: %s\n", id3->title);
     }
     if (id3->artist)
     {
-	snprintf(tit, 20, "Artist: %s", id3->artist);
 	printf("Artist: %s\n", id3->artist);
     }
     if (id3->album)
@@ -436,7 +324,6 @@ static void print_mp3entry(const struct mp3entry *id3)
     }
     if (id3->genre_string)
     {
-	snprintf(tit, 20, "Genre: %s", id3->genre_string);
 	printf("Genre: %s\n", id3->genre_string);
     }
     if (id3->disc_string || id3->discnum) printf("Disc: %s (%d)\n", id3->disc_string, id3->discnum);
@@ -451,13 +338,11 @@ static void print_mp3entry(const struct mp3entry *id3)
     printf("Codec: %s\n", audio_formats[id3->codectype].label);
     printf("Bitrate: %d kb/s\n", id3->bitrate);
     printf("Frequency: %lu Hz\n", id3->frequency);
-    snprintf(alb, 20, "Freq: %ld Hz", id3->frequency);	
     if (id3->id3v2len) printf("ID3v2 length: %lu\n", id3->id3v2len);
     if (id3->id3v1len) printf("ID3v1 length: %lu\n", id3->id3v1len);
     if (id3->first_frame_offset) printf("First frame offset: %lu\n", id3->first_frame_offset);
     printf("File size without headers: %lu\n", id3->filesize);
     printf("Song length: %lu ms\n", id3->length);
-    snprintf(tit, 20, "Len: %ld s", id3->length/1000);	
     if (id3->lead_trim > 0 || id3->tail_trim > 0) printf("Trim: %d/%d\n", id3->lead_trim, id3->tail_trim);
     if (id3->samples) printf("Number of samples: %lu\n", id3->samples);
     if (id3->frame_count) printf("Number of frames: %lu\n", id3->frame_count);
@@ -469,34 +354,31 @@ static void print_mp3entry(const struct mp3entry *id3)
     if (id3->needs_upsampling_correction) printf("Needs upsampling correction: true\n");
     /* TODO: replaygain; albumart; cuesheet */
     if (id3->mb_track_id) printf("Musicbrainz track ID: %s\n", id3->mb_track_id);
-
-    fm_cre(art, tit, alb);
     
 
 }
 
 static void decode_file(const char *input_fn)
 {    
-    xI2S_semaphore = xSemaphoreCreateCounting(100, 0);
-    xI2S_semaphore_h = xSemaphoreCreateCounting(100, 0);
-    
     /* Open file */
     printf("open file\n");
-    input_fd = open(input_fn, O_RDONLY);
-    if (input_fd == -1) {
+    player.current_track.descriptor = open(input_fn, O_RDONLY);
+    if (player.current_track.descriptor == -1) {
 	printf(input_fn);
     }
 
     /* Set up ci */
     printf("mp3entry\n");
     struct mp3entry id3;
-    if (!get_metadata(&id3, input_fd, input_fn)) {
+    if (!get_metadata(&id3, player.current_track.descriptor,
+		      input_fn))
+    {
         printf("error: metadata parsing failed\n");
-        //exit(1);
+        return;
     }
     print_mp3entry(&id3);
     
-    ci->filesize = filesize(input_fd);
+    ci->filesize = filesize(player.current_track.descriptor);
     ci->id3 = &id3;
 
     /* Load codec */
@@ -506,13 +388,13 @@ static void decode_file(const char *input_fn)
 
     /* Run the codec */
     uint8_t res;
-    if(id3.codectype == 3)
+    if(id3.codectype == AFMT_MPA_L3)
 	res = mpa_codec_main(CODEC_LOAD);
-    else if(id3.codectype == 5)
+    else if(id3.codectype == AFMT_PCM_WAV)
 	res = wav_codec_main(CODEC_LOAD);
-    else if(id3.codectype == 4)
+    else if(id3.codectype == AFMT_AIFF)
 	res = aiff_codec_main(CODEC_LOAD);
-    else if(id3.codectype == 7)
+    else if(id3.codectype == AFMT_FLAC)
 	res = flac_codec_main(CODEC_LOAD);
     else
     {
@@ -527,13 +409,13 @@ static void decode_file(const char *input_fn)
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    if(id3.codectype == 3)
+    if(id3.codectype == AFMT_MPA_L3)
 	res = mpa_codec_run();
-    if(id3.codectype == 5)
+    if(id3.codectype == AFMT_PCM_WAV)
 	res = wav_codec_run();
-    else if(id3.codectype == 4)
+    else if(id3.codectype == AFMT_AIFF)
 	res = aiff_codec_run();
-    else if(id3.codectype == 7)
+    else if(id3.codectype == AFMT_FLAC)
 	res = flac_codec_run();
     
     printf("proc %d\n", res);
@@ -544,8 +426,8 @@ static void decode_file(const char *input_fn)
 
     /* Close */
     //dlclose(dlcodec);
-    if (input_fd != STDIN_FILENO)
-        close(input_fd);
+    if (player.current_track.descriptor != STDIN_FILENO)
+        close(player.current_track.descriptor);
 }
 
 

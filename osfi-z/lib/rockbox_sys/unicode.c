@@ -34,7 +34,7 @@
 #include "rbunicode.h"
 #include "rbpaths.h"
 #include "pathfuncs.h"
-#include "core_alloc.h"
+
 
 #ifndef O_BINARY
 #define O_BINARY 0
