@@ -7,6 +7,20 @@
 
 #define PLAYBACK_BUFFER_SIZE 4096
 
+
+/* MUTEX */
+#define W_MUTEX_t       xSemaphoreHandle
+#define W_MUTEX_TIMEOUT 1000
+//create mutex object
+uint8_t warble_mutex_create (W_MUTEX_t *sobj);
+//delete mutex
+uint8_t warble_mutex_delete (W_MUTEX_t *sobj);
+//Request Grant to Access some object
+uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj);
+//Release Grant to Access the Volume
+uint8_t warble_mutex_release_grant (W_MUTEX_t *sobj);
+/* MUTEX */
+
 uint8_t warble_hw_init();
 
 uint8_t warble_hw_start();

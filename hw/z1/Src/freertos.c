@@ -56,6 +56,7 @@
 #include "gui.h"
 #include "gui_controls.h"
 #include "fm.h"
+#include "output.h"
 #include "warble.h"
 /* USER CODE END Includes */
 
@@ -100,7 +101,7 @@ void start_warble()
 
 void MX_FREERTOS_Init(void) {
     /* USER CODE BEGIN Init */
-       
+    output_init();
     /* USER CODE END Init */
 
     /* USER CODE BEGIN RTOS_MUTEX */

@@ -1,37 +1,6 @@
 #include "warble.h"
 #include "fm.h"
 
-void debugf(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-}
-
-void panicf(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-
-    exit (-1);
-}
-
-int find_first_set_bit(uint32_t value)
-{
-    if (value == 0)
-        return 32;
-    return __builtin_ctz(value);
-}
-
-off_t filesize(int fd)
-{
-    struct stat st;
-    fstat(fd, &st);
-    return st.st_size;
-}
 
 /***************** INTERNAL *****************/
 static WPlayer player;
@@ -384,7 +353,7 @@ static void decode_file(const char *input_fn)
     /* Load codec */
     char str[MAX_PATH];
     snprintf(str, sizeof(str), "codecs/%s.codec", audio_formats[id3.codectype].codec_root_fn);
-    debugf("Loading %s\n", str);
+    ci_debugf("Loading %s\n", str);
 
     /* Run the codec */
     uint8_t res;
@@ -430,18 +399,8 @@ static void decode_file(const char *input_fn)
         close(player.current_track.descriptor);
 }
 
-
-char p[1024] = {0};
-void w_set_file(char *file)
-{
-    strncpy(p, file, 1024);
-}
-
 int dmain()
 {
-    printf("playback init...\n");
-    playback_init();
-    
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
@@ -449,5 +408,13 @@ int dmain()
 
     playback_quit();
 
+    return 0;
+}
+
+int warble_init()
+{
+    warble_mutex_create(player.mutex);
+    playback_init();
+    playback_set_volume(10);
     return 0;
 }

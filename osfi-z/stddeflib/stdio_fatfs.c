@@ -104,3 +104,18 @@ int fstat(int fd, struct stat *buf)
     buf->st_size = f_size(&descrs[fd].file);
     return 0;
 }
+
+
+int find_first_set_bit(uint32_t value)
+{
+    if (value == 0)
+        return 32;
+    return __builtin_ctz(value);
+}
+
+off_t filesize(int fd)
+{
+    struct stat st;
+    fstat(fd, &st);
+    return st.st_size;
+}

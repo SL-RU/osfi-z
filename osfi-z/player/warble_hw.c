@@ -86,3 +86,31 @@ uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 
     return 1;
 }
+
+uint8_t warble_mutex_create (W_MUTEX_t *sobj)
+{
+    *sobj = xSemaphoreCreateMutex();
+    xSemaphoreGive(*sobj);
+    return (int)(*sobj != NULL);
+}
+//delete mutex
+uint8_t warble_mutex_delete (W_MUTEX_t *sobj)
+{
+    vSemaphoreDelete(*sobj);
+    return 1;
+}
+//Request Grant to Access some object
+uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
+{
+    int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
+		    == pdTRUE);
+    if(res == 0)
+	printf("Mutex err\n");
+    return res;
+}
+//Release Grant to Access the Volume
+uint8_t warble_mutex_release_grant (W_MUTEX_t *sobj)
+{
+    xSemaphoreGive(*sobj);
+    return 1;
+}

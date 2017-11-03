@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include "codecs.h"
 #include "metadata.h"
 #include "platform.h"
@@ -25,7 +23,7 @@
 typedef struct {
     int descriptor;
     struct mp3entry *id3;
-    MAKISE_MUTEX_t mutex;
+    W_MUTEX_t mutex;
 } WTrack;
 
 typedef struct {
@@ -51,7 +49,10 @@ typedef struct {
     uint32_t time_elapsed;
 
     MAKISE_MUTEX_t mutex;
+    
 } WPlayer;
 
 int dmain();
+int warble_init();
+int warble_set_track(WTrack current, WTrack next);
 #endif
