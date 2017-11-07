@@ -28,8 +28,8 @@ MakiseStyle ts_slider =
     //bg       font     border   double_border
     {0, 0,  0, 0},  //unactive
     {MC_Black, MC_White, MC_Black, 0},//normal
-    {MC_Black, MC_White, MC_White, 0}, //focused
-    {MC_Black, MC_White, MC_White, 0}, //active
+    {MC_Black, MC_White, MC_Black, 0}, //focused
+    {MC_Black, MC_White, MC_Black, 0}, //active
 };
 MakiseStyle_Lable ts_lable =
 {

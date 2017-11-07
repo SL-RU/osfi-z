@@ -63,26 +63,92 @@ static const unsigned char utf8comp[6] =
     0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC
 };
 
+/* Encode a UCS value as UTF-8 and return a pointer after this UTF-8 char. */
+unsigned char* utf8encode(unsigned long ucs, unsigned char *utf8)
+{
+    int tail = 0;
+
+    if (ucs > 0x7F)
+        while (ucs >> (5*tail + 6))
+            tail++;
+
+    *utf8++ = (ucs >> (6*tail)) | utf8comp[tail];
+    while (tail--)
+        *utf8++ = ((ucs >> (6*tail)) & (MASK ^ 0xFF)) | COMP;
+
+    return utf8;
+}
 
 /* Recode an iso encoded string to UTF-8 */
 unsigned char* iso_decode(const unsigned char *iso, unsigned char *utf8,
                           int cp, int count)
 {
-    return 0;
+    while (count--) {
+        unsigned short ucs, tmp;
+
+        if (*iso < 128 || cp == UTF_8) /* Already UTF-8 */
+            *utf8++ = *iso++;
+
+        else {
+            /* tid tells us which table to use and how */
+            /* switch (1) { */
+            /*     default: */
+                    ucs = *iso++;
+            /*         break; */
+            /* } */
+
+            if (ucs == 0) /* unknown char, use replacement char */
+                ucs = 0xfffd;
+            utf8 = utf8encode(ucs, utf8);
+        }
+    }
+
+    return utf8;
 }
 
 /* Recode a UTF-16 string with little-endian byte ordering to UTF-8 */
 unsigned char* utf16LEdecode(const unsigned char *utf16, unsigned char *utf8,
         int count)
 {
-    return 0;
+    unsigned long ucs;
+
+    while (count > 0) {
+        /* Check for a surrogate pair */
+        if (utf16[1] >= 0xD8 && utf16[1] < 0xE0) {
+            ucs = 0x10000 + ((utf16[0] << 10) | ((utf16[1] - 0xD8) << 18)
+                    | utf16[2] | ((utf16[3] - 0xDC) << 8));
+            utf16 += 4;
+            count -= 2;
+        } else {
+            ucs = getle16(utf16);
+            utf16 += 2;
+            count -= 1;
+        }
+        utf8 = utf8encode(ucs, utf8);
+    }
+    return utf8;
 }
 
 /* Recode a UTF-16 string with big-endian byte ordering to UTF-8 */
 unsigned char* utf16BEdecode(const unsigned char *utf16, unsigned char *utf8,
         int count)
 {
-    return 0;
+    unsigned long ucs;
+
+    while (count > 0) {
+        if (*utf16 >= 0xD8 && *utf16 < 0xE0) { /* Check for a surrogate pair */
+            ucs = 0x10000 + (((utf16[0] - 0xD8) << 18) | (utf16[1] << 10)
+                    | ((utf16[2] - 0xDC) << 8) | utf16[3]);
+            utf16 += 4;
+            count -= 2;
+        } else {
+            ucs = getbe16(utf16);
+            utf16 += 2;
+            count -= 1;
+        }
+        utf8 = utf8encode(ucs, utf8);
+    }
+    return utf8;
 }
 
 #if 0 /* currently unused */
@@ -161,19 +227,5 @@ const unsigned char* utf8decode(const unsigned char *utf8, unsigned short *ucs)
     }
     /* currently we don't support chars above U-FFFF */
     *ucs = (code < 0x10000) ? code : 0xfffd;
-    return utf8;
-}
-unsigned char* utf8encode(unsigned long ucs, unsigned char *utf8)
-{
-    int tail = 0;
-
-    if (ucs > 0x7F)
-        while (ucs >> (5*tail + 6))
-            tail++;
-
-    *utf8++ = (ucs >> (6*tail)) | utf8comp[tail];
-    while (tail--)
-        *utf8++ = ((ucs >> (6*tail)) & (MASK ^ 0xFF)) | COMP;
-
     return utf8;
 }

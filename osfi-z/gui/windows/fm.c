@@ -31,6 +31,14 @@ static char* to_uppercase(char *s)
         i++; }
     return (str);
 }
+static void click_thr(void const * argument)
+{
+    makise_g_cont_rem(&flist.el);	   
+    window_play_init(host->host);
+
+    vTaskDelete( NULL );
+}
+osThreadDef(ClickThread, click_thr, osPriorityHigh, 0, 512);
 
 uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 {
@@ -48,8 +56,9 @@ uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 	   strcmp(ext, "FLAC") == 0 ||
 	   strcmp(ext, "AIFF") == 0 )
 	{
-	    w_set_file(selected->name);
-	    start_warble();
+	    warble_play_file(selected->name);
+	    osDelay(100);
+	    osThreadCreate(osThread(ClickThread), NULL);
 	    return 1;
 	}
 	else
@@ -110,10 +119,8 @@ void fm_cre(char *art, char *tit, char *alb)
 void fm_init()
 {
     printf("FM initing\n");
+    warble_init();
 
-    window_play_init(host->host);
-    
-    return ;
     //initialize gui elements
     m_create_fsviewer(&flist, host->host,
     		      mp_sall(0,0,0,0), //position

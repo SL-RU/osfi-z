@@ -52,12 +52,12 @@ ssize_t read(int fd, void *buf, size_t count)
 
     UINT br = 0;
     FRESULT res = f_read(&descrs[fd].file, buf, count, &br);
-    descrs[fd].offset += br;
+    descrs[fd].offset += (off_t)br;
     if(res != FR_OK)
-	printf("readed %dbytes fd%d : %d\n", br, fd, res);
+	printf("r %db f%d:%d\n", br, fd, res);
 
     if(STDIO_FATFS_DEBUG)
-	printf("readed %dbytes fd%d : %d\n", br, fd, res);
+	printf("r %d/%ldb f%d:%d\n", br, count, fd, res);
 
     return br;
 }
@@ -66,9 +66,17 @@ off_t lseek(int fd, off_t offset, int whence)
     if(fd < 0 || fd >= descr_count || descrs[fd].used == 0)
 	return -1;
 
+    if(STDIO_FATFS_DEBUG)
+	printf("l f%d s%ld d%ld w%d ", fd,
+	       descrs[fd].offset,
+	       offset, whence);
+    
     switch (whence) {
     case SEEK_CUR:
-	offset += descrs[fd].offset;
+	offset = offset + descrs[fd].offset;
+	break;
+    case SEEK_SET:
+	
 	break;
     case SEEK_END:
 	offset = f_size(&descrs[fd].file) + offset;
@@ -78,11 +86,9 @@ off_t lseek(int fd, off_t offset, int whence)
     }
 
     descrs[fd].offset = offset;
-    FRESULT res = f_lseek(&descrs[fd].file, offset);
-    if(res != FR_OK)
-	printf("lseek fd%d offs%ld : %d\n", fd, offset, res);
+    FRESULT res = f_lseek(&descrs[fd].file, (UINT)offset);
     if(STDIO_FATFS_DEBUG)
-	printf("lseek fd%d offs%ld : %d\n", fd, offset, res);
+	printf("o%ld:%d\n", offset, res);
 
     return 0;
 }

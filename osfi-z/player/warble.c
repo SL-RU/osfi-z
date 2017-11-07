@@ -3,15 +3,18 @@
 
 
 /***************** INTERNAL *****************/
+static void dmain(void const * argument);
 static WPlayer player;
+osThreadDef(WPlayerTask, dmain, osPriorityHigh, 0, 2048);
+osThreadId WPlayerThread;
 
 static struct codec_api cic;
 struct codec_api *ci = &cic;
 
 //Buffer for codec's purposes
-static uint8_t
+static uint32_t
     __attribute__ ((section (".ccmram")))
-    dec_buffer[DEC_BUFFER_MAX];
+    dec_buffer[DEC_BUFFER_MAX/4];
 static uint32_t dec_id = 0;
 static uint32_t
     __attribute__ ((section (".ccmram")))
@@ -33,7 +36,9 @@ static void playback_set_volume(int volume)
     if (volume > 0)
         volume = 0;
 
-    player.playback_vol_factor = pow(10, (double)volume / 20.0) * VOL_FACTOR_UNITY;
+    warble_mutex_request_grant(&player.mutex);
+    player.playback_vol_factor = volume;//pow(10, (double)volume / 20.0) * VOL_FACTOR_UNITY;
+    warble_mutex_release_grant(&player.mutex);
 }
 
 
@@ -64,7 +69,10 @@ static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 
 static void ci_set_elapsed(unsigned long value)
 {
-    //printf("Time elapsed: %lu\n", value);
+    warble_mutex_request_grant(&player.mutex);
+    player.time_elapsed = value;
+    //printf("e%u\n", player.time_elapsed);
+    warble_mutex_release_grant(&player.mutex);
 }
 
 
@@ -81,9 +89,12 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
     //free(input_buffer);
     //input_buffer = NULL;
     //printf("read file buf\n");
+    dec_id = 0;
 
+    //warble_mutex_request_grant(&player.mutex);
     ssize_t actual = read(player.current_track.descriptor,
 			  ptr, size);
+    //warble_mutex_release_grant(&player.mutex);
     if (actual < 0)
         actual = 0;
     ci->curpos += actual;
@@ -101,17 +112,22 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
 static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
     //free(input_buffer);
+
 //    if (!rbcodec_format_is_atomic(ci->id3->codectype))
     if(reqsize > DEC_INPUT_BUFFER_LEN)
 	printf("WARNING: request buffer reqsize is too large %ld > %d\n", reqsize, DEC_INPUT_BUFFER_LEN); 
     reqsize = MIN(reqsize, DEC_INPUT_BUFFER_LEN);
-    //printf("Request buffer size: %lu\n", reqsize);
+    //printf("Req buf: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
+    //warble_mutex_request_grant(&player.mutex);
+
     *realsize = read(player.current_track.descriptor,
 		     input_buffer, reqsize);
     //if ((int32_t)(*realsize) < 0)
     //    *realsize = 0;
     lseek(player.current_track.descriptor, -*realsize, SEEK_CUR);
+
+    //warble_mutex_release_grant(&player.mutex);
     return input_buffer;
 }
 void* request_dec_buffer(size_t *realsize, size_t reqsize)
@@ -122,7 +138,7 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
 	reqsize = *realsize = DEC_BUFFER_MAX - dec_id;
     }
     printf("req %d %ld ", dec_id, reqsize);
-    uint8_t *b = dec_buffer + dec_id;
+    uint8_t *b = (uint8_t*)dec_buffer + dec_id;
     *realsize = reqsize;
     dec_id += reqsize;
     while (dec_id % 4) //align(4) !!!
@@ -138,9 +154,12 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
  */
 static void ci_advance_buffer(size_t amount)
 {
+    //warble_mutex_request_grant(&player.mutex);
+    //printf("adv %ld\n", amount);
     lseek(player.current_track.descriptor, amount, SEEK_CUR);
     ci->curpos += amount;
     ci->id3->offset = ci->curpos;
+    //warble_mutex_release_grant(&player.mutex);
 }
 
 /*
@@ -150,24 +169,33 @@ static void ci_advance_buffer(size_t amount)
  */
 static bool ci_seek_buffer(size_t newpos)
 {
+    //warble_mutex_request_grant(&player.mutex);
     off_t actual = lseek(player.current_track.descriptor,
 			 newpos, SEEK_SET);
     if (actual >= 0)
         ci->curpos = actual;
+
+    //printf("sek %ld\n", newpos);
+    //warble_mutex_release_grant(&player.mutex);
     return actual != -1;
 }
 
 static void ci_seek_complete(void)
 {
+    warble_mutex_request_grant(&player.mutex);
+    warble_mutex_release_grant(&player.mutex);
 }
 
 static void ci_set_offset(size_t value)
 {
+    warble_mutex_request_grant(&player.mutex);
     ci->id3->offset = value;
+    warble_mutex_release_grant(&player.mutex);
 }
 
 static void ci_configure(int setting, intptr_t value)
 {
+    warble_mutex_request_grant(&player.mutex);
     printf("ci configure\n");
     if (setting == DSP_SET_FREQUENCY
 	|| setting == DSP_SET_FREQUENCY)
@@ -185,20 +213,26 @@ static void ci_configure(int setting, intptr_t value)
 	player.format.stereo_mode = value;
 	player.format.channels = (value == STEREO_MONO) ? 1 : 2;
     }
+    warble_mutex_release_grant(&player.mutex);
 }
 
 static enum codec_command_action ci_get_command(intptr_t *param)
 {
+    warble_mutex_request_grant(&player.mutex);
     enum codec_command_action ret = player.codec_action;
     *param = player.codec_action_param;
     player.codec_action = CODEC_ACTION_NULL;
+    warble_mutex_release_grant(&player.mutex);
     return ret;
 }
 
 static bool ci_should_loop(void)
 {
+    warble_mutex_request_grant(&player.mutex);
     printf("ci should loop\n");
-    return player.enable_loop;
+    bool l = player.enable_loop;
+    warble_mutex_release_grant(&player.mutex);
+    return l;
 }
 
 static unsigned ci_sleep(unsigned ticks)
@@ -324,50 +358,55 @@ static void print_mp3entry(const struct mp3entry *id3)
     /* TODO: replaygain; albumart; cuesheet */
     if (id3->mb_track_id) printf("Musicbrainz track ID: %s\n", id3->mb_track_id);
     
-
 }
 
-static void decode_file(const char *input_fn)
-{    
+static void decode_file()
+{
+    warble_mutex_request_grant(&player.mutex);
     /* Open file */
     printf("open file\n");
-    player.current_track.descriptor = open(input_fn, O_RDONLY);
+    player.current_track.descriptor = open(player.current_track.path, O_RDONLY);
     if (player.current_track.descriptor == -1) {
-	printf(input_fn);
+	printf("error: open %s\n", player.current_track.path);
     }
 
     /* Set up ci */
     printf("mp3entry\n");
-    struct mp3entry id3;
-    if (!get_metadata(&id3, player.current_track.descriptor,
-		      input_fn))
+
+    if (!get_metadata(&player.current_track.id3, player.current_track.descriptor,
+		      player.current_track.path))
     {
         printf("error: metadata parsing failed\n");
         return;
     }
-    print_mp3entry(&id3);
+    print_mp3entry(&player.current_track.id3);
     
     ci->filesize = filesize(player.current_track.descriptor);
-    ci->id3 = &id3;
+    ci->id3 = &player.current_track.id3;
 
     /* Load codec */
     char str[MAX_PATH];
-    snprintf(str, sizeof(str), "codecs/%s.codec", audio_formats[id3.codectype].codec_root_fn);
+    snprintf(str, sizeof(str), "codecs/%s.codec", audio_formats[player.current_track.id3.codectype].codec_root_fn);
     ci_debugf("Loading %s\n", str);
 
     /* Run the codec */
     uint8_t res;
-    if(id3.codectype == AFMT_MPA_L3)
+    warble_mutex_release_grant(&player.mutex);
+
+    
+    uint32_t ct = player.current_track.id3.codectype;
+    
+    if(ct == AFMT_MPA_L3)
 	res = mpa_codec_main(CODEC_LOAD);
-    else if(id3.codectype == AFMT_PCM_WAV)
+    else if(ct == AFMT_PCM_WAV)
 	res = wav_codec_main(CODEC_LOAD);
-    else if(id3.codectype == AFMT_AIFF)
+    else if(ct == AFMT_AIFF)
 	res = aiff_codec_main(CODEC_LOAD);
-    else if(id3.codectype == AFMT_FLAC)
+    else if(ct == AFMT_FLAC)
 	res = flac_codec_main(CODEC_LOAD);
     else
     {
-	printf("Codec wrong %d!\n", id3.codectype);
+	printf("Codec wrong %d!\n", ct);
 	exit(1);
     }
     
@@ -378,13 +417,13 @@ static void decode_file(const char *input_fn)
         printf("error: codec returned error from codec_main\n");
         exit(1);
     }
-    if(id3.codectype == AFMT_MPA_L3)
+    if(ct == AFMT_MPA_L3)
 	res = mpa_codec_run();
-    if(id3.codectype == AFMT_PCM_WAV)
+    if(ct == AFMT_PCM_WAV)
 	res = wav_codec_run();
-    else if(id3.codectype == AFMT_AIFF)
+    else if(ct == AFMT_AIFF)
 	res = aiff_codec_run();
-    else if(id3.codectype == AFMT_FLAC)
+    else if(ct == AFMT_FLAC)
 	res = flac_codec_run();
     
     printf("proc %d\n", res);
@@ -399,22 +438,35 @@ static void decode_file(const char *input_fn)
         close(player.current_track.descriptor);
 }
 
-int dmain()
+void warble_play_file(char *file)
+{
+    warble_mutex_request_grant(&player.mutex);
+    strncpy(player.current_track.path, file, MAX_PATH);
+    warble_mutex_release_grant(&player.mutex);
+    
+    WPlayerThread = osThreadCreate(osThread(WPlayerTask), NULL);
+}
+
+void dmain(void const * argument)
 {
     printf("playback volume...\n");
     playback_set_volume(10);
     printf("playback decode...\n");
-    decode_file(p);
+    decode_file();
 
     playback_quit();
-
-    return 0;
+    vTaskDelete( NULL );
 }
 
 int warble_init()
 {
-    warble_mutex_create(player.mutex);
+    warble_mutex_create(&player.mutex);
     playback_init();
     playback_set_volume(10);
     return 0;
+}
+
+WPlayer * warble_get_player()
+{
+    return &player;
 }

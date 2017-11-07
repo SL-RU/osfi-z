@@ -1,5 +1,5 @@
 #include "gui.h"
-
+#include "window_play.h"
 
 MakiseGUI    *mGui;
 MHost        *host;
@@ -12,9 +12,12 @@ static uint32_t SSD1306_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
 static uint32_t Makise_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
 
 
-
+static uint8_t ldf;
 void gui_predraw(MakiseGUI * gui)
 {
+    ldf = !ldf;
+    if(ldf)
+	window_play_update();
     makise_gui_input_perform(host);
     makise_g_host_call(host, gui, M_G_CALL_PREDRAW);
 }

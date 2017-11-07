@@ -5,4 +5,6 @@
 
 MElement * window_play_init (MContainer * host);
 
+void window_play_update();
+
 #endif

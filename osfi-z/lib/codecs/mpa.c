@@ -416,6 +416,10 @@ enum codec_status mpa_codec_run(void)
 
         samplesdone += framelength;
         ci->set_elapsed((samplesdone * 1000) / current_frequency);
+	if((samplesdone * 1000) / current_frequency > 200)
+	{
+	    //printf("m\n");
+	}
     }
 
     /* wait for synth idle - MT only*/

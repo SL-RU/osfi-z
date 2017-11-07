@@ -2,7 +2,7 @@
 #define MAKISE_CONFIG_H
 #include <stdio.h>
 
-#define MAKISE_DEBUG_OUTPUT printf
+//#define MAKISE_DEBUG_OUTPUT printf
 
 //comment unused displays
 #define MAKISE_SDL2_USE 0
@@ -30,7 +30,7 @@
 #define MAKISE_E_CANVAS            1 
 #define MAKISE_E_LABLE             1
 #define MAKISE_E_PROGRESS_BAR      0
-#define MAKISE_E_SLIDER            0
+#define MAKISE_E_SLIDER            1
 #define MAKISE_E_TABS              0
 #define MAKISE_E_TEXT_FIELD        0
 #define MAKISE_E_TOGGLE            0

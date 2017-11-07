@@ -21,14 +21,13 @@
 #define VOL_FACTOR_UNITY (1u << VOL_FRACBITS)
 
 typedef struct {
+    char path[MAX_PATH];
     int descriptor;
-    struct mp3entry *id3;
-    W_MUTEX_t mutex;
+    struct mp3entry id3;
 } WTrack;
 
 typedef struct {
     WTrack current_track;
-    WTrack next_track;
     
     enum codec_command_action codec_action;
     intptr_t codec_action_param;
@@ -52,7 +51,9 @@ typedef struct {
     
 } WPlayer;
 
-int dmain();
 int warble_init();
+void warble_play_file(char *file);
 int warble_set_track(WTrack current, WTrack next);
+WPlayer * warble_get_player();
+
 #endif

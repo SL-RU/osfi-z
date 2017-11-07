@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "makise_e.h"
 #include <string.h>
+#include "warble.h"
 
 
 typedef enum

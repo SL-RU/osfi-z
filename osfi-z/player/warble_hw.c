@@ -1,7 +1,7 @@
 #include "warble_hw.h"
 
-xSemaphoreHandle xI2S_semaphore;
-xSemaphoreHandle xI2S_semaphore_h;
+W_MUTEX_t xI2S_semaphore;
+W_MUTEX_t xI2S_semaphore_h;
 
 static uint8_t playback_running = 0;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
@@ -15,6 +15,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
     xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(xI2S_semaphore_h, &xHigherPriorityTaskWoken);
     portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    //printf("h\n");
 }
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
@@ -33,12 +34,14 @@ uint8_t warble_hw_init()
 
 uint8_t warble_hw_start()
 {
-    xI2S_semaphore = xSemaphoreCreateCounting(10, 0);
-    xI2S_semaphore_h = xSemaphoreCreateCounting(10, 0);
+    xI2S_semaphore = xSemaphoreCreateCounting(100, 0);
+    xI2S_semaphore_h = xSemaphoreCreateCounting(100, 0);
 
     HAL_I2S_Transmit_DMA(&hi2s3,
 			 (uint16_t*)playback_buffer,
 			 PLAYBACK_BUFFER_SIZE * 2);
+
+    playback_running = 1;
     return 1;
 }
 
@@ -73,9 +76,9 @@ uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 	    if (!playback_running && playback_decode_ind)
 		warble_hw_start();
 	    if (playback_running && playback_decode_ind)
-		xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
+		warble_mutex_request_grant(&xI2S_semaphore_h);
 	    if (playback_running && !playback_decode_ind)
-		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+		warble_mutex_request_grant(&xI2S_semaphore);
 
 		
 	    playback_decode_pos = 0;

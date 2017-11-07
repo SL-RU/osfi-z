@@ -61,7 +61,7 @@
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
-osThreadId defaultTaskHandle;
+//osThreadId defaultTaskHandle;
 osThreadId guiThreadHandle;
 
 /* USER CODE BEGIN Variables */
@@ -96,13 +96,12 @@ static void init_error() //show error message with required err_msg
 
     SSD1306_UpdateScreen(mGui);
 }
-osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 4048);
 
-void start_warble()
-{
-    dmain();
-    defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-}
+/* void start_warble() */
+/* { */
+/*     dmain(); */
+/*     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL); */
+/* } */
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
@@ -111,7 +110,7 @@ void start_warble()
 
 void MX_FREERTOS_Init(void) {
     /* USER CODE BEGIN Init */
-    output_init();
+    //output_init();
     /* USER CODE END Init */
 
     /* USER CODE BEGIN RTOS_MUTEX */
@@ -128,7 +127,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityNormal, 0, 2048);
+    osThreadDef(guiThread, guiStart, osPriorityBelowNormal, 0, 1024);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */
@@ -146,17 +145,18 @@ void StartDefaultTask(void const * argument)
 {
 
     /* USER CODE BEGIN StartDefaultTask */
-    dmain();
-    vTaskDelete( NULL );
+    //dmain();
+    //vTaskDelete( NULL );
     /* USER CODE END StartDefaultTask */
 }
 
 /* guiStart function */
 void guiStart(void const * argument)
 {
-    dmain();
+    //dmain();
     /* USER CODE BEGIN guiStart */
     /* Infinite loop */
+    printf("guiStart %s\n", SD_Path);
     FRESULT res;
     if((res = f_mount(&fileSystem, SD_Path, 1)) == FR_OK)
     {
@@ -165,8 +165,6 @@ void guiStart(void const * argument)
     else
     {
     	printf("no sd %d\n", res);
-	err_msg = "NO SD!!!";
-	init_error();
 	return;
     }
     
@@ -194,6 +192,7 @@ void guiStart(void const * argument)
 	ssd1306_send();
 	makise_gui_input_perform(host);
 	ssd1306_render();
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     }
     /* USER CODE END guiStart */
 }
