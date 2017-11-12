@@ -139,6 +139,17 @@ void ssd1306_send()
     rendered = 0;
     //memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
 
+    while(HAL_GPIO_ReadPin(B_HOLD_GPIO_Port, B_HOLD_Pin) == GPIO_PIN_SET)
+    {
+	taskENTER_CRITICAL();
+	SSD1306_sendCmd(SSD1306_DISPLAY_OFF);
+	taskEXIT_CRITICAL();
+	osDelay(50);
+	taskENTER_CRITICAL();
+	SSD1306_sendCmd(SSD1306_DISPLAY_ON);
+	taskEXIT_CRITICAL();
+    }
+
     taskENTER_CRITICAL();
     //printf("send\n");
     SSD1306_sendCmd(SSD1306_SET_COLUMN_ADDR);
