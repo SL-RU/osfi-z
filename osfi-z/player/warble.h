@@ -47,13 +47,25 @@ typedef struct {
     
     uint32_t time_elapsed;
 
-    MAKISE_MUTEX_t mutex;
+    struct {
+	void (*onend)(WTrack *track);
+	void (*onstart)(WTrack *track);
+	void (*gotmetadata)(WTrack *track);
+    } handlers;
     
+
+    MAKISE_MUTEX_t mutex;
+
 } WPlayer;
 
 int warble_init();
 void warble_play_file(char *file);
 int warble_set_track(WTrack current, WTrack next);
 WPlayer * warble_get_player();
+void warble_decode_file();
+
+void warble_set_onend(void (*onend)(WTrack *track));
+void warble_set_onstart(void (*onstart)(WTrack *track));
+void warble_set_gotmetadata(void (*gotmetadata)(WTrack *track));
 
 #endif

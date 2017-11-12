@@ -3,7 +3,13 @@
 #include "i2s.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
+//#include "tasks.h"
 #include "dsp_core.h"
+#include "task.h"
+#include "timers.h"
+#include "cmsis_os.h"
+#include "warble.h"
+
 
 #define PLAYBACK_BUFFER_SIZE 4096
 
@@ -25,6 +31,9 @@ uint8_t warble_hw_init();
 
 uint8_t warble_hw_start();
 uint8_t warble_hw_stop();
+
+uint8_t warble_hw_start_thread();
+
 
 uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 			 int count, uint8_t stereo_format);

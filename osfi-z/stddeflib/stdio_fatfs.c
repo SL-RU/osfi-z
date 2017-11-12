@@ -5,6 +5,10 @@
 #include "rbcodecconfig.h"
 #include <stdio.h>
 
+
+#define SZ_TBL 1024
+
+DWORD clmt[SZ_TBL];
 typedef struct
 {
     uint8_t used;
@@ -40,6 +44,11 @@ int open(const char *pathname, int flags, ...)
 		descrs[i].used = 0;
 		return -1;		
 	    }
+	    descrs[i].file.cltbl = clmt;
+	    clmt[0] = SZ_TBL;
+	    res = f_lseek(&descrs[i].file, CREATE_LINKMAP);     /* Create CLMT */
+	    if(res == FR_NOT_ENOUGH_CORE)
+		printf("open clmt not enough\n");
 	    return i;
 	}
     }

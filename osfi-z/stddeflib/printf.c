@@ -8,8 +8,8 @@
 #include "semphr.h"
 /***************************************************************************/
 
-static uint8_t mut_inited = 0;
-static xSemaphoreHandle pr_mutex;
+/* static uint8_t mut_inited = 0; */
+/* static xSemaphoreHandle pr_mutex; */
 
 /* void output_init(void) */
 /* { */

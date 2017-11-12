@@ -1,15 +1,10 @@
 #include "warble.h"
-#include "fm.h"
 
 
 /***************** INTERNAL *****************/
-static void dmain(void const * argument);
-static WPlayer player;
-osThreadDef(WPlayerTask, dmain, osPriorityHigh, 0, 2048);
-osThreadId WPlayerThread;
-
 static struct codec_api cic;
 struct codec_api *ci = &cic;
+static WPlayer player;
 
 //Buffer for codec's purposes
 static uint32_t
@@ -120,13 +115,15 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
     //printf("Req buf: %lu\n", reqsize);
     //input_buffer = malloc(reqsize);
     //warble_mutex_request_grant(&player.mutex);
-
+    uint32_t t = HAL_GetTick();
     *realsize = read(player.current_track.descriptor,
 		     input_buffer, reqsize);
+    //printf("rd %d\n", HAL_GetTick() - t);
     //if ((int32_t)(*realsize) < 0)
     //    *realsize = 0;
+    t = HAL_GetTick();
     lseek(player.current_track.descriptor, -*realsize, SEEK_CUR);
-
+    //printf("ls %d\n", HAL_GetTick() - t);
     //warble_mutex_release_grant(&player.mutex);
     return input_buffer;
 }
@@ -360,9 +357,11 @@ static void print_mp3entry(const struct mp3entry *id3)
     
 }
 
-static void decode_file()
+void warble_decode_file()
 {
     warble_mutex_request_grant(&player.mutex);
+    playback_set_volume(10);
+    
     /* Open file */
     printf("open file\n");
     player.current_track.descriptor = open(player.current_track.path, O_RDONLY);
@@ -434,6 +433,9 @@ static void decode_file()
 
     /* Close */
     //dlclose(dlcodec);
+
+    playback_quit();
+    
     if (player.current_track.descriptor != STDIN_FILENO)
         close(player.current_track.descriptor);
 }
@@ -444,19 +446,9 @@ void warble_play_file(char *file)
     strncpy(player.current_track.path, file, MAX_PATH);
     warble_mutex_release_grant(&player.mutex);
     
-    WPlayerThread = osThreadCreate(osThread(WPlayerTask), NULL);
+    warble_hw_start_thread();
 }
 
-void dmain(void const * argument)
-{
-    printf("playback volume...\n");
-    playback_set_volume(10);
-    printf("playback decode...\n");
-    decode_file();
-
-    playback_quit();
-    vTaskDelete( NULL );
-}
 
 int warble_init()
 {

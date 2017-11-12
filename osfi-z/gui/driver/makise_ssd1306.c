@@ -139,6 +139,7 @@ void ssd1306_send()
     rendered = 0;
     //memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
 
+    taskENTER_CRITICAL();
     //printf("send\n");
     SSD1306_sendCmd(SSD1306_SET_COLUMN_ADDR);
     SSD1306_sendCmd(0);
@@ -156,10 +157,12 @@ void ssd1306_send()
 			  SSD1306_WIDTH * SSD1306_HEIGHT / 8)
 //	)
 	;
+    taskEXIT_CRITICAL();
 }
 
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     static BaseType_t xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(SSD1306_semaphore, &xHigherPriorityTaskWoken);

@@ -68,6 +68,7 @@ osThreadId guiThreadHandle;
 FATFS fileSystem;
 static char* err_msg = 0;
 static MLable err_labl;
+
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -110,7 +111,7 @@ static void init_error() //show error message with required err_msg
 
 void MX_FREERTOS_Init(void) {
     /* USER CODE BEGIN Init */
-    //output_init();
+    output_init();
     /* USER CODE END Init */
 
     /* USER CODE BEGIN RTOS_MUTEX */
@@ -127,7 +128,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityBelowNormal, 0, 1024);
+    osThreadDef(guiThread, guiStart, osPriorityBelowNormal, 0, 512);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */
@@ -184,15 +185,19 @@ void guiStart(void const * argument)
     gui_controls_init();
     fm_init();
     SSD1306_UpdateScreen(mGui);
+    uint32_t led = 1;
     /* Infinite loop */
     for(;;)
     {
 	gui_controls_update();
-	xSemaphoreTake(SSD1306_semaphore, portMAX_DELAY);
+	if(xSemaphoreTake(SSD1306_semaphore, 1000) != pdTRUE)
+	{
+	    printf("sem_fail %d\n", led);
+	}
+	led = !led;
 	ssd1306_send();
 	makise_gui_input_perform(host);
 	ssd1306_render();
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     }
     /* USER CODE END guiStart */
 }

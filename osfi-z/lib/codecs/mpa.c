@@ -29,7 +29,7 @@ static struct mad_frame * frame;
 static struct mad_synth * synth;
 
 
-#define MPA_INPUT_CHUNK_SIZE   6000
+#define MPA_INPUT_CHUNK_SIZE   10000
 
 static mad_fixed_t (*mad_frame_overlap)[2][32][18];
 static mad_fixed_t (*sbsample)[2][36][32];
@@ -296,6 +296,7 @@ enum codec_status mpa_codec_run(void)
         samples_to_skip = start_skip;
 
     framelength = 0;
+    uint32_t t;
 
     /* This is the decoding loop. */
     while (1) {
@@ -364,14 +365,12 @@ enum codec_status mpa_codec_run(void)
                return CODEC_ERROR;
             }
         }
-
         /* Do the pcmbuf insert here. Note, this is the PREVIOUS frame's pcm
            data (not the one just decoded above). When we exit the decoding
            loop we will need to process the final frame that was decoded. */
         mad_synth_thread_wait_pcm();
 
         if (framelength > 0) {
-            
             /* In case of a mono file, the second array will be ignored. */
             ci->pcmbuf_insert(&synth->pcm.samples[0][samples_to_skip],
                               &synth->pcm.samples[1][samples_to_skip],
@@ -380,7 +379,7 @@ enum codec_status mpa_codec_run(void)
             /* Only skip samples for the first frame added. */
             samples_to_skip = 0;
         }
-
+	
         /* Initiate PCM synthesis on the COP (MT) or perform it here (ST) */
         mad_synth_thread_ready();
 
@@ -400,7 +399,9 @@ enum codec_status mpa_codec_run(void)
                 current_stereo_mode = STEREO_MONO;
             }
         }
+	//printf("set%d\n", HAL_GetTick() - t);
 
+	t = HAL_GetTick();
         if (stream->next_frame)
             ci->advance_buffer(stream->next_frame - stream->buffer);
         else
@@ -413,13 +414,9 @@ enum codec_status mpa_codec_run(void)
             framelength = 0;
             samples_to_skip -= synth->pcm.length;
         }
-
+	
         samplesdone += framelength;
         ci->set_elapsed((samplesdone * 1000) / current_frequency);
-	if((samplesdone * 1000) / current_frequency > 200)
-	{
-	    //printf("m\n");
-	}
     }
 
     /* wait for synth idle - MT only*/

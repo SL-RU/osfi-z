@@ -24,6 +24,7 @@ static char s_name[30] = "dfasd";
 static char s_time[30] = "124";
 static uint32_t ldden;
 
+
 void window_play_update()
 {
     MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex);
@@ -34,6 +35,7 @@ void window_play_update()
     }
 
     MAKISE_MUTEX_REQUEST(&l_title.el.mutex);
+    ldden ++;
     snprintf(s_time, 30, "%d / %d",	     
 	     warble_get_player()->time_elapsed / 1000,
 	     ldden / 1000);
