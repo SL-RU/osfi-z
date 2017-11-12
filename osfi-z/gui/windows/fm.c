@@ -64,7 +64,6 @@ uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 	   strcmp(ext, "AIFF") == 0 )
 	{
 	    warble_play_file(selected->name);
-	    osDelay(100);
 	    return 1;
 	}
 	else

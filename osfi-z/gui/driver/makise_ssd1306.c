@@ -204,7 +204,6 @@ void ssd1306_send()
 
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     static BaseType_t xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(SSD1306_semaphore, &xHigherPriorityTaskWoken);
