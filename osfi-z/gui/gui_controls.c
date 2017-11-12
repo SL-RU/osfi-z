@@ -23,9 +23,15 @@ void button_handler(
     {
 	switch (id) {
 	case GUI_KEY_NEXT:
-	    makise_gui_input_send_button(host,
-					 M_KEY_DOWN,
-					 M_INPUT_CLICK, time);
+	    if(event & CONTROLS_LONG_CLICK)
+	    {
+		// TODO: Delete!!!
+		tgl();
+	    }
+	    else
+		makise_gui_input_send_button(host,
+					     M_KEY_DOWN,
+					     M_INPUT_CLICK, time);
 	    break;
 	case GUI_KEY_PREV:
 	    makise_gui_input_send_button(host,

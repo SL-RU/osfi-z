@@ -37,11 +37,13 @@ static void onstart(WTrack *track)
 {
     makise_g_cont_rem(&flist.el);	   
     makise_g_cont_add(host->host, window_play);
+    makise_g_focus(window_play, M_G_FOCUS_GET);
 }
 static void onend(WTrack *track)
 {
     makise_g_cont_rem(window_play);	 
     makise_g_cont_add(host->host, &flist.el);
+    makise_g_focus(&flist.el, M_G_FOCUS_GET);
 }
 
 

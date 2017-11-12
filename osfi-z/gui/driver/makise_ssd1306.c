@@ -134,21 +134,52 @@ void ssd1306_render()
 
 }
 
+// TODO: Delete!!!
+static uint32_t ddtgl = 0, ds;
+void tgl()
+{
+    ddtgl = !ddtgl;
+}
+
 void ssd1306_send()
 {
     rendered = 0;
     //memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
 
-    while(HAL_GPIO_ReadPin(B_HOLD_GPIO_Port, B_HOLD_Pin) == GPIO_PIN_SET)
+    if(ddtgl)
     {
     	taskENTER_CRITICAL();
     	SSD1306_sendCmd(SSD1306_DISPLAY_OFF);
     	taskEXIT_CRITICAL();
-    	osDelay(50);
-    	taskENTER_CRITICAL();
-    	SSD1306_sendCmd(SSD1306_DISPLAY_ON);
-    	taskEXIT_CRITICAL();
     }
+    while(ddtgl)//HAL_GPIO_ReadPin(B_HOLD_GPIO_Port, B_HOLD_Pin) == GPIO_PIN_SET)
+    {
+    	osDelay(50);
+    
+	// TODO: Delete!!!
+	if(HAL_GPIO_ReadPin(B_NEXT_GPIO_Port, B_NEXT_Pin) == GPIO_PIN_RESET)
+	{
+	    ds ++;
+	}
+	else
+	{
+	    if(ds > 50)
+	    {
+		ds = 0;
+		break;
+	    }
+	    ds = 0;
+	}
+    }
+    // TODO: Delete!!!
+    if(ddtgl)
+    {
+	tgl();
+	taskENTER_CRITICAL();
+	SSD1306_sendCmd(SSD1306_DISPLAY_ON);
+	taskEXIT_CRITICAL();
+    }
+
 
     taskENTER_CRITICAL();
     //printf("send\n");
