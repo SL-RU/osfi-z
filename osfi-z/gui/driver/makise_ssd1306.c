@@ -141,13 +141,13 @@ void ssd1306_send()
 
     while(HAL_GPIO_ReadPin(B_HOLD_GPIO_Port, B_HOLD_Pin) == GPIO_PIN_SET)
     {
-	taskENTER_CRITICAL();
-	SSD1306_sendCmd(SSD1306_DISPLAY_OFF);
-	taskEXIT_CRITICAL();
-	osDelay(50);
-	taskENTER_CRITICAL();
-	SSD1306_sendCmd(SSD1306_DISPLAY_ON);
-	taskEXIT_CRITICAL();
+    	taskENTER_CRITICAL();
+    	SSD1306_sendCmd(SSD1306_DISPLAY_OFF);
+    	taskEXIT_CRITICAL();
+    	osDelay(50);
+    	taskENTER_CRITICAL();
+    	SSD1306_sendCmd(SSD1306_DISPLAY_ON);
+    	taskEXIT_CRITICAL();
     }
 
     taskENTER_CRITICAL();

@@ -169,17 +169,6 @@ void guiStart(void const * argument)
 	return;
     }
     
-    HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_RESET);
-    HAL_Delay(100);
-    HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_SET);
-    setr(0x00, 0b10000000);
-    setr(0x01, 0b00100010);
-    setr(0x02, 0b00010000);
-    setr(0x03, 0b11111111);
-    setr(0x04, 0b11111111);
-    setr(0x05, 0b00000000);
-    setr(0x06, 0b10000000);
-    setr(0x00, 0b10000001);
 
     gui_init();
     gui_controls_init();

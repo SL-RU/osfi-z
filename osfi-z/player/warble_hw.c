@@ -38,6 +38,9 @@ uint8_t warble_hw_init()
 
 uint8_t warble_hw_start()
 {
+#ifdef I2S_Z1
+    HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
+#endif
     xI2S_semaphore = xSemaphoreCreateCounting(10, 0);
     xI2S_semaphore_h = xSemaphoreCreateCounting(10, 0);
     
@@ -55,6 +58,10 @@ uint8_t warble_hw_start()
 uint8_t warble_hw_stop()
 {
     HAL_I2S_DMAStop(&hi2s3);
+#ifdef I2S_Z1
+    HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_RESET);
+#endif
+
     playback_running = 0;
     playback_decode_ind = 0;
     playback_decode_pos = 0;

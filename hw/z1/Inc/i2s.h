@@ -53,7 +53,7 @@
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#define I2S_Z1 1
 /* USER CODE END Includes */
 
 extern I2S_HandleTypeDef hi2s3;
