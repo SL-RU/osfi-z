@@ -7,6 +7,8 @@
 static MLable    lable;
 static MFSViewer flist;
 static MSList    slist;
+static MElement *window_play;
+
 char str[100] = "Hello!";
 void start_warble();
 void w_set_file(char *file);
@@ -31,14 +33,17 @@ static char* to_uppercase(char *s)
         i++; }
     return (str);
 }
-static void click_thr(void const * argument)
+static void onstart(WTrack *track)
 {
     makise_g_cont_rem(&flist.el);	   
-    window_play_init(host->host);
-
-    vTaskDelete( NULL );
+    makise_g_cont_add(host->host, window_play);
 }
-osThreadDef(ClickThread, click_thr, osPriorityHigh, 0, 512);
+static void onend(WTrack *track)
+{
+    makise_g_cont_rem(window_play);	 
+    makise_g_cont_add(host->host, &flist.el);
+}
+
 
 uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 {
@@ -56,9 +61,7 @@ uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 	   strcmp(ext, "FLAC") == 0 ||
 	   strcmp(ext, "AIFF") == 0 )
 	{
-	    warble_play_file(selected->name);
-	    osDelay(100);
-	    osThreadCreate(osThread(ClickThread), NULL);
+	    warble_play_file(selected->name);	    
 	    return 1;
 	}
 	else
@@ -120,6 +123,11 @@ void fm_init()
 {
     printf("FM initing\n");
     warble_init();
+    warble_set_onend(&onend);
+    warble_set_onstart(&onstart);
+
+    
+    window_play = window_play_init();
 
     //initialize gui elements
     m_create_fsviewer(&flist, host->host,

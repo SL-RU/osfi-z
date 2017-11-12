@@ -20,35 +20,36 @@ static MakiseStyle_Canvas container_style =
 };
 static uint8_t inited = 0;
 
-static char s_name[30] = "dfasd";
-static char s_time[30] = "124";
+static char s_name[30] = "";
+static char s_time[30] = "";
 static uint32_t ldden;
 
-
-void window_play_update()
+static void gotmetadata(WTrack *track)
 {
-    MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex);
-    if(!inited)
-    {
-	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
-	return;
-    }
-
+    MAKISE_MUTEX_REQUEST(&l_artist.el.mutex);
+    snprintf(s_name, 30, "%s", track->id3.title);
+    MAKISE_MUTEX_RELEASE(&l_artist.el.mutex);
+    ldden = track->id3.length;
+    m_slider_set_range(&slider, 0, ldden);
+}
+static void ontimeelapsed(WTrack *track, uint32_t time)
+{
     MAKISE_MUTEX_REQUEST(&l_title.el.mutex);
-    ldden ++;
     snprintf(s_time, 30, "%d / %d",	     
 	     warble_get_player()->time_elapsed / 1000,
 	     ldden / 1000);
     MAKISE_MUTEX_RELEASE(&l_title.el.mutex);
     
     m_slider_set_value(&slider, warble_get_player()->time_elapsed);		 
-
-    MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
 }
 
-MElement * window_play_init(MContainer * host)
+void window_play_update()
 {
-    m_create_canvas(&container, host,
+}
+
+MElement * window_play_init()
+{
+    m_create_canvas(&container, 0,
 		    mp_sall(0,0,0,0),
 		    &container_style);
 
@@ -94,23 +95,18 @@ MElement * window_play_init(MContainer * host)
 		    &ts_lable);
     m_lable_set_text(&l_title, s_time);
 
-    m_create_lable(&l_status, host,
+    m_create_lable(&l_status, win_host,
 		    mp_rel(1, 1, 70, 10),
 		    &ts_lable_small);
     m_lable_set_text(&l_status, "Status");
 
-    m_create_slider(&slider, host,
+    m_create_slider(&slider, win_host,
 		    mp_sall(0, 0, 51, 0),
 		    MSlider_Type_Read,
 		    &ts_slider);
     
-    MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex);
-    snprintf(s_name, 30, "%s", (warble_get_player()->current_track).id3.title);
-    inited = 1;
-    ldden = (warble_get_player()->current_track).id3.length;
-    m_slider_set_range(&slider, 0, ldden);
-    MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
- 
+    warble_set_ontimeelapsed(&ontimeelapsed);
+    warble_set_gotmetadata(&gotmetadata);
     
     makise_g_focus(&b_play.el, M_G_FOCUS_GET);
     

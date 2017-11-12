@@ -4,9 +4,8 @@
 #include "makise_e.h"
 #include "warble.h"
 
-MElement * window_play_init (MContainer * host);
+MElement * window_play_init();
 
 void window_play_update();
-void gotmetadata(WTrack *track);
 
 #endif

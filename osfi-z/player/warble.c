@@ -8,12 +8,12 @@ static WPlayer player;
 
 //Buffer for codec's purposes
 static uint32_t
-    __attribute__ ((section (".ccmram")))
-    dec_buffer[DEC_BUFFER_MAX/4];
+__attribute__ ((section (".ccmram")))
+dec_buffer[DEC_BUFFER_MAX/4];
 static uint32_t dec_id = 0;
 static uint32_t
-    __attribute__ ((section (".ccmram")))
-    input_buffer[DEC_INPUT_BUFFER_LEN/4];
+__attribute__ ((section (".ccmram")))
+input_buffer[DEC_INPUT_BUFFER_LEN/4];
 
 /***** MODE_PLAY *****/
 
@@ -34,13 +34,6 @@ static void playback_set_volume(int volume)
     warble_mutex_request_grant(&player.mutex);
     player.playback_vol_factor = volume;//pow(10, (double)volume / 20.0) * VOL_FACTOR_UNITY;
     warble_mutex_release_grant(&player.mutex);
-}
-
-
-
-static void playback_quit(void)
-{
-    warble_hw_stop();
 }
 
 
@@ -66,6 +59,9 @@ static void ci_set_elapsed(unsigned long value)
 {
     warble_mutex_request_grant(&player.mutex);
     player.time_elapsed = value;
+    if(player.handlers.ontimeelapsed != 0)
+	player.handlers.ontimeelapsed(&player.current_track, value);
+
     //printf("e%u\n", player.time_elapsed);
     warble_mutex_release_grant(&player.mutex);
 }
@@ -106,25 +102,21 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
  */
 static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
-    //free(input_buffer);
-
-//    if (!rbcodec_format_is_atomic(ci->id3->codectype))
+    warble_mutex_request_grant(&player.mutex);
     if(reqsize > DEC_INPUT_BUFFER_LEN)
 	printf("WARNING: request buffer reqsize is too large %ld > %d\n", reqsize, DEC_INPUT_BUFFER_LEN); 
     reqsize = MIN(reqsize, DEC_INPUT_BUFFER_LEN);
-    //printf("Req buf: %lu\n", reqsize);
-    //input_buffer = malloc(reqsize);
-    //warble_mutex_request_grant(&player.mutex);
-    uint32_t t = HAL_GetTick();
+
     *realsize = read(player.current_track.descriptor,
 		     input_buffer, reqsize);
-    //printf("rd %d\n", HAL_GetTick() - t);
-    //if ((int32_t)(*realsize) < 0)
-    //    *realsize = 0;
-    t = HAL_GetTick();
+    if(*realsize == 0)
+    {
+	warble_mutex_release_grant(&player.mutex);
+	return NULL;
+    }
     lseek(player.current_track.descriptor, -*realsize, SEEK_CUR);
-    //printf("ls %d\n", HAL_GetTick() - t);
-    //warble_mutex_release_grant(&player.mutex);
+
+    warble_mutex_release_grant(&player.mutex);
     return input_buffer;
 }
 void* request_dec_buffer(size_t *realsize, size_t reqsize)
@@ -365,6 +357,7 @@ void warble_decode_file()
     /* Open file */
     printf("open file\n");
     player.current_track.descriptor = open(player.current_track.path, O_RDONLY);
+    fseek_init(player.current_track.descriptor);
     if (player.current_track.descriptor == -1) {
 	printf("error: open %s\n", player.current_track.path);
     }
@@ -376,9 +369,13 @@ void warble_decode_file()
 		      player.current_track.path))
     {
         printf("error: metadata parsing failed\n");
+	warble_mutex_release_grant(&player.mutex);
         return;
     }
     print_mp3entry(&player.current_track.id3);
+    
+    if(player.handlers.gotmetadata != 0)
+	player.handlers.gotmetadata(&player.current_track);
     
     ci->filesize = filesize(player.current_track.descriptor);
     ci->id3 = &player.current_track.id3;
@@ -410,6 +407,11 @@ void warble_decode_file()
     }
     
     printf("codec_main %d\n", res);
+
+    warble_mutex_request_grant(&player.mutex);
+    if(player.handlers.onstart != 0)
+	player.handlers.onstart(&player.current_track);
+    warble_mutex_release_grant(&player.mutex);
     
     if(res != CODEC_OK)
     {
@@ -429,15 +431,16 @@ void warble_decode_file()
     if (res != CODEC_OK) {
         printf("error: codec error\n");
     }
-    //c_hdr->entry_point(CODEC_UNLOAD);
-
-    /* Close */
-    //dlclose(dlcodec);
-
-    playback_quit();
     
+    warble_mutex_request_grant(&player.mutex);
+
+    warble_hw_stop();
+    if(player.handlers.onend != 0)
+	player.handlers.onend(&player.current_track);    
     if (player.current_track.descriptor != STDIN_FILENO)
         close(player.current_track.descriptor);
+
+    warble_mutex_release_grant(&player.mutex);
 }
 
 void warble_play_file(char *file)
@@ -453,6 +456,12 @@ void warble_play_file(char *file)
 int warble_init()
 {
     warble_mutex_create(&player.mutex);
+
+    player.handlers.ontimeelapsed = 0;
+    player.handlers.gotmetadata = 0;
+    player.handlers.onstart = 0;
+    player.handlers.onend = 0;
+    
     playback_init();
     playback_set_volume(10);
     return 0;
@@ -461,4 +470,29 @@ int warble_init()
 WPlayer * warble_get_player()
 {
     return &player;
+}
+
+void warble_set_onend(void (*onend)(WTrack *track))
+{
+    warble_mutex_request_grant(&player.mutex);
+    player.handlers.onend = onend;
+    warble_mutex_release_grant(&player.mutex);
+}
+void warble_set_onstart(void (*onstart)(WTrack *track))
+{
+    warble_mutex_request_grant(&player.mutex);
+    player.handlers.onstart = onstart;
+    warble_mutex_release_grant(&player.mutex);
+}
+void warble_set_gotmetadata(void (*gotmetadata)(WTrack *track))
+{
+    warble_mutex_request_grant(&player.mutex);
+    player.handlers.gotmetadata = gotmetadata;
+    warble_mutex_release_grant(&player.mutex);
+}
+void warble_set_ontimeelapsed(void (*ontimeelapsed)(WTrack *track, uint32_t time))
+{
+    warble_mutex_request_grant(&player.mutex);
+    player.handlers.ontimeelapsed = ontimeelapsed;
+    warble_mutex_release_grant(&player.mutex);
 }

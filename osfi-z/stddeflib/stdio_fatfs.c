@@ -1,20 +1,13 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include "ff.h"
-#include "rbcodecconfig.h"
-#include <stdio.h>
+#include "stdio_fatfs.h"
 
-
-#define SZ_TBL 1024
-
-DWORD clmt[SZ_TBL];
+//for FATFS fast seek functionality
+static DWORD clmt[SZ_TBL];
 typedef struct
 {
     uint8_t used;
     FIL file;
     off_t offset;
-    //char path[MAX_PATH];
+    DWORD *clmt; //for FATFS fast seek functionality
 } FD_descr;
 
 #define descr_count 5
@@ -36,6 +29,7 @@ int open(const char *pathname, int flags, ...)
 	    case O_RDWR: flag = FA_READ | FA_WRITE;
 	    }
 	    descrs[i].offset = 0;
+	    descrs[i].clmt = 0;
 	    FRESULT res = f_open(&descrs[i].file, pathname, flag);
 	    if(STDIO_FATFS_DEBUG)
 		printf("open %s : %d\n", pathname, res);
@@ -44,11 +38,6 @@ int open(const char *pathname, int flags, ...)
 		descrs[i].used = 0;
 		return -1;		
 	    }
-	    descrs[i].file.cltbl = clmt;
-	    clmt[0] = SZ_TBL;
-	    res = f_lseek(&descrs[i].file, CREATE_LINKMAP);     /* Create CLMT */
-	    if(res == FR_NOT_ENOUGH_CORE)
-		printf("open clmt not enough\n");
 	    return i;
 	}
     }
@@ -63,12 +52,31 @@ ssize_t read(int fd, void *buf, size_t count)
     FRESULT res = f_read(&descrs[fd].file, buf, count, &br);
     descrs[fd].offset += (off_t)br;
     if(res != FR_OK)
+    {
 	printf("r %db f%d:%d\n", br, fd, res);
+	return 0;
+    }
 
     if(STDIO_FATFS_DEBUG)
 	printf("r %d/%ldb f%d:%d\n", br, count, fd, res);
 
     return br;
+}
+void fseek_init(int fd)
+{
+    if(clmt[0] != 0)
+    {
+	printf("clmt already used!\n");
+	return;
+    }
+    descrs[fd].clmt = clmt;
+    
+    descrs[fd].file.cltbl = clmt;
+    clmt[0] = SZ_TBL;
+    FRESULT res = f_lseek(&descrs[fd].file, CREATE_LINKMAP);     /* Create CLMT */
+    if(res == FR_NOT_ENOUGH_CORE)
+	printf("clmt not enough\n");
+
 }
 off_t lseek(int fd, off_t offset, int whence)
 {
@@ -107,6 +115,11 @@ int close(int fd)
 	return -1;
     descrs[fd].used = 0;
 
+    if(descrs[fd].clmt != 0)
+    {
+	descrs[fd].clmt[0] = 0;
+	descrs[fd].clmt = 0;
+    }
     f_close(&descrs[fd].file);
     return 0;
 }

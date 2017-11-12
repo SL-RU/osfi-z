@@ -1,7 +1,6 @@
 #ifndef WARBLE_H
 #define WARBLE_H
 #include <sys/types.h>
-#include <fcntl.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -13,6 +12,7 @@
 #include "dsp_core.h"
 #include "makise_config.h"
 #include "warble_hw.h"
+#include "stdio_fatfs.h"
 
 #define DEC_INPUT_BUFFER_LEN 26*1024
 #define DEC_BUFFER_MAX 38*1024
@@ -51,6 +51,7 @@ typedef struct {
 	void (*onend)(WTrack *track);
 	void (*onstart)(WTrack *track);
 	void (*gotmetadata)(WTrack *track);
+	void (*ontimeelapsed)(WTrack *track, uint32_t time);
     } handlers;
     
 
@@ -67,5 +68,12 @@ void warble_decode_file();
 void warble_set_onend(void (*onend)(WTrack *track));
 void warble_set_onstart(void (*onstart)(WTrack *track));
 void warble_set_gotmetadata(void (*gotmetadata)(WTrack *track));
+void warble_set_ontimeelapsed(void (*ontimeelapsed)(WTrack *track, uint32_t time));
 
 #endif
+
+
+
+
+
+
