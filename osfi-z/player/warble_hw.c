@@ -1,50 +1,33 @@
 #include "warble_hw.h"
 
+xSemaphoreHandle xI2S_semaphore;
+xSemaphoreHandle xI2S_semaphore_h;
+
 static uint8_t playback_running = 0;
 static uint16_t playback_buffer[2][PLAYBACK_BUFFER_SIZE];
 static int playback_decode_ind;
 static int playback_decode_pos;
+static int playback_decode_first;
 
 static void dmain(void const * argument);
 osThreadDef(WPlayerTask, dmain, osPriorityHigh, 0, 2048);
 static osThreadId WPlayerThread;
-static TaskHandle_t xTaskToNotify = NULL;
 
 
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    /* At this point xTaskToNotify should not be NULL as a transmission was
-       in progress. */
-    configASSERT( WPlayerThread != NULL );
-    /* Notify the task that the transmission is complete. */
-    vTaskNotifyGiveFromISR( WPlayerThread, &xHigherPriorityTaskWoken );
-    /* There are no transmissions in progress, so no tasks to notify. */
-    xTaskToNotify = NULL;
-
-    /* If xHigherPriorityTaskWoken is now set to pdTRUE then a context switch
-       should be performed to ensure the interrupt returns directly to the highest
-       priority task.  The macro used for this purpose is dependent on the port in
-       use and may be called portEND_SWITCHING_ISR(). */
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    static BaseType_t xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xI2S_semaphore_h, &xHigherPriorityTaskWoken);
+    portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    /* At this point xTaskToNotify should not be NULL as a transmission was
-       in progress. */
-    configASSERT( WPlayerThread != NULL );
-    /* Notify the task that the transmission is complete. */
-    vTaskNotifyGiveFromISR( WPlayerThread, &xHigherPriorityTaskWoken );
-    /* There are no transmissions in progress, so no tasks to notify. */
-    xTaskToNotify = NULL;
-
-    /* If xHigherPriorityTaskWoken is now set to pdTRUE then a context switch
-       should be performed to ensure the interrupt returns directly to the highest
-       priority task.  The macro used for this purpose is dependent on the port in
-       use and may be called portEND_SWITCHING_ISR(). */
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    static BaseType_t xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xI2S_semaphore, &xHigherPriorityTaskWoken);
+    portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }
 
 
@@ -55,6 +38,9 @@ uint8_t warble_hw_init()
 
 uint8_t warble_hw_start()
 {
+    xI2S_semaphore = xSemaphoreCreateCounting(10, 0);
+    xI2S_semaphore_h = xSemaphoreCreateCounting(10, 0);
+    
     HAL_I2S_Transmit_DMA(&hi2s3,
 			 (uint16_t*)playback_buffer,
 			 PLAYBACK_BUFFER_SIZE * 2);
@@ -62,6 +48,7 @@ uint8_t warble_hw_start()
     playback_running = 1;
     playback_decode_ind = 0;
     playback_decode_pos = 0;
+    playback_decode_first = 1;
     return 1;
 }
 
@@ -101,21 +88,13 @@ uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 	{
 	    if (!playback_running && playback_decode_ind)
 		warble_hw_start();
-	    if (playback_running && playback_decode_ind)
-	    {
-		xTaskToNotify = xTaskGetCurrentTaskHandle();
-		//warble_mutex_request_grant(&xI2S_semaphore_h);
-		ulNotificationValue = ulTaskNotifyTake( pdTRUE,
-							xMaxBlockTime );
-	    }
-	    if (playback_running && !playback_decode_ind)
-	    {
-		xTaskToNotify = xTaskGetCurrentTaskHandle();
-		//warble_mutex_request_grant(&xI2S_semaphore);
-		ulNotificationValue = ulTaskNotifyTake( pdTRUE,
-							xMaxBlockTime );
-	    }
-		
+	    
+	    if (playback_running && playback_decode_ind && !playback_decode_first)
+		xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
+	    if (playback_running && !playback_decode_ind && !playback_decode_first)
+		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+
+	    playback_decode_first = 0;
 	    playback_decode_pos = 0;
 	    playback_decode_ind = !playback_decode_ind;
 	}

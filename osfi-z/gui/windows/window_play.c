@@ -34,17 +34,44 @@ static void gotmetadata(WTrack *track)
 }
 static void ontimeelapsed(WTrack *track, uint32_t time)
 {
+}
+
+void window_play_update()
+{
+    MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex);
+    if(!inited)
+    {
+	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
+	return;
+    }
+
     MAKISE_MUTEX_REQUEST(&l_title.el.mutex);
+    ldden ++;
     snprintf(s_time, 30, "%d / %d",	     
 	     warble_get_player()->time_elapsed / 1000,
 	     ldden / 1000);
     MAKISE_MUTEX_RELEASE(&l_title.el.mutex);
     
     m_slider_set_value(&slider, warble_get_player()->time_elapsed);		 
+
+    MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
 }
 
-void window_play_update()
+
+void bseek_click(MButton* b)
 {
+    warble_seek(-10000);
+}
+void fseek_click(MButton* b)
+{
+    warble_seek(10000);
+}
+
+
+
+void stop_click(MButton* b)
+{
+    warble_stop();
 }
 
 MElement * window_play_init()
@@ -58,14 +85,14 @@ MElement * window_play_init()
     m_create_button(&b_prev, win_host,
 		    mp_rel(0, 41, 23, 23),
 		    &ts_button);
-    //m_button_set_click(&b_prev, &click);
+    m_button_set_click(&b_prev, &bseek_click);
     m_button_set_bitmap(&b_prev, &B_backButton);
     
     m_create_button(&b_play, win_host,
 		    mp_rel(52, 41, 23, 23),
 		    &ts_button);
     m_button_set_bitmap(&b_play, &B_playButton);
-    //m_button_set_click(&b_play, &click);
+    m_button_set_click(&b_play, &stop_click);
     
     /* m_create_button(&b_repeat, win_host, */
     /* 		    mp_rel(52, 11, 23, 23), */
@@ -76,7 +103,7 @@ MElement * window_play_init()
 		    mp_rel(105, 41, 23, 23),
 		    &ts_button);
     m_button_set_bitmap(&b_next, &B_nextButton);
-    //m_button_set_click(&b_next, &click);
+    m_button_set_click(&b_next, &fseek_click);
 
     m_create_button(&b_bat, win_host,
 		    mp_rel(112, 0, 15, 10),
@@ -107,6 +134,8 @@ MElement * window_play_init()
     
     warble_set_ontimeelapsed(&ontimeelapsed);
     warble_set_gotmetadata(&gotmetadata);
+
+    inited = 1;
     
     makise_g_focus(&b_play.el, M_G_FOCUS_GET);
     

@@ -64,6 +64,9 @@ ssize_t read(int fd, void *buf, size_t count)
 }
 void fseek_init(int fd)
 {
+    if(fd < 0 || fd >= descr_count || descrs[fd].used == 0)
+	return;
+
     if(clmt[0] != 0)
     {
 	printf("clmt already used!\n");
@@ -113,14 +116,18 @@ int close(int fd)
 {
     if(fd < 0 || fd >= descr_count || descrs[fd].used == 0)
 	return -1;
-    descrs[fd].used = 0;
+
+    //printf("close\n");
 
     if(descrs[fd].clmt != 0)
     {
+	//printf("close clmt\n");
 	descrs[fd].clmt[0] = 0;
+	clmt[0] = 0;
 	descrs[fd].clmt = 0;
     }
     f_close(&descrs[fd].file);
+    descrs[fd].used = 0;
     return 0;
 }
 

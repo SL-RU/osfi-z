@@ -16,7 +16,7 @@
 
 /* MUTEX */
 #define W_MUTEX_t       xSemaphoreHandle
-#define W_MUTEX_TIMEOUT 1000
+#define W_MUTEX_TIMEOUT 100
 //create mutex object
 uint8_t warble_mutex_create (W_MUTEX_t *sobj);
 //delete mutex

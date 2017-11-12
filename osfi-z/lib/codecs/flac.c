@@ -33,7 +33,7 @@ static int32_t *decoded1;
 /* static int32_t decoded4[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
 /* static int32_t decoded5[MAX_BLOCKSIZE] IBSS_ATTR_FLAC_XLARGE_IRAM; */
 
-#define MAX_SUPPORTED_SEEKTABLE_SIZE 0
+#define MAX_SUPPORTED_SEEKTABLE_SIZE 100
 
 /* Notes about seeking:
 

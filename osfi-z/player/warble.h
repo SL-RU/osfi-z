@@ -30,7 +30,7 @@ typedef struct {
     WTrack current_track;
     
     enum codec_command_action codec_action;
-    intptr_t codec_action_param;
+    int64_t codec_action_param;
     uint32_t num_output_samples;
 
     struct {
@@ -69,6 +69,9 @@ void warble_set_onend(void (*onend)(WTrack *track));
 void warble_set_onstart(void (*onstart)(WTrack *track));
 void warble_set_gotmetadata(void (*gotmetadata)(WTrack *track));
 void warble_set_ontimeelapsed(void (*ontimeelapsed)(WTrack *track, uint32_t time));
+
+void warble_stop();
+void warble_seek(int32_t time);
 
 #endif
 

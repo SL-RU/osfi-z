@@ -56,18 +56,19 @@
 #include "gui.h"
 #include "gui_controls.h"
 #include "fm.h"
-#include "output.h"
 #include "warble.h"
+#include "output.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
-osThreadId defaultTaskHandle;
+//osThreadId defaultTaskHandle;
 osThreadId guiThreadHandle;
 
 /* USER CODE BEGIN Variables */
 FATFS fileSystem;
 static char* err_msg = 0;
 static MLable err_labl;
+
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -77,22 +78,31 @@ void guiStart(void const * argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
+static uint8_t addr = 0b0010000 << 1;
+
+static void setr(uint8_t reg, uint8_t val)
+{
+    uint8_t tr[2] = {reg, val};
+    HAL_I2C_Master_Transmit(&hi2c1, addr, tr, 2, 100);
+}
+
 static void init_error() //show error message with required err_msg
 {
     gui_init();
     m_create_lable(&err_labl,
     		   host->host,
-    		   mp_sall(0, 0, 20, 0), err_msg,
+    		   mp_sall(0, 0, 20, 0),
     		   &ts_lable);
+    m_lable_set_text(&err_labl, err_msg);
 
     SSD1306_UpdateScreen(mGui);
 }
-void start_warble()
-{
-    osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 2048);
-    defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-}
 
+/* void start_warble() */
+/* { */
+/*     dmain(); */
+/*     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL); */
+/* } */
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
@@ -118,11 +128,10 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityIdle, 0, 2048);
+    osThreadDef(guiThread, guiStart, osPriorityBelowNormal, 0, 512);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */
-
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     /* USER CODE END RTOS_THREADS */
@@ -137,15 +146,18 @@ void StartDefaultTask(void const * argument)
 {
 
     /* USER CODE BEGIN StartDefaultTask */
-    HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
-    dmain();
+    //dmain();
+    //vTaskDelete( NULL );
     /* USER CODE END StartDefaultTask */
 }
 
 /* guiStart function */
 void guiStart(void const * argument)
 {
+    //dmain();
     /* USER CODE BEGIN guiStart */
+    /* Infinite loop */
+    printf("guiStart %s\n", SD_Path);
     FRESULT res;
     if((res = f_mount(&fileSystem, SD_Path, 1)) == FR_OK)
     {
@@ -154,26 +166,41 @@ void guiStart(void const * argument)
     else
     {
     	printf("no sd %d\n", res);
-	err_msg = "NO SD!!!";
-	init_error();
 	return;
     }
+    
+    HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_RESET);
+    HAL_Delay(100);
+    HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_SET);
+    setr(0x00, 0b10000000);
+    setr(0x01, 0b00100010);
+    setr(0x02, 0b00010000);
+    setr(0x03, 0b11111111);
+    setr(0x04, 0b11111111);
+    setr(0x05, 0b00000000);
+    setr(0x06, 0b10000000);
+    setr(0x00, 0b10000001);
 
     gui_init();
     gui_controls_init();
     fm_init();
     SSD1306_UpdateScreen(mGui);
+    uint32_t led = 1;
     /* Infinite loop */
     for(;;)
     {
 	gui_controls_update();
-	xSemaphoreTake(SSD1306_semaphore, portMAX_DELAY);
+	if(xSemaphoreTake(SSD1306_semaphore, 1000) != pdTRUE)
+	{
+	    printf("sem_fail %d\n", led);
+	}
+	led = !led;
 	ssd1306_send();
+	makise_gui_input_perform(host);
 	ssd1306_render();
     }
     /* USER CODE END guiStart */
 }
-
 /* USER CODE BEGIN Application */
      
 /* USER CODE END Application */
