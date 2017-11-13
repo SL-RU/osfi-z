@@ -162,8 +162,6 @@ static bool ci_seek_buffer(size_t newpos)
 static void ci_seek_complete(void)
 {
     WMUTEX_REQUEST(&player.mutex);
-    player.codec_action = CODEC_ACTION_NULL;
-    player.codec_action_param = 0;
     WMUTEX_RELEASE(&player.mutex);
 }
 
@@ -202,7 +200,29 @@ static enum codec_command_action ci_get_command(intptr_t *param)
     WMUTEX_REQUEST(&player.mutex);
     enum codec_command_action ret = player.codec_action;
     *param = player.codec_action_param;
+    player.codec_action = CODEC_ACTION_NULL;
+    player.codec_action_param = 0;
     WMUTEX_RELEASE(&player.mutex);
+
+    if(ret == CODEC_ACTION_PAUSE)
+    {
+	warble_hw_stop();
+	uint32_t was = 0;
+	while (!was) {
+	    WMUTEX_REQUEST(&player.mutex);
+	    ret = player.codec_action;
+	    *param = player.codec_action_param;
+	    player.codec_action = CODEC_ACTION_NULL;
+	    player.codec_action_param = 0;
+	    WMUTEX_RELEASE(&player.mutex);
+	    if(ret == CODEC_ACTION_HALT ||
+	       ret == CODEC_ACTION_PAUSE)
+		break;
+	    osDelay(50);
+	}
+	if(ret != CODEC_ACTION_HALT)
+	    ret = CODEC_ACTION_NULL;
+    }
     return ret;
 }
 
@@ -507,5 +527,11 @@ void warble_seek(int32_t time)
     else
 	player.codec_action_param = player.time_elapsed + time;
 
+    WMUTEX_RELEASE(&player.mutex);
+}
+void warble_pause()
+{
+    WMUTEX_REQUEST(&player.mutex);
+    player.codec_action = CODEC_ACTION_PAUSE;
     WMUTEX_RELEASE(&player.mutex);
 }

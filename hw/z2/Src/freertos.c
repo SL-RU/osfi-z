@@ -166,7 +166,9 @@ void guiStart(void const * argument)
     else
     {
     	printf("no sd %d\n", res);
-	return;
+	err_msg = "NO SD!!!";
+	init_error();
+	for(;;);
     }
     
     HAL_GPIO_WritePin(DAC_PDN_GPIO_Port, DAC_PDN_Pin, GPIO_PIN_RESET);

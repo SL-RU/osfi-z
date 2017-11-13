@@ -58,18 +58,19 @@ void window_play_update()
 }
 
 
-void bseek_click(MButton* b)
+static void bseek_click(MButton* b)
 {
     warble_seek(-10000);
 }
-void fseek_click(MButton* b)
+static void fseek_click(MButton* b)
 {
     warble_seek(10000);
 }
-
-
-
-void stop_click(MButton* b)
+static void pause_click(MButton* b)
+{
+    warble_pause();
+}
+static void stop_click(MButton* b)
 {
     warble_stop();
 }
@@ -92,7 +93,7 @@ MElement * window_play_init()
 		    mp_rel(52, 41, 23, 23),
 		    &ts_button);
     m_button_set_bitmap(&b_play, &B_playButton);
-    m_button_set_click(&b_play, &stop_click);
+    m_button_set_click(&b_play, &pause_click);
     
     /* m_create_button(&b_repeat, win_host, */
     /* 		    mp_rel(52, 11, 23, 23), */
@@ -109,7 +110,7 @@ MElement * window_play_init()
 		    mp_rel(112, 0, 15, 10),
 		    &ts_button);
     m_button_set_bitmap(&b_bat, &B_battery_full);
-
+    m_button_set_click(&b_bat, &stop_click);
 
 
     m_create_lable(&l_artist, win_host,

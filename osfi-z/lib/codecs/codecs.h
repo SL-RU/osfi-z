@@ -98,6 +98,7 @@ enum codec_command_action {
     CODEC_ACTION_HALT = -1,
     CODEC_ACTION_NULL = 0,
     CODEC_ACTION_SEEK_TIME = 1,
+    CODEC_ACTION_PAUSE,
 };
 
 /* NOTE: To support backwards compatibility, only add new functions at

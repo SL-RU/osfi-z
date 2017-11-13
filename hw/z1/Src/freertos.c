@@ -166,7 +166,9 @@ void guiStart(void const * argument)
     else
     {
     	printf("no sd %d\n", res);
-	return;
+	err_msg = "NO SD!!!";
+	init_error();
+	for(;;);
     }
     
 

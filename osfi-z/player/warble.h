@@ -71,6 +71,7 @@ void warble_set_gotmetadata(void (*gotmetadata)(WTrack *track));
 void warble_set_ontimeelapsed(void (*ontimeelapsed)(WTrack *track, uint32_t time));
 
 void warble_stop();
+void warble_pause();
 void warble_seek(int32_t time);
 
 #endif
