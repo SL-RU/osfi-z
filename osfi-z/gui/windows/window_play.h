@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "makise_e.h"
 #include "warble.h"
+#include "gui_helpers.h"
 
 MElement * window_play_init();
 

@@ -28,11 +28,13 @@ typedef struct {
 
 typedef struct {
     WTrack current_track;
-    
-    enum codec_command_action codec_action;
-    int64_t codec_action_param;
-    uint32_t num_output_samples;
 
+    struct {
+	enum codec_command_action type;
+	int64_t param;
+    } action;
+    
+    //audio format of current track
     struct {
 	intptr_t freq;
 	intptr_t stereo_mode;
@@ -45,33 +47,84 @@ typedef struct {
     uint32_t volume; /* From 0 to 99*/
     uint32_t playback_vol_factor;
     
-    uint32_t time_elapsed;
+    uint32_t time_elapsed; //elapsed time of current track
 
     struct {
 	void (*onend)(WTrack *track);
 	void (*onstart)(WTrack *track);
 	void (*gotmetadata)(WTrack *track);
 	void (*ontimeelapsed)(WTrack *track, uint32_t time);
-    } handlers;
-    
+    } handlers; //handlers of specific events
 
-    MAKISE_MUTEX_t mutex;
-
+    MAKISE_MUTEX_t mutex; //main player mutex
 } WPlayer;
 
+/**
+ * Init playback(hardware, mutexes and etc)
+ * @return 
+ */
 int warble_init();
+/**
+ * Start playback. Run thread and etc
+ *
+ * @param file relative path of file
+ * @return 0 if OK
+ */
 void warble_play_file(char *file);
-int warble_set_track(WTrack current, WTrack next);
-WPlayer * warble_get_player();
+/**
+ * Get player structure
+ * @return pointer to WPlayer structure
+ */
+WPlayer* warble_get_player();
+
+/**
+ * DO NOT USE. Interface only for warble_hw.c. Main decode function for the thread.
+ * @return pointer to WPlayer structure
+ */
 void warble_decode_file();
 
+/**
+ * Set handler of onend event. It will called when track was over
+ * @param onend pointer to function
+ * @return 
+ */
 void warble_set_onend(void (*onend)(WTrack *track));
+/**
+ * Set handler of onstart event. It will called when player was initialized and before starting playback.
+ * @param onstart pointer to function
+ * @return 
+ */
 void warble_set_onstart(void (*onstart)(WTrack *track));
+/**
+ * Set handler of gotmetadata event. It will called when metadata of current track was calculated
+ * @param gotmetadata pointer to function
+ * @return 
+ */
 void warble_set_gotmetadata(void (*gotmetadata)(WTrack *track));
+/**
+ * Set handler of ontimeelapsed event. It will called when playback time was changed
+ * @param ontimeelapsed pointer to function
+ * @return 
+ */
 void warble_set_ontimeelapsed(void (*ontimeelapsed)(WTrack *track, uint32_t time));
 
+
+
+/**
+ * Halt playback
+ * @return 
+ */
 void warble_stop();
+
+/**
+ * Pause/continue playback
+ * @return 
+ */
 void warble_pause();
+/**
+ * Seek time through track
+ * @return 
+ */
 void warble_seek(int32_t time);
 
 #endif

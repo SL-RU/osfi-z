@@ -4,4 +4,5 @@ gui.c
 gui_bitmaps.c
 gui_controls.c
 gui_styles.c
+gui_helpers.c
 driver/makise_ssd1306.c

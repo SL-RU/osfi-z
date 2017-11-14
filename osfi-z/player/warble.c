@@ -175,20 +175,20 @@ static void ci_set_offset(size_t value)
 static void ci_configure(int setting, intptr_t value)
 {
     WMUTEX_REQUEST(&player.mutex);
-    printf("ci configure\n");
+    //printf("ci configure\n");
     if (setting == DSP_SET_FREQUENCY
 	|| setting == DSP_SET_FREQUENCY)
     {
 	player.format.freq = value;
-	printf("dsp set freq %d\n", value);
+	//printf("dsp set freq %d\n", value);
     }
     else if (setting == DSP_SET_SAMPLE_DEPTH)
     {
-	printf("dsp set depth %d\n", value);
+	//printf("dsp set depth %d\n", value);
 	player.format.depth = value;
     }
     else if (setting == DSP_SET_STEREO_MODE) {
-	printf("dsp set stereo %d\n", (value == STEREO_MONO) ? 1 : 2);
+	//printf("dsp set stereo %d\n", (value == STEREO_MONO) ? 1 : 2);
 	player.format.stereo_mode = value;
 	player.format.channels = (value == STEREO_MONO) ? 1 : 2;
     }
@@ -198,10 +198,10 @@ static void ci_configure(int setting, intptr_t value)
 static enum codec_command_action ci_get_command(intptr_t *param)
 {
     WMUTEX_REQUEST(&player.mutex);
-    enum codec_command_action ret = player.codec_action;
-    *param = player.codec_action_param;
-    player.codec_action = CODEC_ACTION_NULL;
-    player.codec_action_param = 0;
+    enum codec_command_action ret = player.action.type;
+    *param = player.action.param;
+    player.action.type = CODEC_ACTION_NULL;
+    player.action.param = 0;
     WMUTEX_RELEASE(&player.mutex);
 
     if(ret == CODEC_ACTION_PAUSE)
@@ -210,10 +210,10 @@ static enum codec_command_action ci_get_command(intptr_t *param)
 	uint32_t was = 0;
 	while (!was) {
 	    WMUTEX_REQUEST(&player.mutex);
-	    ret = player.codec_action;
-	    *param = player.codec_action_param;
-	    player.codec_action = CODEC_ACTION_NULL;
-	    player.codec_action_param = 0;
+	    ret = player.action.type;
+	    *param = player.action.param;
+	    player.action.type = CODEC_ACTION_NULL;
+	    player.action.param = 0;
 	    WMUTEX_RELEASE(&player.mutex);
 	    if(ret == CODEC_ACTION_HALT ||
 	       ret == CODEC_ACTION_PAUSE)
@@ -229,7 +229,7 @@ static enum codec_command_action ci_get_command(intptr_t *param)
 static bool ci_should_loop(void)
 {
     WMUTEX_REQUEST(&player.mutex);
-    printf("ci should loop\n");
+    //printf("ci should loop\n");
     bool l = player.enable_loop;
     WMUTEX_RELEASE(&player.mutex);
     return l;
@@ -237,7 +237,7 @@ static bool ci_should_loop(void)
 
 static unsigned ci_sleep(unsigned ticks)
 {
-    printf("ci sleep\n");
+    //printf("ci sleep\n");
     return 0;
 }
 
@@ -365,10 +365,10 @@ void warble_decode_file()
     WMUTEX_REQUEST(&player.mutex);
     playback_set_volume(10);
     dec_id = 0;
-    player.codec_action = CODEC_ACTION_NULL;
+    player.action.type = CODEC_ACTION_NULL;
     
     /* Open file */
-    printf("open file\n");
+    //printf("open file\n");
     player.current_track.descriptor = open(player.current_track.path, O_RDONLY);
     fseek_init(player.current_track.descriptor);
     if (player.current_track.descriptor == -1) {
@@ -376,7 +376,7 @@ void warble_decode_file()
     }
 
     /* Set up ci */
-    printf("mp3entry\n");
+    //printf("mp3entry\n");
 
     if (!get_metadata(&player.current_track.id3, player.current_track.descriptor,
 		      player.current_track.path))
@@ -385,7 +385,7 @@ void warble_decode_file()
 	WMUTEX_RELEASE(&player.mutex);
         return;
     }
-    print_mp3entry(&player.current_track.id3);
+    //print_mp3entry(&player.current_track.id3);
     
     
     ci->filesize = filesize(player.current_track.descriptor);
@@ -394,7 +394,7 @@ void warble_decode_file()
     /* Load codec */
     char str[MAX_PATH];
     snprintf(str, sizeof(str), "codecs/%s.codec", audio_formats[player.current_track.id3.codectype].codec_root_fn);
-    ci_debugf("Loading %s\n", str);
+    //ci_debugf("Loading %s\n", str);
 
     /* Run the codec */
     uint8_t res;
@@ -461,7 +461,7 @@ void warble_play_file(char *file)
 {
     WMUTEX_REQUEST(&player.mutex);
     strncpy(player.current_track.path, file, MAX_PATH);
-    player.codec_action = CODEC_ACTION_NULL;
+    player.action.type = CODEC_ACTION_NULL;
     WMUTEX_RELEASE(&player.mutex);
     
     warble_hw_start_thread();
@@ -515,23 +515,23 @@ void warble_set_ontimeelapsed(void (*ontimeelapsed)(WTrack *track, uint32_t time
 void warble_stop()
 {
     WMUTEX_REQUEST(&player.mutex);
-    player.codec_action = CODEC_ACTION_HALT;
+    player.action.type = CODEC_ACTION_HALT;
     WMUTEX_RELEASE(&player.mutex);
 }
 void warble_seek(int32_t time)
 {
     WMUTEX_REQUEST(&player.mutex);
-    player.codec_action = CODEC_ACTION_SEEK_TIME;
+    player.action.type = CODEC_ACTION_SEEK_TIME;
     if((int32_t)player.time_elapsed + time < 0)
-	player.codec_action_param = 0;
+	player.action.param = 0;
     else
-	player.codec_action_param = player.time_elapsed + time;
+	player.action.param = player.time_elapsed + time;
 
     WMUTEX_RELEASE(&player.mutex);
 }
 void warble_pause()
 {
     WMUTEX_REQUEST(&player.mutex);
-    player.codec_action = CODEC_ACTION_PAUSE;
+    player.action.type = CODEC_ACTION_PAUSE;
     WMUTEX_RELEASE(&player.mutex);
 }

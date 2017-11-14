@@ -1,5 +1,4 @@
 #include "window_play.h"
-#include "warble.h"
 
 static MCanvas container; //main container
 static MButton b_play, //main container
@@ -46,10 +45,12 @@ void window_play_update()
     }
 
     MAKISE_MUTEX_REQUEST(&l_title.el.mutex);
-    ldden ++;
-    snprintf(s_time, 30, "%d / %d",	     
-	     warble_get_player()->time_elapsed / 1000,
-	     ldden / 1000);
+    s_time[0] = 0;
+    gh_sprint_time(s_time, 30, 
+		   warble_get_player()->time_elapsed, 0);
+    snprintf(s_time + strlen(s_time), 30 - strlen(s_time), "/");
+    gh_sprint_time(s_time + strlen(s_time),
+		   30 - strlen(s_time), ldden, 0);
     MAKISE_MUTEX_RELEASE(&l_title.el.mutex);
     
     m_slider_set_value(&slider, warble_get_player()->time_elapsed);		 
