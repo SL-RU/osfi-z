@@ -21,7 +21,7 @@ void gh_sprint_time(char *s, uint32_t len,
 	    snprintf(s, len, "%02d:%02d.%03d", m, sec, ms);
     } else {
 	if(h != 0)
-	    snprintf(s, len, "%02d:02%d:%02d", h, m, sec);
+	    snprintf(s, len, "%02d:%02d:%02d", h, m, sec);
 	else
 	    snprintf(s, len, "%02d:%02d", m, sec);
     }
