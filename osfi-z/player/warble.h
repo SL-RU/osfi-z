@@ -1,5 +1,6 @@
 #ifndef WARBLE_H
 #define WARBLE_H
+#include "warble_hw.h"
 #include <sys/types.h>
 #include <math.h>
 #include <stdarg.h>
@@ -11,7 +12,6 @@
 #include "platform.h"
 #include "dsp_core.h"
 #include "makise_config.h"
-#include "warble_hw.h"
 #include "stdio_fatfs.h"
 
 #define DEC_INPUT_BUFFER_LEN 26*1024
@@ -56,7 +56,7 @@ typedef struct {
 	void (*ontimeelapsed)(WTrack *track, uint32_t time);
     } handlers; //handlers of specific events
 
-    MAKISE_MUTEX_t mutex; //main player mutex
+    W_MUTEX_t mutex; //main player mutex
 } WPlayer;
 
 /**

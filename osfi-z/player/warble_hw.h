@@ -8,15 +8,13 @@
 #include "task.h"
 #include "timers.h"
 #include "cmsis_os.h"
-#include "warble.h"
-
 
 #define PLAYBACK_BUFFER_SIZE 4096
-
-
 /* MUTEX */
 #define W_MUTEX_t       xSemaphoreHandle
 #define W_MUTEX_TIMEOUT 100
+
+#include "warble.h"
 //create mutex object
 uint8_t warble_mutex_create (W_MUTEX_t *sobj);
 //delete mutex
