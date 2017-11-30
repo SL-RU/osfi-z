@@ -19,15 +19,16 @@ static MakiseStyle_Canvas container_style =
 };
 static uint8_t inited = 0;
 
-static char s_name[30] = "";
-static char s_time[30] = "";
+static char s_name[200] = "";
+static char s_time[200] = "";
 static uint32_t ldden;
 
 static void gotmetadata(WTrack *track)
 {
     MAKISE_MUTEX_REQUEST(&l_artist.el.mutex);
-    snprintf(s_name, 30, "%s", track->id3.title);
+    snprintf(s_name, 200, "%s", track->id3.title);
     MAKISE_MUTEX_RELEASE(&l_artist.el.mutex);
+    m_lable_set_text(&l_artist, s_name);
     ldden = track->id3.length;
     m_slider_set_range(&slider, 0, ldden);
 }

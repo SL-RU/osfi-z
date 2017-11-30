@@ -33,15 +33,23 @@ MakiseStyle ts_slider =
 };
 MakiseStyle_Lable ts_lable =
 {
-    &F_Default8x13,
+    .font = &F_Default8x13,
     //font       bg     border   double_border
-    MC_White, MC_Black, MC_Black, 0
+    .font_col = MC_White,
+    .bg_color = MC_Black,
+    .border_c = MC_Black,
+    .double_border = 0,
+    .scroll_speed = 100
 };
 MakiseStyle_Lable ts_lable_small =
 {
-    &F_Default5x7,
+    .font = &F_Default5x7,
     //font       bg     border   double_border
-    MC_White, MC_Black, MC_Black, 0
+    .font_col = MC_White,
+    .bg_color = MC_Black,
+    .border_c = MC_Black,
+    .double_border = 0,
+    .scroll_speed = 200
 };
 
 
@@ -141,6 +149,8 @@ MakiseStyle_FSViewer_Item ts_fsviewer_item = {
     .font               = &F_Default6x10,
     .font_line_spacing  = 0,
 
+    .text_scroll_speed = 100,
+    
     .normal  = {MC_Black, MC_White,  MC_Black,  MC_White, 0},
     .focused = {MC_White, MC_Black, MC_White, MC_Black, 0},
     .active  = {MC_Black,  MC_White, MC_White, MC_Black, 0},
