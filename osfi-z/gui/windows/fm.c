@@ -138,7 +138,7 @@ void fm_init()
     		      &ts_fsviewer, &ts_fsviewer_item);
     m_fsviewer_set_onselection(&flist, &onselection);
 	
-    fsviewer_open(&flist, "/");
+    fsviewer_open(&flist, (TCHAR*)"/");
     
     /* m_create_lable(&lable, host->host, */
     /* 		   mp_rel(20, 20, 80, 30), */

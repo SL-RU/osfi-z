@@ -21,7 +21,7 @@
 #define VOL_FACTOR_UNITY (1u << VOL_FRACBITS)
 
 typedef struct {
-    char path[MAX_PATH];
+    TCHAR path[MAX_PATH];
     int descriptor;
     struct mp3entry id3;
 } WTrack;
@@ -70,7 +70,7 @@ int warble_init();
  * @param file relative path of file
  * @return 0 if OK
  */
-void warble_play_file(char *file);
+void warble_play_file(TCHAR *file);
 /**
  * Get player structure
  * @return pointer to WPlayer structure

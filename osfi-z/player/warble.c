@@ -366,20 +366,24 @@ void warble_decode_file()
     playback_set_volume(10);
     dec_id = 0;
     player.action.type = CODEC_ACTION_NULL;
+    char trackname[13];
+    for (int i = 0; i < 13; i++) {
+	trackname[i] = (char)
+	    (((TCHAR*)player.current_track.path)[i]);
+    }
     
     /* Open file */
     //printf("open file\n");
-    player.current_track.descriptor = open(player.current_track.path, O_RDONLY);
-    fseek_init(player.current_track.descriptor);
+    player.current_track.descriptor = open(
+	(char*)player.current_track.path, O_RDONLY);
     if (player.current_track.descriptor == -1) {
-	printf("error: open %s\n", player.current_track.path);
+	printf("error: open %s\n", trackname);
     }
-
+    
+    fseek_init(player.current_track.descriptor);
     /* Set up ci */
-    //printf("mp3entry\n");
-
-    if (!get_metadata(&player.current_track.id3, player.current_track.descriptor,
-		      player.current_track.path))
+    
+    if (!get_metadata(&player.current_track.id3, player.current_track.descriptor, trackname))
     {
         printf("error: metadata parsing failed\n");
 	WMUTEX_RELEASE(&player.mutex);
@@ -457,10 +461,10 @@ void warble_decode_file()
     WMUTEX_RELEASE(&player.mutex);
 }
 
-void warble_play_file(char *file)
+void warble_play_file(TCHAR *file)
 {
     WMUTEX_REQUEST(&player.mutex);
-    strncpy(player.current_track.path, file, MAX_PATH);
+    memcpy(player.current_track.path, file, MAX_PATH * 2);
     player.action.type = CODEC_ACTION_NULL;
     WMUTEX_RELEASE(&player.mutex);
     

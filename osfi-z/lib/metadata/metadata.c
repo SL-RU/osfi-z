@@ -91,7 +91,7 @@ const struct afmt_entry audio_formats[AFMT_NUM_CODECS] =
         AFMT_ENTRY("Ogg", "vorbis", NULL,       get_ogg_metadata,   "ogg\0oga\0"),
     /* FLAC */
     [AFMT_FLAC] =
-        AFMT_ENTRY("FLAC",  "flac", NULL,       get_flac_metadata,  "flac\0"),
+        AFMT_ENTRY("FLAC",  "flac", NULL,       get_flac_metadata,  "flac\0fla\0"),
     /* Musepack SV7 */
     [AFMT_MPC_SV7] =
         AFMT_ENTRY("MPCv7", "mpc",  NULL,       get_musepack_metadata,"mpc\0"),

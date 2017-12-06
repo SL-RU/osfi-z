@@ -30,8 +30,8 @@ int open(const char *pathname, int flags, ...)
 	    }
 	    descrs[i].offset = 0;
 	    descrs[i].clmt = 0;
-	    FRESULT res = f_open(&descrs[i].file, pathname, flag);
-	    if(STDIO_FATFS_DEBUG)
+	    FRESULT res = f_open(&descrs[i].file, (TCHAR*)pathname, flag);
+	    //if(STDIO_FATFS_DEBUG)
 		printf("open %s : %d\n", pathname, res);
 	    if(res != FR_OK)
 	    {
