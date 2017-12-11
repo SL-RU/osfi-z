@@ -24,6 +24,10 @@ typedef struct {
     void (*getprev)();
     void (*getcount)();
     void (*getbyindex)();
+
+    void (*ontrackend)();
+    void (*ontrackelapsed)();
+    void (*ontrackstart)();
 } WPlaylist;
 
 
