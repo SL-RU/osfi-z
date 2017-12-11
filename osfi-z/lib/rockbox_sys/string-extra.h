@@ -26,8 +26,6 @@
 #include "strcasecmp.h"
 #include "strcasestr.h"
 #include "strtok_r.h"
-#include <memory.h>
-//#include "memset16.h"
 
 #ifndef mempcpy
 #define mempcpy __builtin_mempcpy
