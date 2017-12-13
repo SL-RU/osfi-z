@@ -20,6 +20,11 @@
 #define VOL_FRACBITS 31
 #define VOL_FACTOR_UNITY (1u << VOL_FRACBITS)
 
+typedef enum WResult {
+    WOK = 0,
+    WERR
+} WResult;
+
 typedef struct {
     TCHAR path[MAX_PATH];
     int descriptor;
