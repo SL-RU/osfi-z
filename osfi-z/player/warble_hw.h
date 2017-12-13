@@ -32,6 +32,8 @@ uint8_t warble_hw_stop();
 
 uint8_t warble_hw_start_thread();
 
+uint8_t warble_hw_set_input_freq(uint32_t f);
+
 
 uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 			 int count, uint8_t stereo_format);
