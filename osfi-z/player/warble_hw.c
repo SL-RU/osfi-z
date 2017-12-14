@@ -1,5 +1,4 @@
 #include "warble_hw.h"
-#include "fixedpoint.h"
 
 xSemaphoreHandle xI2S_semaphore;
 xSemaphoreHandle xI2S_semaphore_h;
@@ -23,6 +22,8 @@ static int32_t tmp_buf[2][TMP_BUF_COUNT];
 static int32_t tmp_buf_pos;
 static uint32_t dsp_phase[2];
 static uint32_t dsp_delta;
+
+#define fp_div(x, y, z) (long)((((long long)(x)) << (z)) / ((long long)(y)))
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
@@ -70,16 +71,32 @@ static inline int32_t FRACMUL(int32_t x, int32_t y)
 int resample_hermite(uint8_t ch,
 		     int32_t *out)
 {
-    uint32_t count = MIN(4, 0x8000);
+    uint32_t count = TMP_BUF_COUNT;
     uint32_t delta = dsp_delta;
     uint32_t phase, pos;
     
     const int32_t *s = tmp_buf[ch];
 
+    if(dsp_frequency == dsp_frequency_out)
+    {
+	*out = s[dsp_phase[ch]];
+	dsp_phase[ch] ++;
+	if(dsp_phase[ch] == count) {
+	    dsp_phase[ch] = 0;
+	    return 1;
+	} else
+	    return 0;
+	
+    }
+
     /* Restore state */
     phase = dsp_phase[ch];
     pos = phase >> 16;
 
+	
+
+    //Resampling code is from rockbox project. from file rockbox.c
+    
     int x0, x1, x2, x3;
     if (pos < 3) {
 	x3 = dsp_history[ch][pos+0];
@@ -137,8 +154,11 @@ int resample_hermite(uint8_t ch,
     dsp_history[ch][2] = pos < 1 ?
 	dsp_history[ch][pos+2] : s[pos-1];
 
-    if(phase > (count >> 16))
+    if(phase >= (count << 16))
+    {
+	dsp_phase[ch] = phase - (count << 16);
 	return 1;
+    }
     else
 	return 0;
 }
@@ -161,44 +181,55 @@ uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 			 int count,
 			 uint8_t stereo_mode)
 {
-    int i;
+    int i, cont;
+    int32_t b;
     
     if(stereo_mode == STEREO_INTERLEAVED) {
 	count *= 2;
     }
     for (i = 0; i < count; i ++) {	
-	tmp_buf[0][tmp_buf_pos] = ((int32_t*)ch1)[i];
+	tmp_buf[0][tmp_buf_pos] = (int32_t)((uint32_t*)ch1)[i];
 	
 	if(stereo_mode == STEREO_NONINTERLEAVED) {
-	    tmp_buf[1][tmp_buf_pos] = ((int32_t*)ch2)[i];
+	    tmp_buf[1][tmp_buf_pos] = (int32_t)((uint32_t*)ch2)[i];
 	} else {
-	    tmp_buf[1][tmp_buf_pos] = ((int32_t*)ch1)[i];
+	    tmp_buf[1][tmp_buf_pos] = (int32_t)((uint32_t*)ch1)[i];
+	    if(stereo_mode != STEREO_MONO)
+		i++;
 	}
 	
 	tmp_buf_pos ++;
+	if(tmp_buf_pos == TMP_BUF_COUNT) {
+	    tmp_buf_pos = 0;
+	    do
+	    {
+		cont = !resample_hermite(0, &b);
+		playback_buffer[playback_decode_ind][playback_decode_pos] =
+		    (uint16_t)((uint32_t)b >> 14);
+		playback_decode_pos ++;
 
-	
-	playback_decode_pos ++;
-	playback_decode_pos ++;
-	playback_buffer[playback_decode_ind][playback_decode_pos] =
-		(uint16_t)(((uint32_t*)ch2)[i] >> 13);
-	playback_buffer[playback_decode_ind][playback_decode_pos] =
-	    (uint16_t)(((uint32_t*)ch1)[i] >> 13);
-	if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
-	{
-	    if (!playback_running && playback_decode_ind)
-		warble_hw_start();
+		resample_hermite(1, &b);
+		playback_buffer[playback_decode_ind][playback_decode_pos] =
+		    (uint16_t)((uint32_t)b >> 14);
+
+		playback_decode_pos ++;
+		
+		if(playback_decode_pos >= PLAYBACK_BUFFER_SIZE)
+		{
+		    if (!playback_running && playback_decode_ind)
+			warble_hw_start();
 	    
-	    if (playback_running && playback_decode_ind && !playback_decode_first)
-		xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
-	    if (playback_running && !playback_decode_ind && !playback_decode_first)
-		xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+		    if (playback_running && playback_decode_ind && !playback_decode_first)
+			xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
+		    if (playback_running && !playback_decode_ind && !playback_decode_first)
+			xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
 
-	    playback_decode_first = 0;
-	    playback_decode_pos = 0;
-	    playback_decode_ind = !playback_decode_ind;
+		    playback_decode_first = 0;
+		    playback_decode_pos = 0;
+		    playback_decode_ind = !playback_decode_ind;
+		}
+	    } while (cont);	    
 	}
-	    
     }
 
     return 1;
@@ -208,6 +239,10 @@ uint8_t warble_hw_set_input_freq(uint32_t f)
 {
     dsp_frequency = f;
     dsp_delta = fp_div(dsp_frequency, dsp_frequency_out, 16);
+    tmp_buf_pos = 0;
+    dsp_phase[0] = 0;
+    dsp_phase[1] = 0;
+    memset(dsp_history, 0, sizeof(dsp_history));
     return 0;
 }
 

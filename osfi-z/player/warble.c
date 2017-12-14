@@ -394,7 +394,7 @@ void warble_decode_file()
     
     ci->filesize = filesize(player.current_track.descriptor);
     ci->id3 = &player.current_track.id3;
-
+    
     /* Load codec */
     char str[MAX_PATH];
     snprintf(str, sizeof(str), "codecs/%s.codec", audio_formats[player.current_track.id3.codectype].codec_root_fn);
@@ -430,6 +430,8 @@ void warble_decode_file()
     if(player.handlers.onstart != 0)
     	player.handlers.onstart(&player.current_track);
     WMUTEX_RELEASE(&player.mutex);
+
+    warble_hw_set_input_freq(ci->id3->frequency);
     
     if(res != CODEC_OK)
     {
