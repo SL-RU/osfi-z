@@ -155,3 +155,10 @@ MakiseStyle_FSViewer_Item ts_fsviewer_item = {
     .focused = {MC_White, MC_Black, MC_White, MC_Black, 0},
     .active  = {MC_Black,  MC_White, MC_White, MC_Black, 0},
 };
+
+MakiseStyle_Canvas ts_container_clear =
+{
+    //bg       border   double_border
+    {MC_Transparent, MC_Transparent, 0},  //normal
+    {MC_Transparent, MC_Transparent, 0},  //focused
+};

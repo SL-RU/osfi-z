@@ -1,13 +1,16 @@
 #include "fm.h"
 #include "ff.h"
 #include "task.h"
-#include "window_play.h"
+#include "system_menu.h"
 
-//static MSList list;
+
+static MCanvas container; //main container
+static MContainer * win_host;
+
 static MLable    lable;
 static MFSViewer flist;
 static MSList    slist;
-static MElement *window_play;
+
 
 char str[100] = "Hello!";
 void start_warble();
@@ -32,18 +35,6 @@ static char* to_uppercase(char *s)
             str[i] -= 32;
         i++; }
     return (str);
-}
-static void onstart(WTrack *track)
-{
-    makise_g_cont_rem(&flist.el);	   
-    makise_g_cont_add(host->host, window_play);
-    makise_g_focus(window_play, M_G_FOCUS_GET);
-}
-static void onend(WTrack *track)
-{
-    makise_g_cont_rem(window_play);	 
-    makise_g_cont_add(host->host, &flist.el);
-    makise_g_focus(&flist.el, M_G_FOCUS_GET);
 }
 
 
@@ -121,16 +112,15 @@ void fm_cre(char *art, char *tit, char *alb)
     makise_g_focus(&slist.el, M_G_FOCUS_GET);
 }
 
-void fm_init()
+MElement * fm_init()
 {
     printf("FM initing\n");
-    warble_init();
-    warble_set_onend(&onend);
-    warble_set_onstart(&onstart);
 
+    m_create_canvas(&container, 0,
+		    mp_sall(0,0,0,0),
+		    &ts_container_clear);
+    win_host = &container.cont;
     
-    window_play = window_play_init();
-
     //initialize gui elements
     m_create_fsviewer(&flist, host->host,
     		      mp_sall(0,0,0,0), //position
@@ -164,4 +154,6 @@ void fm_init()
     makise_g_focus(&flist.el, M_G_FOCUS_GET);
     
     printf("FM inited\n");
+
+    return &container.el;
 }

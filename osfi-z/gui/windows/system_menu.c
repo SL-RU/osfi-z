@@ -1,38 +1,39 @@
-#include "window_play.h"
+#include "system_menu.h"
 
 static MCanvas container; //main container
-static MButton b_play, //main container
-    b_next,
-    b_prev,
-    b_bat;
-static MLable l_title,
-    l_artist,
-    l_status;
 static MContainer * win_host;
-static MSlider slider;
 
-static MakiseStyle_Canvas container_style =
+
+static MElement *window_play,
+    *window_fm,
+    *windiw_metadata;
+
+void smenu_open(SMENU_TYPE type)
 {
-    //bg       border   double_border
-    {MC_Transparent, MC_Transparent, 0},  //normal
-    {MC_Transparent, MC_Transparent, 0},  //focused
-};
-static uint8_t inited = 0;
-
-static char s_name[200] = "";
-static char s_time[200] = "";
-static uint32_t ldden;
-
+    
+}
+static void onstart(WTrack *track)
+{
+}
+static void onend(WTrack *track)
+{
+}
 
 MElement * window_play_init()
 {
+    warble_init();
+    warble_set_onend(&onend);
+    warble_set_onstart(&onstart);
+
+    
     m_create_canvas(&container, 0,
 		    mp_sall(0,0,0,0),
-		    &container_style);
+		    &ts_container_clear);
 
     win_host = &container.cont;
-    
-    inited = 1;   
+
+    window_play = window_play_init();
+    window_fm = fm_init();
     
     return &container.el;
 }

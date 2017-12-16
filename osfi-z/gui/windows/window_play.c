@@ -11,12 +11,6 @@ static MLable l_title,
 static MContainer * win_host;
 static MSlider slider;
 
-static MakiseStyle_Canvas container_style =
-{
-    //bg       border   double_border
-    {MC_Transparent, MC_Transparent, 0},  //normal
-    {MC_Transparent, MC_Transparent, 0},  //focused
-};
 static uint8_t inited = 0;
 
 static char s_name[200] = "";
@@ -81,7 +75,7 @@ MElement * window_play_init()
 {
     m_create_canvas(&container, 0,
 		    mp_sall(0,0,0,0),
-		    &container_style);
+		    &ts_container_clear);
 
     win_host = &container.cont;
     
