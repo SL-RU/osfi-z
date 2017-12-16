@@ -159,7 +159,7 @@ void guiStart(void const * argument)
     /* Infinite loop */
     printf("guiStart %s\n", SD_Path);
     FRESULT res;
-    if((res = f_mount(&fileSystem, SD_Path, 1)) == FR_OK)
+    if((res = f_mount(&fileSystem, (TCHAR*)SD_Path, 1)) == FR_OK)
     {
     	printf("SD CARD OK\n");
     }
