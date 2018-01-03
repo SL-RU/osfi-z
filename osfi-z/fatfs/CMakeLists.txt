@@ -13,4 +13,3 @@ target_include_directories(fatfs
 
 
 TARGET_LINK_LIBRARIES(fatfs hardware)
-target_compile_definitions(fatfs PUBLIC ${GLOBAL_DEFS})

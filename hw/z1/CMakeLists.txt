@@ -148,20 +148,20 @@ src_files_all(SRC "*.c")
 
 #ASSEMBLER files
 src_files_all(asm_SRC "*.s")
-set_source_files_properties(${asm_SRC} "-x assembler-with-cpp")
+#set_source_files_properties(${asm_SRC} "-x assembler-with-cpp")
 
 add_library(hardware INTERFACE)
 #list all files
-message("INCLUDES:")
+#message("INCLUDES:")
 set(incs "")
 foreach(f ${INC})
   set(incs "${incs} -I${f}")
-  message(${f})
+#  message(${f})
 endforeach()
-message("SOURCES: ")
-foreach(f ${SRC})
-  message(${f})
-endforeach()
+#message("SOURCES: ")
+#foreach(f ${SRC})
+#  message(${f})
+#endforeach()
 message("DEFINITIONS: ")
 foreach(def ${STM32_PRJ_DEFS})
   message(${def})
@@ -170,31 +170,25 @@ endforeach()
 
 target_include_directories(hardware
   INTERFACE ${INC})
-#target_compile_definitions(hardware
-#  INTERFACE   "${STM32_PRJ_DEFS}"
-#  )
 
-#setup flags
-set(CMAKE_C_FLAGS "${STM32_PRJ_CFLAGS} -dM -std=c99 -g -gdwarf-2 ${USER_CFLAGS} ${OPT} -fdata-sections -ffunction-sections -Wa,-mimplicit-it=thumb" CACHE INTERNAL "" FORCE)
-set(LDSCRIPT "-T${CMAKE_CURRENT_SOURCE_DIR}/../linker_stm32f405.ld -Wl,-Map=foo.map -specs=nosys.specs -Wa,-mimplicit-it=thumb -Wl,--gc-sections -lnosys")
-set(LINKER_FLAGS "-lc -lm  ${USER_LINKER_FLAGS}")
+target_compile_definitions(hardware
+  INTERFACE ${STM32_PRJ_DEFS}
+  )
+
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${STM32_PRJ_CFLAGS} ${OPT} ${USER_CFLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${STM32_PRJ_CFLAGS} ${OPT} ${USER_CFLAGS}")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${STM32_PRJ_CFLAGS} ${OPT} ${USER_CFLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" PARENT_SCOPE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" PARENT_SCOPE)
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}" PARENT_SCOPE)
+
+
+set(LDSCRIPT "-T${CMAKE_CURRENT_SOURCE_DIR}/../linker_stm32f405.ld")
+set(LINKER_FLAGS "-specs=nosys.specs ${LDSCRIPT} -lc -lm -lnosys -Wl,--gc-sections ${STM32_PRJ_CFLAGS} ${USER_LINKER_FLAGS} ")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}")
 
-
-set(IS_ARM YES)
-set(DEFFS
-  -DTARGET_NAME="ZISHAN 1"
-  -DTARGET_ID=1
-  -DROCKBOX
-  -DMEMORYSIZE=1
-  -DTARGET_NAME=sdlapp
-  -DCONFIG_CODEC=SWCODEC
-  -DARM_ARCH=7
-  -Dasm=__asm__
-  -DCPU_ARM=1
-)
-set(GLOBAL_DEFS "${STM32_PRJ_DEFS};${DEFFS}" PARENT_SCOPE)
-
+add_definitions(-DTARGET_ID=1 -DROCKBOX -DMEMORYSIZE=1 -DCONFIG_CODEC=SWCODEC -DARM_ARCH=7 -Dasm=__asm__ -DCPU_ARM=1)
 
 SET(TARGET ${CMAKE_PROJECT_NAME})
 
@@ -208,12 +202,9 @@ add_executable(${TARGET}.elf ${SRC} ${asm_SRC})
 TARGET_LINK_LIBRARIES(${TARGET}.elf player gui controls fatfs)
 
 #print size
-add_custom_command(TARGET ${TARGET}.elf POST_BUILD COMMAND ${CMAKE_SIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.elf)
-  set_target_properties(${TARGET}.elf
-    PROPERTIES
-    LINK_FLAGS ${LDSCRIPT}
-    #COMPILE_FLAGS "${CMAKE_C_FLAGS_T}"
-    )
+add_custom_command(TARGET ${TARGET}.elf
+  POST_BUILD COMMAND ${CMAKE_SIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.elf)
+
 #other
 ADD_CUSTOM_TARGET(${TARGET}.hex DEPENDS ${TARGET}.elf COMMAND ${CMAKE_OBJCOPY} -Oihex ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.elf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.hex)
 ADD_CUSTOM_TARGET(${TARGET}.bin DEPENDS ${TARGET}.elf COMMAND ${CMAKE_OBJCOPY} -Obinary ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.elf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.bin)

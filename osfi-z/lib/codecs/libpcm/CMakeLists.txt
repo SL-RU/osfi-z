@@ -9,5 +9,5 @@ target_include_directories (libpcm PUBLIC
 target_include_directories (libpcm INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
-#set_target_properties(libpcm PROPERTIES COMPILE_FLAGS ${CODECS_CFLAGS})
+
 TARGET_LINK_LIBRARIES(libpcm codecs stddeflib)

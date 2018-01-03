@@ -8,4 +8,3 @@ target_include_directories(controls
   PUBLIC ${h})
 
 target_link_libraries(controls hardware stddeflib)
-target_compile_definitions(controls PUBLIC ${GLOBAL_DEFS})

@@ -2,41 +2,26 @@
 set(Zishan 1)
 set(OPT "-O2")
 set(USER_LINKER_FLAGS "-u _printf_float")
+set(USER_COMPILER "Clang") # "Clang" or "GNU"
+set(USER_DEBUG TRUE) # Or "False"
 
 
 cmake_minimum_required (VERSION 3.3)
-include(CMakeForceCompiler)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
-# Targeting an embedded system, not OS.
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM Generic)
-SET(CMAKE_SYSTEM_PROCESSOR arm)
-SET(CMAKE_CROSSCOMPILING   1)
-
-CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
-CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
-
-#CONFIGURE GCC TOOLCHAIN
-SET(TOOL_EXECUTABLE_SUFFIX "")
-SET(TOOLCHAIN_PREFIX   "/usr")
-SET(TARGET_TRIPLET     "arm-none-eabi")
-SET(TOOLCHAIN_BIN_DIR  ${TOOLCHAIN_PREFIX}/bin)
-SET(TOOLCHAIN_INC_DIR  ${TOOLCHAIN_PREFIX}/${TARGET_TRIPLET}/include)
-SET(TOOLCHAIN_LIB_DIR  ${TOOLCHAIN_PREFIX}/${TARGET_TRIPLET}/lib)
-
-#CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
-#CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
-set(CMAKE_ASM_COMPILER ${TOOLCHAIN_BIN_DIR}/${TARGET_TRIPLET}-gcc${TOOL_EXECUTABLE_SUFFIX})
-
-SET(CMAKE_OBJCOPY      ${TOOLCHAIN_BIN_DIR}/${TARGET_TRIPLET}-objcopy${TOOL_EXECUTABLE_SUFFIX} CACHE INTERNAL "objcopy tool")
-SET(CMAKE_OBJDUMP      ${TOOLCHAIN_BIN_DIR}/${TARGET_TRIPLET}-objdump${TOOL_EXECUTABLE_SUFFIX} CACHE INTERNAL "objdump tool")
-SET(CMAKE_SIZE         ${TOOLCHAIN_BIN_DIR}/${TARGET_TRIPLET}-size${TOOL_EXECUTABLE_SUFFIX} CACHE INTERNAL "size tool")
-SET(CMAKE_DEBUGER      ${TOOLCHAIN_BIN_DIR}/${TARGET_TRIPLET}-gdb${TOOL_EXECUTABLE_SUFFIX} CACHE INTERNAL "debuger")
-
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "") #remove -rdynamic
-enable_language(C ASM)
+if(POLICY CMP0012)
+    cmake_policy(SET CMP0012 NEW)
+endif()
 
 project(osfi-z)
+set(CMAKE_C_COMPILER_ID ${USER_COMPILER})
+if(${USER_DEBUG})
+  set(CMAKE_BUILD_TYPE "Debug")
+else(${USER_DEBUG})
+  set(CMAKE_BUILD_TYPE "Release")
+endif(${USER_DEBUG})
+include("CMakeSetCompiler.cmake")
+
 
 add_subdirectory (hw)
+message("FLLLAGS ${CMAKE_C_FLAGS}")
 add_subdirectory (osfi-z)
