@@ -1,13 +1,16 @@
 #include "fm.h"
 #include "ff.h"
 #include "task.h"
-#include "window_play.h"
+#include "system_menu.h"
 
-//static MSList list;
+
+static MCanvas container; //main container
+static MContainer * win_host;
+
 static MLable    lable;
 static MFSViewer flist;
-static MSList    slist;
-static MElement *window_play;
+//static MSList    slist;
+
 
 char str[100] = "Hello!";
 void start_warble();
@@ -32,18 +35,6 @@ static char* to_uppercase(char *s)
             str[i] -= 32;
         i++; }
     return (str);
-}
-static void onstart(WTrack *track)
-{
-    makise_g_cont_rem(&flist.el);	   
-    makise_g_cont_add(host->host, window_play);
-    makise_g_focus(window_play, M_G_FOCUS_GET);
-}
-static void onend(WTrack *track)
-{
-    makise_g_cont_rem(window_play);	 
-    makise_g_cont_add(host->host, &flist.el);
-    makise_g_focus(&flist.el, M_G_FOCUS_GET);
 }
 
 
@@ -74,26 +65,17 @@ uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
     return 0;
 }
 
-//handle vs1053 SD error
-void vs1053_sd_error()
+
+static void onstart(WTrack *track)
 {
-    makise_gui_input_send_button(host,
-				 M_KEY_USER_SD_ERROR,
-				 M_INPUT_CLICK, 100);
+    sw_open(SW_PLAY);
+}
+static void onend(WTrack *track)
+{
+    sw_open(SW_FM);
 }
 
-void vTaskCode()
-{
-    uint32_t i = 0;
-    for( ;; )
-    {
-	i++;
-        osDelay(20);
-	MAKISE_MUTEX_REQUEST(&lable.el.mutex);
-	sprintf(str, "lol %d", i);
-	MAKISE_MUTEX_RELEASE(&lable.el.mutex);
-    }
-}
+
 
 static MSList_Item items[10];
 void fm_cre(char *art, char *tit, char *alb)
@@ -115,24 +97,26 @@ void fm_cre(char *art, char *tit, char *alb)
     /* 	   &ts_lable); */
 
     /* m_slist_set_array(&slist, items, 3); */
-    m_slist_set_array(&slist, items, 3);
+    //m_slist_set_array(&slist, items, 3);
     makise_g_cont_rem(&flist.el);
-    makise_g_cont_add(host->host, &slist.el);
-    makise_g_focus(&slist.el, M_G_FOCUS_GET);
+    //makise_g_cont_add(host->host, &slist.el);
+    //makise_g_focus(&slist.el, M_G_FOCUS_GET);
 }
 
-void fm_init()
+MElement * fm_init()
 {
-    printf("FM initing\n");
-    warble_init();
+
     warble_set_onend(&onend);
     warble_set_onstart(&onstart);
+    printf("FM initing\n");
 
+    m_create_canvas(&container, 0,
+		    mp_sall(0,0,0,0),
+		    &ts_container_clear);
+    win_host = &container.cont;
     
-    window_play = window_play_init();
-
     //initialize gui elements
-    m_create_fsviewer(&flist, host->host,
+    m_create_fsviewer(&flist, win_host,
     		      mp_sall(0,0,0,0), //position
     		      MFSViewer_SingleSelect,
     		      &ts_fsviewer, &ts_fsviewer_item);
@@ -145,23 +129,23 @@ void fm_init()
     /* 		   str, */
     /* 		   &ts_lable); */
 
-    /* osThreadDef(FM_Task, vTaskCode, osPriorityNormal, 0, 512); */
-    /* osThreadCreate(osThread(FM_Task), NULL); */
 
-    items[0].text = "lol";
-    items[1].text = "kek";
-    items[2].text = "Привет";
-    m_create_slist(&slist, host->host,
-    		   mp_sall(0,0,0,0),
-    		   "sdf",
-    		   0, 0,
-    		   MSList_List,
-    		   &ts_slist,
-    		   &ts_slist_item);
+    /* items[0].text = "lol"; */
+    /* items[1].text = "kek"; */
+    /* items[2].text = "Привет"; */
+    /* m_create_slist(&slist, host->host, */
+    /* 		   mp_sall(0,0,0,0), */
+    /* 		   "sdf", */
+    /* 		   0, 0, */
+    /* 		   MSList_List, */
+    /* 		   &ts_slist, */
+    /* 		   &ts_slist_item); */
 
-    makise_g_cont_rem(&slist.el);
+    /* makise_g_cont_rem(&slist.el); */
 
     makise_g_focus(&flist.el, M_G_FOCUS_GET);
     
     printf("FM inited\n");
+
+    return &container.el;
 }

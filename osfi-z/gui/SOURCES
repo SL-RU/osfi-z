@@ -1,5 +1,7 @@
 windows/fm.c
 windows/window_play.c
+windows/system_windows.c
+windows/system_menu.c
 gui.c
 gui_bitmaps.c
 gui_controls.c

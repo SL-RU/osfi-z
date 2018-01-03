@@ -1,5 +1,5 @@
 #ifndef APPS_H
-#define APPS_H 1
+#define APPS_H
 #include "gui.h"
 #include "makise_e.h"
 #include <string.h>
@@ -16,7 +16,7 @@ typedef enum
 
 void fm_cre(char *art, char *tit, char *alb);
 
-void fm_init();
+MElement *fm_init();
 void fm_switch();
 void fm_switch_to(uint8_t cur_mode);
 void fm_playpause();
