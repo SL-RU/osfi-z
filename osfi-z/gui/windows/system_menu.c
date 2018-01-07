@@ -1,38 +1,74 @@
-#include "window_play.h"
+#include "system_menu.h"
 
 static MCanvas container; //main container
-static MButton b_play, //main container
-    b_next,
-    b_prev,
-    b_bat;
-static MLable l_title,
-    l_artist,
-    l_status;
 static MContainer * win_host;
-static MSlider slider;
+static MButton b_fm, b_play, b_close_menu;
+static MLable lable;
 
-static MakiseStyle_Canvas container_style =
+
+static uint8_t opened = 0;
+
+void smenu_open()
 {
-    //bg       border   double_border
-    {MC_Transparent, MC_Transparent, 0},  //normal
-    {MC_Transparent, MC_Transparent, 0},  //focused
-};
-static uint8_t inited = 0;
+    if(opened)
+	_sw_menu_hide();
+    else
+	_sw_menu_show();
+    
+    opened = !opened;
+    makise_g_print_tree(host);
+}
 
-static char s_name[200] = "";
-static char s_time[200] = "";
-static uint32_t ldden;
-
-
-MElement * window_play_init()
+static void b_fm_click(MButton* b)
 {
+    smenu_open();
+    sw_open(SW_FM);
+    makise_g_print_tree(host);
+}
+static void b_play_click(MButton* b)
+{
+    smenu_open();
+    sw_open(SW_PLAY);
+    makise_g_print_tree(host);
+}
+static void b_close_click(MButton* b)
+{
+    smenu_open();
+    makise_g_print_tree(host);
+}
+
+MElement * system_menu_init()
+{    
     m_create_canvas(&container, 0,
 		    mp_sall(0,0,0,0),
-		    &container_style);
-
-    win_host = &container.cont;
+		    &ts_container_black);
     
-    inited = 1;   
+    win_host = &container.cont;
+    opened = 0;
+
+    /* m_create_button(&b_fm, win_host, */
+    /* 		    mp_rel(0, 0, 60, 20), */
+    /* 		    &ts_button); */
+    /* m_button_set_text(&b_fm, "File viewer"); */
+    /* m_button_set_click(&b_fm, &b_fm_click); */
+
+    /* m_create_button(&b_play, win_host, */
+    /* 		    mp_rel(0, 23, 50, 20), */
+    /* 		    &ts_button); */
+    /* m_button_set_text(&b_play, "Play"); */
+    /* m_button_set_click(&b_play, &b_play_click); */
+
+    m_create_lable(&lable, win_host,
+		   mp_rel(0, 10, 60, 15),
+		   &ts_lable);
+    m_lable_set_text(&lable, "LOL");
+
+
+    /* m_create_button(&b_close_menu, 0, */
+    /* 		    mp_rel(0, 46, 50, 20), */
+    /* 		    &ts_button); */
+    /* m_button_set_text(&b_close_menu, "Close menu"); */
+    /* m_button_set_click(&b_close_menu, &b_close_click); */
     
     return &container.el;
 }

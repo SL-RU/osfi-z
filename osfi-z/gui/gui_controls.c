@@ -39,9 +39,14 @@ void button_handler(
 					 M_INPUT_CLICK, time);
   	    break;
 	case GUI_KEY_STOP:
-	    makise_gui_input_send_button(host,
-					 M_KEY_OK,
-					 M_INPUT_CLICK, time);
+	    if(event & CONTROLS_LONG_CLICK)
+	    {
+		smenu_open();
+	    }
+	    else
+		makise_gui_input_send_button(host,
+					     M_KEY_OK,
+					     M_INPUT_CLICK, time);
   	    break;
 	default:
 	    break;

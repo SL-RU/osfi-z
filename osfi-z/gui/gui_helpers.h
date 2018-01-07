@@ -1,5 +1,5 @@
-#ifndef APPS_H
-#define APPS_H 1
+#ifndef GUI_HELP_HELPERS_H
+#define GUI_HELP_HELPERS_H
 #include "gui.h"
 
 /**
