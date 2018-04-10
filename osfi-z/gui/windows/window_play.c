@@ -19,10 +19,12 @@ static uint32_t ldden;
 
 static void gotmetadata(WTrack *track)
 {
-    snprintf(s_name, 200, "%s", track->id3.title);
-    m_lable_set_text(&l_artist, s_name);
-    ldden = track->id3.length;
-    m_slider_set_range(&slider, 0, ldden);
+    /* MAKISE_MUTEX_REQUEST(&l_artist.el.mutex); */
+    /* snprintf(s_name, 200, "%s", track->id3.title); */
+    /* MAKISE_MUTEX_RELEASE(&l_artist.el.mutex); */
+    /* m_lable_set_text(&l_artist, s_name); */
+    /* ldden = track->id3.length; */
+    /* m_slider_set_range(&slider, 0, ldden); */
 }
 static void ontimeelapsed(WTrack *track, uint32_t time)
 {
@@ -115,18 +117,18 @@ MElement * window_play_init()
 		    &ts_lable);
     m_lable_set_text(&l_title, s_time);
 
-    m_create_lable(&l_status, win_host,
-		    mp_rel(1, 1, 70, 10),
-		    &ts_lable_small);
-    m_lable_set_text(&l_status, "Status");
+    /* m_create_lable(&l_status, win_host, */
+    /* 		    mp_rel(1, 1, 70, 10), */
+    /* 		    &ts_lable_small); */
+    /* m_lable_set_text(&l_status, "Status"); */
 
     m_create_slider(&slider, win_host,
 		    mp_sall(0, 0, 51, 0),
 		    MSlider_Type_Read,
 		    &ts_slider);
     
-    warble_set_ontimeelapsed(&ontimeelapsed);
-    warble_set_gotmetadata(&gotmetadata);
+    //warble_set_ontimeelapsed(&ontimeelapsed);
+    //warble_set_gotmetadata(&gotmetadata);
 
     inited = 1;
     

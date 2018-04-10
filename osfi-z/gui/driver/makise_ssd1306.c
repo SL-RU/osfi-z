@@ -102,21 +102,22 @@ void ssd1306_render()
 	return;
     rendered = 1;
     memset(mgui->buffer->buffer, 0, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
+    //printf("m\n");
     if(mgui->predraw != 0)
     {
 	mgui->predraw(mgui);
     }
-    //printf("r");
+    //printf("r\n");
     if(mgui->draw != 0)
     {
 	mgui->draw(mgui);
     }
-//    printf("d");
+    //printf("d\n");
     if(mgui->update != 0)
     {
 	mgui->update(mgui);
     }
-//    printf("u");
+    //printf("u\n");
 
 
     for (uint8_t x = 0; x < 128; x++) {
@@ -128,6 +129,7 @@ void ssd1306_render()
 	   
     	}
     }
+    //printf("w\n");
 	/* } */
     //memcpy((uint8_t*)mgui->driver->buffer, (uint8_t*)mgui->buffer->buffer, SSD1306_WIDTH * SSD1306_HEIGHT / 8);
     

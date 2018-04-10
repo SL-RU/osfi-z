@@ -10,6 +10,7 @@
 
 #include "gui_styles.h"
 #include "gui_bitmaps.h"
+#include "system_windows.h"
 
 extern MHost     *host;
 extern MakiseGUI *mGui;

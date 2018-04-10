@@ -128,7 +128,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the thread(s) */
     /* definition and creation of defaultTask */
-    osThreadDef(guiThread, guiStart, osPriorityBelowNormal, 0, 512);
+    osThreadDef(guiThread, guiStart, osPriorityBelowNormal, 0, 2000);
     guiThreadHandle = osThreadCreate(osThread(guiThread), NULL);
 
     /* definition and creation of guiThread */
@@ -174,7 +174,7 @@ void guiStart(void const * argument)
 
     gui_init();
     gui_controls_init();
-    fm_init();
+    system_windows_init();
     SSD1306_UpdateScreen(mGui);
     uint32_t led = 1;
     /* Infinite loop */

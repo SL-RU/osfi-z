@@ -162,3 +162,9 @@ MakiseStyle_Canvas ts_container_clear =
     {MC_Transparent, MC_Transparent, 0},  //normal
     {MC_Transparent, MC_Transparent, 0},  //focused
 };
+MakiseStyle_Canvas ts_container_black =
+{
+    //bg       border   double_border
+    {MC_Black, MC_Black, 0},  //normal
+    {MC_Black, MC_Black, 0},  //focused
+};

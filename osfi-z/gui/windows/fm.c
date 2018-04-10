@@ -9,7 +9,7 @@ static MContainer * win_host;
 
 static MLable    lable;
 static MFSViewer flist;
-static MSList    slist;
+//static MSList    slist;
 
 
 char str[100] = "Hello!";
@@ -65,24 +65,17 @@ uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
     return 0;
 }
 
-//handle vs1053 SD error
-void vs1053_sd_error()
+
+static void onstart(WTrack *track)
 {
-    makise_gui_input_send_button(host,
-				 M_KEY_USER_SD_ERROR,
-				 M_INPUT_CLICK, 100);
+    sw_open(SW_PLAY);
+}
+static void onend(WTrack *track)
+{
+    sw_open(SW_FM);
 }
 
-void vTaskCode()
-{
-    uint32_t i = 0;
-    for( ;; )
-    {
-	i++;
-        osDelay(20);
-	sprintf(str, "lol %d", i);
-    }
-}
+
 
 static MSList_Item items[10];
 void fm_cre(char *art, char *tit, char *alb)
@@ -104,14 +97,17 @@ void fm_cre(char *art, char *tit, char *alb)
     /* 	   &ts_lable); */
 
     /* m_slist_set_array(&slist, items, 3); */
-    m_slist_set_array(&slist, items, 3);
+    //m_slist_set_array(&slist, items, 3);
     makise_g_cont_rem(&flist.el);
-    makise_g_cont_add(&host->host, &slist.el);
-    makise_g_focus(&slist.el, M_G_FOCUS_GET);
+    //makise_g_cont_add(host->host, &slist.el);
+    //makise_g_focus(&slist.el, M_G_FOCUS_GET);
 }
 
 MElement * fm_init()
 {
+
+    warble_set_onend(&onend);
+    warble_set_onstart(&onstart);
     printf("FM initing\n");
 
     m_create_canvas(&container, 0,
@@ -120,7 +116,7 @@ MElement * fm_init()
     win_host = &container.cont;
     
     //initialize gui elements
-    m_create_fsviewer(&flist, &host->host,
+    m_create_fsviewer(&flist, win_host,
     		      mp_sall(0,0,0,0), //position
     		      MFSViewer_SingleSelect,
     		      &ts_fsviewer, &ts_fsviewer_item);
@@ -133,21 +129,18 @@ MElement * fm_init()
     /* 		   str, */
     /* 		   &ts_lable); */
 
-    /* osThreadDef(FM_Task, vTaskCode, osPriorityNormal, 0, 512); */
-    /* osThreadCreate(osThread(FM_Task), NULL); */
+    /* items[0].text = "lol"; */
+    /* items[1].text = "kek"; */
+    /* items[2].text = "Привет"; */
+    /* m_create_slist(&slist, host->host, */
+    /* 		   mp_sall(0,0,0,0), */
+    /* 		   "sdf", */
+    /* 		   0, 0, */
+    /* 		   MSList_List, */
+    /* 		   &ts_slist, */
+    /* 		   &ts_slist_item); */
 
-    items[0].text = "lol";
-    items[1].text = "kek";
-    items[2].text = "Привет";
-    m_create_slist(&slist, &host->host,
-    		   mp_sall(0,0,0,0),
-    		   "sdf",
-    		   0, 0,
-    		   MSList_List,
-    		   &ts_slist,
-    		   &ts_slist_item);
-
-    makise_g_cont_rem(&slist.el);
+    /* makise_g_cont_rem(&slist.el); */
 
     makise_g_focus(&flist.el, M_G_FOCUS_GET);
     
