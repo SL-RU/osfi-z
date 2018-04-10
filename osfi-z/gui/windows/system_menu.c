@@ -46,17 +46,17 @@ MElement * system_menu_init()
     win_host = &container.cont;
     opened = 0;
 
-    /* m_create_button(&b_fm, win_host, */
-    /* 		    mp_rel(0, 0, 60, 20), */
-    /* 		    &ts_button); */
-    /* m_button_set_text(&b_fm, "File viewer"); */
-    /* m_button_set_click(&b_fm, &b_fm_click); */
+    m_create_button(&b_fm, win_host,
+    		    mp_rel(0, 0, 60, 20),
+    		    &ts_button);
+    m_button_set_text(&b_fm, "File viewer");
+    m_button_set_click(&b_fm, &b_fm_click);
 
-    /* m_create_button(&b_play, win_host, */
-    /* 		    mp_rel(0, 23, 50, 20), */
-    /* 		    &ts_button); */
-    /* m_button_set_text(&b_play, "Play"); */
-    /* m_button_set_click(&b_play, &b_play_click); */
+    m_create_button(&b_play, win_host,
+    		    mp_rel(0, 23, 50, 20),
+    		    &ts_button);
+    m_button_set_text(&b_play, "Play");
+    m_button_set_click(&b_play, &b_play_click);
 
     m_create_lable(&lable, win_host,
 		   mp_rel(0, 10, 60, 15),

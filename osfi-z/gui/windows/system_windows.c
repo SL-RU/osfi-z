@@ -18,7 +18,7 @@ void sw_open(SW_TYPE type)
     if(type == current_type)
 	return;
 
-    makise_g_cont_rem(current_window);
+    mi_cont_rem(current_window);
     current_type = type;
     switch (type) {
     case SW_FM: {
@@ -38,29 +38,29 @@ void sw_open(SW_TYPE type)
 	break;
     }
 
-    makise_g_cont_add(win_host, current_window);
+    mi_cont_add(win_host, current_window);
     makise_g_print_tree(host);
 }
 
 void _sw_menu_show()
 {
-    makise_g_cont_add(menu_host, system_menu);
-    //makise_g_focus(system_menu, M_G_FOCUS_GET);
+    mi_cont_add(menu_host, system_menu);
+    mi_focus(system_menu, M_G_FOCUS_GET);
 }
 void _sw_menu_hide()
 {
-    makise_g_cont_rem(system_menu);
-    //makise_g_focus(current_window, M_G_FOCUS_GET);
+    mi_cont_rem(system_menu);
+    mi_focus(current_window, M_G_FOCUS_GET);
 }
 
 void system_windows_init()
 {
     warble_init();
 
-    m_create_canvas(&container, host->host,
+    m_create_canvas(&container, &host->host,
 		    mp_sall(0,0,0,0),
 		    &ts_container_clear);
-    m_create_canvas(&menu_container, host->host,
+    m_create_canvas(&menu_container, &host->host,
 		    mp_rel(0,0,64,64),
 		    &ts_container_clear);
 
