@@ -19,9 +19,7 @@ static uint32_t ldden;
 
 static void gotmetadata(WTrack *track)
 {
-    MAKISE_MUTEX_REQUEST(&l_artist.el.mutex);
     snprintf(s_name, 200, "%s", track->id3.title);
-    MAKISE_MUTEX_RELEASE(&l_artist.el.mutex);
     m_lable_set_text(&l_artist, s_name);
     ldden = track->id3.length;
     m_slider_set_range(&slider, 0, ldden);
@@ -39,14 +37,12 @@ void window_play_update()
 	return;
     }
 
-    MAKISE_MUTEX_REQUEST(&l_title.el.mutex);
     s_time[0] = 0;
     gh_sprint_time(s_time, 30, 
 		   warble_get_player()->time_elapsed, 0);
     snprintf(s_time + strlen(s_time), 30 - strlen(s_time), "/");
     gh_sprint_time(s_time + strlen(s_time),
 		   30 - strlen(s_time), ldden, 0);
-    MAKISE_MUTEX_RELEASE(&l_title.el.mutex);
     
     m_slider_set_value(&slider, warble_get_player()->time_elapsed);		 
 

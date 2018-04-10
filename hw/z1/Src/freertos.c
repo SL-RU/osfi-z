@@ -90,7 +90,7 @@ static void init_error() //show error message with required err_msg
 {
     gui_init();
     m_create_lable(&err_labl,
-    		   host->host,
+    		   &host->host,
     		   mp_sall(0, 0, 20, 0),
     		   &ts_lable);
     m_lable_set_text(&err_labl, err_msg);

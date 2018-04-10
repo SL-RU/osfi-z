@@ -80,9 +80,7 @@ void vTaskCode()
     {
 	i++;
         osDelay(20);
-	MAKISE_MUTEX_REQUEST(&lable.el.mutex);
 	sprintf(str, "lol %d", i);
-	MAKISE_MUTEX_RELEASE(&lable.el.mutex);
     }
 }
 
@@ -108,7 +106,7 @@ void fm_cre(char *art, char *tit, char *alb)
     /* m_slist_set_array(&slist, items, 3); */
     m_slist_set_array(&slist, items, 3);
     makise_g_cont_rem(&flist.el);
-    makise_g_cont_add(host->host, &slist.el);
+    makise_g_cont_add(&host->host, &slist.el);
     makise_g_focus(&slist.el, M_G_FOCUS_GET);
 }
 
@@ -122,7 +120,7 @@ MElement * fm_init()
     win_host = &container.cont;
     
     //initialize gui elements
-    m_create_fsviewer(&flist, host->host,
+    m_create_fsviewer(&flist, &host->host,
     		      mp_sall(0,0,0,0), //position
     		      MFSViewer_SingleSelect,
     		      &ts_fsviewer, &ts_fsviewer_item);
@@ -141,7 +139,7 @@ MElement * fm_init()
     items[0].text = "lol";
     items[1].text = "kek";
     items[2].text = "Привет";
-    m_create_slist(&slist, host->host,
+    m_create_slist(&slist, &host->host,
     		   mp_sall(0,0,0,0),
     		   "sdf",
     		   0, 0,

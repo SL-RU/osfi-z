@@ -13,7 +13,7 @@
 
 
 #define SSD1306_I2C_ADDR         0x78
-#define SSD1306_I2C   hi2c1 
+#define SSD1306_I2C              hi2c1 
 
 #define SSD1306_WIDTH            128
 #define SSD1306_HEIGHT           64

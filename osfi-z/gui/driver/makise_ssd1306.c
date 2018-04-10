@@ -1,12 +1,12 @@
 #include "makise_ssd1306.h"
 
 
-
 #define SSD1306_COMMAND                                 0x00
 #define SSD1306_DATA                                    0xC0
 #define SSD1306_DATA_CONTINUE 0x40
 
 static MakiseGUI *mgui;
+static uint32_t SSD1306_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
 
 xSemaphoreHandle SSD1306_semaphore;
 
@@ -20,7 +20,7 @@ void ssd1306_driver(MakiseDriver * d)
     d->buffer_height = MAKISE_BUF_H;
     d->buffer_width  = MAKISE_BUF_W;
     d->pixeldepth    = 1;
-    d->buffer        = 0;
+    d->buffer        = SSD1306_Buffer;
     d->size          = MAKISE_BUF_H * MAKISE_BUF_W / 8;
     d->posx          = 0;
     d->posy          = 0;

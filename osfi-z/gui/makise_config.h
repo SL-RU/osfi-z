@@ -1,8 +1,10 @@
 #ifndef MAKISE_CONFIG_H
 #define MAKISE_CONFIG_H
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-//#define MAKISE_DEBUG_OUTPUT printf
+#define MAKISE_DEBUG_OUTPUT printf
 
 //comment unused displays
 #define MAKISE_SDL2_USE 0
