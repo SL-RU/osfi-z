@@ -362,8 +362,8 @@ static void print_mp3entry(const struct mp3entry *id3)
 
 void warble_decode_file()
 {
-    WMUTEX_REQUEST(&player.mutex);
     playback_set_volume(10);
+    WMUTEX_REQUEST(&player.mutex);
     dec_id = 0;
     player.action.type = CODEC_ACTION_NULL;
     char trackname[13];

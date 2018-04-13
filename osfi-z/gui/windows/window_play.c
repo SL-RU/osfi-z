@@ -19,12 +19,12 @@ static uint32_t ldden;
 
 static void gotmetadata(WTrack *track)
 {
-    /* MAKISE_MUTEX_REQUEST(&l_artist.el.mutex); */
-    /* snprintf(s_name, 200, "%s", track->id3.title); */
-    /* MAKISE_MUTEX_RELEASE(&l_artist.el.mutex); */
-    /* m_lable_set_text(&l_artist, s_name); */
-    /* ldden = track->id3.length; */
-    /* m_slider_set_range(&slider, 0, ldden); */
+    m_element_mutex_request(&l_artist.el);
+    snprintf(s_name, 200, "%s", track->id3.title);
+    m_element_mutex_release(&l_artist.el);
+    m_lable_set_text(&l_artist, s_name);
+    ldden = track->id3.length;
+    m_slider_set_range(&slider, 0, ldden);
 }
 static void ontimeelapsed(WTrack *track, uint32_t time)
 {
@@ -32,23 +32,23 @@ static void ontimeelapsed(WTrack *track, uint32_t time)
 
 void window_play_update()
 {
-    MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex);
-    if(!inited)
-    {
-	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
-	return;
-    }
+    /* MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex); */
+    /* if(!inited) */
+    /* { */
+    /* 	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex); */
+    /* 	return; */
+    /* } */
 
-    s_time[0] = 0;
-    gh_sprint_time(s_time, 30, 
-		   warble_get_player()->time_elapsed, 0);
-    snprintf(s_time + strlen(s_time), 30 - strlen(s_time), "/");
-    gh_sprint_time(s_time + strlen(s_time),
-		   30 - strlen(s_time), ldden, 0);
+    /* s_time[0] = 0; */
+    /* gh_sprint_time(s_time, 30,  */
+    /* 		   warble_get_player()->time_elapsed, 0); */
+    /* snprintf(s_time + strlen(s_time), 30 - strlen(s_time), "/"); */
+    /* gh_sprint_time(s_time + strlen(s_time), */
+    /* 		   30 - strlen(s_time), ldden, 0); */
     
-    m_slider_set_value(&slider, warble_get_player()->time_elapsed);		 
+    /* m_slider_set_value(&slider, warble_get_player()->time_elapsed);		  */
 
-    MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
+    /* MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex); */
 }
 
 

@@ -4,7 +4,7 @@
   * @brief   HAL time base based on the hardware TIM.
   ******************************************************************************
   *
-  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * Copyright (c) 2018 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -104,7 +104,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   + ClockDivision = 0
   + Counter direction = Up
   */
-  htim14.Init.Period = (1000000 / 2000) - 1;
+  htim14.Init.Period = (1000000 / 1000) - 1;
   htim14.Init.Prescaler = uwPrescalerValue;
   htim14.Init.ClockDivision = 0;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;

@@ -99,10 +99,10 @@
 #define configUSE_IDLE_HOOK                      0
 #define configUSE_TICK_HOOK                      0
 #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
-#define configTICK_RATE_HZ                       ((TickType_t)2000)
+#define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 7 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)512)
-#define configTOTAL_HEAP_SIZE                    ((size_t)38000)
+#define configTOTAL_HEAP_SIZE                    ((size_t)25000)
 #define configMAX_TASK_NAME_LEN                  ( 16 )
 #define configUSE_TRACE_FACILITY                 1
 #define configUSE_16_BIT_TICKS                   0
@@ -165,7 +165,8 @@ standard names. */
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
 /* #define xPortSysTickHandler SysTick_Handler */
 
-/* USER CODE BEGIN Defines */   	      
+/* USER CODE BEGIN Defines */
+#define INCLUDE_xSemaphoreGetMutexHolder 1
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
 /* USER CODE END Defines */ 
 

@@ -1,5 +1,6 @@
 #include "warble_hw.h"
-
+#include "queue.h"
+#include "mpu_wrappers.h"
 xSemaphoreHandle xI2S_semaphore;
 xSemaphoreHandle xI2S_semaphore_h;
 
@@ -261,6 +262,8 @@ uint8_t warble_mutex_delete (W_MUTEX_t *sobj)
 //Request Grant to Access some object
 uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
 {
+    /* TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj); */
+    /* printf("reqqq %d\n", t); */
     int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
 		    == pdTRUE);
     if(res == 0)
@@ -270,6 +273,8 @@ uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
 //Release Grant to Access the Volume
 uint8_t warble_mutex_release_grant (W_MUTEX_t *sobj)
 {
+    /* TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj); */
+    /* printf("rellll %d\n", t); */
     xSemaphoreGive(*sobj);
     return 1;
 }
