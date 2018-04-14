@@ -47,7 +47,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #define MAKISE_MUTEX_t       xSemaphoreHandle //change for your OS
-#define MAKISE_MUTEX_TIMEOUT 1000
+#define MAKISE_MUTEX_TIMEOUT 10000
 
 //implement that functions for your OS
 

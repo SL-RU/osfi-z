@@ -142,7 +142,7 @@ MElement * fm_init()
 
     /* makise_g_cont_rem(&slist.el); */
 
-    makise_g_focus(&flist.el, M_G_FOCUS_GET);
+    mi_focus(&flist.el, M_G_FOCUS_GET);
     
     printf("FM inited\n");
 

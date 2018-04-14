@@ -12,7 +12,7 @@
 #define PLAYBACK_BUFFER_SIZE 4096
 /* MUTEX */
 #define W_MUTEX_t       xSemaphoreHandle
-#define W_MUTEX_TIMEOUT 100
+#define W_MUTEX_TIMEOUT 1000
 
 #include "warble.h"
 //create mutex object

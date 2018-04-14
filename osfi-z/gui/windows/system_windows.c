@@ -39,6 +39,7 @@ void sw_open(SW_TYPE type)
     }
 
     mi_cont_add(win_host, current_window);
+    mi_focus(current_window, M_G_FOCUS_GET);
     makise_g_print_tree(host);
 }
 

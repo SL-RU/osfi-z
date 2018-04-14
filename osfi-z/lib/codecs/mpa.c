@@ -29,7 +29,7 @@ static struct mad_frame * frame;
 static struct mad_synth * synth;
 
 
-#define MPA_INPUT_CHUNK_SIZE   10000
+#define MPA_INPUT_CHUNK_SIZE   6000
 
 static mad_fixed_t (*mad_frame_overlap)[2][32][18];
 static mad_fixed_t (*sbsample)[2][36][32];

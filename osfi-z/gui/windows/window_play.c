@@ -32,23 +32,24 @@ static void ontimeelapsed(WTrack *track, uint32_t time)
 
 void window_play_update()
 {
-    /* MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex); */
-    /* if(!inited) */
-    /* { */
-    /* 	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex); */
-    /* 	return; */
-    /* } */
+    if(!MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex))
+	return;
+    if(!inited)
+    {
+    	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
+    	return;
+    }
 
-    /* s_time[0] = 0; */
-    /* gh_sprint_time(s_time, 30,  */
-    /* 		   warble_get_player()->time_elapsed, 0); */
-    /* snprintf(s_time + strlen(s_time), 30 - strlen(s_time), "/"); */
-    /* gh_sprint_time(s_time + strlen(s_time), */
-    /* 		   30 - strlen(s_time), ldden, 0); */
+    s_time[0] = 0;
+    gh_sprint_time(s_time, 30,
+    		   warble_get_player()->time_elapsed, 0);
+    snprintf(s_time + strlen(s_time), 30 - strlen(s_time), "/");
+    gh_sprint_time(s_time + strlen(s_time),
+    		   30 - strlen(s_time), ldden, 0);
     
-    /* m_slider_set_value(&slider, warble_get_player()->time_elapsed);		  */
+    m_slider_set_value(&slider, warble_get_player()->time_elapsed);
 
-    /* MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex); */
+    MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
 }
 
 
@@ -127,8 +128,8 @@ MElement * window_play_init()
 		    MSlider_Type_Read,
 		    &ts_slider);
     
-    //warble_set_ontimeelapsed(&ontimeelapsed);
-    //warble_set_gotmetadata(&gotmetadata);
+    warble_set_ontimeelapsed(&ontimeelapsed);
+    warble_set_gotmetadata(&gotmetadata);
 
     inited = 1;
     

@@ -262,12 +262,15 @@ uint8_t warble_mutex_delete (W_MUTEX_t *sobj)
 //Request Grant to Access some object
 uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
 {
-    /* TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj); */
-    /* printf("reqqq %d\n", t); */
+    TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj);
+    printf("reqqq %ld %lx\n", t, *sobj);
     int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
 		    == pdTRUE);
     if(res == 0)
-	printf("Mutex err\n");
+    {
+	printf("Mutex error w\n");
+	while(1);
+    }
     return res;
 }
 //Release Grant to Access the Volume

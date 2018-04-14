@@ -20,6 +20,7 @@ input_buffer[DEC_INPUT_BUFFER_LEN/4];
 #define WMUTEX_REQUEST warble_mutex_request_grant
 #define WMUTEX_RELEASE warble_mutex_release_grant
 
+#define DDDEBUG 1
 
 static void playback_set_volume(int volume)
 {
@@ -36,18 +37,24 @@ static void playback_set_volume(int volume)
 
 static void *ci_codec_get_buffer(size_t *size)
 {
+//    WMUTEX_REQUEST(&player.mutex);
     static char buffer[2 * 1024];
     char *ptr = buffer;
-    printf("get_buffer\n");
+    
+    printf("get_buffer %d\n", size);
     *size = sizeof(buffer);
     if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
         ptr += CACHEALIGN_SIZE - ((intptr_t)ptr & (CACHEALIGN_SIZE - 1));
+//    WMUTEX_RELEASE(&player.mutex);
     return ptr;
 }
 
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
+///    WMUTEX_REQUEST(&player.mutex);
+    printf("ci_pcmbuf_insert %d\n", count);
     warble_hw_insert(ch1, ch2, count, player.format.stereo_mode);
+//    WMUTEX_RELEASE(&player.mutex);
 }
 
 static void ci_set_elapsed(unsigned long value)
@@ -72,10 +79,12 @@ static void ci_set_elapsed(unsigned long value)
  */
 static size_t ci_read_filebuf(void *ptr, size_t size)
 {
-    WMUTEX_REQUEST(&player.mutex);
+//    WMUTEX_REQUEST(&player.mutex);
+    if(DDDEBUG)
+	printf("ci_read_filebuf %d\n", size);
     ssize_t actual = read(player.current_track.descriptor,
 			  ptr, size);
-    WMUTEX_RELEASE(&player.mutex);
+//    WMUTEX_RELEASE(&player.mutex);
     if (actual < 0)
         actual = 0;
     ci->curpos += actual;
@@ -92,7 +101,9 @@ static size_t ci_read_filebuf(void *ptr, size_t size)
  */
 static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 {
-    WMUTEX_REQUEST(&player.mutex);
+//    WMUTEX_REQUEST(&player.mutex);
+    if(DDDEBUG)
+	printf("ci_request_buffer %d\n", reqsize);
     if(reqsize > DEC_INPUT_BUFFER_LEN)
 	printf("WARNING: request buffer reqsize is too large %ld > %d\n", reqsize, DEC_INPUT_BUFFER_LEN); 
     reqsize = MIN(reqsize, DEC_INPUT_BUFFER_LEN);
@@ -101,12 +112,15 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
 		     input_buffer, reqsize);
     if(*realsize == 0)
     {
+        if(DDDEBUG)
+	    printf("ci_request_buffer realsize 0\n");
+
 	WMUTEX_RELEASE(&player.mutex);
 	return NULL;
     }
     lseek(player.current_track.descriptor, -*realsize, SEEK_CUR);
 
-    WMUTEX_RELEASE(&player.mutex);
+//    WMUTEX_RELEASE(&player.mutex);
     return input_buffer;
 }
 void* request_dec_buffer(size_t *realsize, size_t reqsize)
@@ -134,7 +148,7 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
 static void ci_advance_buffer(size_t amount)
 {
     WMUTEX_REQUEST(&player.mutex);
-    //printf("adv %ld\n", amount);
+    printf("adv %ud %ld\n", amount, ci->curpos);
     lseek(player.current_track.descriptor, amount, SEEK_CUR);
     ci->curpos += amount;
     ci->id3->offset = ci->curpos;
@@ -175,7 +189,7 @@ static void ci_set_offset(size_t value)
 static void ci_configure(int setting, intptr_t value)
 {
     WMUTEX_REQUEST(&player.mutex);
-    //printf("ci configure\n");
+    printf("ci configure %d-%d\n", setting, value);
     if (setting == DSP_SET_FREQUENCY
 	|| setting == DSP_SET_FREQUENCY)
     {
@@ -198,6 +212,7 @@ static void ci_configure(int setting, intptr_t value)
 static enum codec_command_action ci_get_command(intptr_t *param)
 {
     WMUTEX_REQUEST(&player.mutex);
+    printf("ci_get_command\n");
     enum codec_command_action ret = player.action.type;
     *param = player.action.param;
     player.action.type = CODEC_ACTION_NULL;
@@ -259,6 +274,9 @@ static void ci_logf(const char *fmt, ...)
     va_end(ap);
 }
 #endif
+static void ci_yield() {
+    printf("yeild\n");
+}
 
 static void stub_void_void(void) { }
 
@@ -284,7 +302,7 @@ static struct codec_api cic = {
     ci_should_loop,
 
     ci_sleep,
-    stub_void_void, /* yield */
+    ci_yield, /* yield */
 
     stub_void_void, /* commit_dcache */
     stub_void_void, /* commit_discard_dcache */

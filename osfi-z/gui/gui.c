@@ -13,9 +13,9 @@ static uint32_t Makise_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 32 + 1];
 static uint8_t ldf;
 void gui_predraw(MakiseGUI * gui)
 {
-    /* if(ldf) */
-    /* 	window_play_update(); */
-    /* ldf = !ldf; */
+    if(ldf)
+    	window_play_update();
+    ldf = !ldf;
     makise_gui_input_perform(host);
     makise_g_host_call(host, gui, M_G_CALL_PREDRAW);
 }
@@ -79,8 +79,10 @@ uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj)
 	return 0;
     }
     int res = (int)(xSemaphoreTake(*sobj, MAKISE_MUTEX_TIMEOUT) == pdTRUE);
-    if(res == 0)
-	printf("Mutex err\n");
+    if(res == 0) {
+	printf("Mutex err mak\n");
+//	while(1);
+    }
     return res;
 }
 //Release Grant to Access the Volume
