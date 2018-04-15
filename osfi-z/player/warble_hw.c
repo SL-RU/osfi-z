@@ -49,6 +49,7 @@ uint8_t warble_hw_init()
 
 uint8_t warble_hw_start()
 {
+    return 1;
 #ifdef I2S_Z1
     HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
 #endif
@@ -219,12 +220,14 @@ uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 		{
 		    if (!playback_running && playback_decode_ind)
 			warble_hw_start();
-	    
-		    if (playback_running && playback_decode_ind && !playback_decode_first)
-			xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
-		    if (playback_running && !playback_decode_ind && !playback_decode_first)
-			xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
+		    
+		    /* if (playback_running && playback_decode_ind && !playback_decode_first) */
+		    /* 	xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY); */
+		    /* if (playback_running && !playback_decode_ind && !playback_decode_first) */
+		    /* 	xSemaphoreTake(xI2S_semaphore, portMAX_DELAY); */
 
+		    osDelay(10);
+		    
 		    playback_decode_first = 0;
 		    playback_decode_pos = 0;
 		    playback_decode_ind = !playback_decode_ind;
@@ -263,22 +266,22 @@ uint8_t warble_mutex_delete (W_MUTEX_t *sobj)
 uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
 {
     TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj);
-    printf("reqqq %ld %lx\n", t, *sobj);
-    int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
-		    == pdTRUE);
-    if(res == 0)
+    //printf("reqqq %ld %lx\n", t, *sobj);
+//    int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
+//		    == pdTRUE);
+    if(0)//res == 0)
     {
 	printf("Mutex error w\n");
 	while(1);
     }
-    return res;
+    return 1;
 }
 //Release Grant to Access the Volume
 uint8_t warble_mutex_release_grant (W_MUTEX_t *sobj)
 {
     /* TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj); */
     /* printf("rellll %d\n", t); */
-    xSemaphoreGive(*sobj);
+    //xSemaphoreGive(*sobj);
     return 1;
 }
 
