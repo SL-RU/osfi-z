@@ -24,6 +24,8 @@ static int32_t tmp_buf_pos;
 static uint32_t dsp_phase[2];
 static uint32_t dsp_delta;
 
+#define I2S_Z1 1
+
 #define fp_div(x, y, z) (long)((((long long)(x)) << (z)) / ((long long)(y)))
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
@@ -221,12 +223,12 @@ uint8_t warble_hw_insert(const void *ch1, const void *ch2,
 		    if (!playback_running && playback_decode_ind)
 			warble_hw_start();
 		    
-		    /* if (playback_running && playback_decode_ind && !playback_decode_first) */
-		    /* 	xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY); */
-		    /* if (playback_running && !playback_decode_ind && !playback_decode_first) */
-		    /* 	xSemaphoreTake(xI2S_semaphore, portMAX_DELAY); */
+		    if (playback_running && playback_decode_ind && !playback_decode_first)
+		    	xSemaphoreTake(xI2S_semaphore_h, portMAX_DELAY);
+		    if (playback_running && !playback_decode_ind && !playback_decode_first)
+		    	xSemaphoreTake(xI2S_semaphore, portMAX_DELAY);
 
-		    osDelay(10);
+		    //osDelay(10);
 		    
 		    playback_decode_first = 0;
 		    playback_decode_pos = 0;
@@ -267,9 +269,9 @@ uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
 {
     TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj);
     //printf("reqqq %ld %lx\n", t, *sobj);
-//    int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
-//		    == pdTRUE);
-    if(0)//res == 0)
+   int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
+		    == pdTRUE);
+    if(res == 0)
     {
 	printf("Mutex error w\n");
 	while(1);
@@ -281,7 +283,7 @@ uint8_t warble_mutex_release_grant (W_MUTEX_t *sobj)
 {
     /* TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj); */
     /* printf("rellll %d\n", t); */
-    //xSemaphoreGive(*sobj);
+    xSemaphoreGive(*sobj);
     return 1;
 }
 

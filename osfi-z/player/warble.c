@@ -40,8 +40,8 @@ static void *ci_codec_get_buffer(size_t *size)
 //    WMUTEX_REQUEST(&player.mutex);
     static char buffer[2 * 1024];
     char *ptr = buffer;
-    
-    printf("get_buffer %d\n", size);
+    if(DDDEBUG)
+	printf("get_buffer %d\n", size);
     *size = sizeof(buffer);
     if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
         ptr += CACHEALIGN_SIZE - ((intptr_t)ptr & (CACHEALIGN_SIZE - 1));
@@ -51,8 +51,9 @@ static void *ci_codec_get_buffer(size_t *size)
 
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
 {
-///    WMUTEX_REQUEST(&player.mutex);
-    printf("ci_pcmbuf_insert %d\n", count);
+//    WMUTEX_REQUEST(&player.mutex);
+    if(DDDEBUG)
+	printf("ci_pcmbuf_insert %d\n", count);
     warble_hw_insert(ch1, ch2, count, player.format.stereo_mode);
 //    WMUTEX_RELEASE(&player.mutex);
 }
@@ -130,13 +131,15 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
 	printf("ERROR: request dec buffer %ld %d\n", reqsize, DEC_BUFFER_MAX - dec_id);
 	reqsize = *realsize = DEC_BUFFER_MAX - dec_id;
     }
-    printf("req %d %ld ", dec_id, reqsize);
+    if(DDDEBUG)
+	printf("req %d %ld ", dec_id, reqsize);
     uint8_t *b = (uint8_t*)dec_buffer + dec_id;
     *realsize = reqsize;
     dec_id += reqsize;
     while (dec_id % 4) //align(4) !!!
 	dec_id ++;
-    printf("%d\n", dec_id);
+    if(DDDEBUG)
+	printf("%d\n", dec_id);
     return b;
 }
 /*
@@ -148,7 +151,8 @@ void* request_dec_buffer(size_t *realsize, size_t reqsize)
 static void ci_advance_buffer(size_t amount)
 {
     WMUTEX_REQUEST(&player.mutex);
-    printf("adv %ud %ld\n", amount, ci->curpos);
+    if(DDDEBUG)
+	printf("adv %ud %ld\n", amount, ci->curpos);
     lseek(player.current_track.descriptor, amount, SEEK_CUR);
     ci->curpos += amount;
     ci->id3->offset = ci->curpos;
@@ -189,7 +193,8 @@ static void ci_set_offset(size_t value)
 static void ci_configure(int setting, intptr_t value)
 {
     WMUTEX_REQUEST(&player.mutex);
-    printf("ci configure %d-%d\n", setting, value);
+    if(DDDEBUG)
+	printf("ci configure %d-%d\n", setting, value);
     if (setting == DSP_SET_FREQUENCY
 	|| setting == DSP_SET_FREQUENCY)
     {
@@ -212,7 +217,8 @@ static void ci_configure(int setting, intptr_t value)
 static enum codec_command_action ci_get_command(intptr_t *param)
 {
     WMUTEX_REQUEST(&player.mutex);
-    printf("ci_get_command\n");
+    if(DDDEBUG)
+	printf("ci_get_command\n");
     enum codec_command_action ret = player.action.type;
     *param = player.action.param;
     player.action.type = CODEC_ACTION_NULL;
@@ -275,7 +281,8 @@ static void ci_logf(const char *fmt, ...)
 }
 #endif
 static void ci_yield() {
-    printf("yeild\n");
+    if(DDDEBUG)
+	printf("yeild\n");
 }
 
 static void stub_void_void(void) { }

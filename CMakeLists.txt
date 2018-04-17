@@ -2,7 +2,7 @@
 set(Zishan 1)
 set(OPT "-O2")
 set(USER_LINKER_FLAGS "-u _printf_float")
-set(USER_COMPILER "Clang") # "Clang" or "GNU"
+set(USER_COMPILER "GNU") # "Clang" or "GNU"
 set(USER_DEBUG TRUE) # Or "False"
 
 
