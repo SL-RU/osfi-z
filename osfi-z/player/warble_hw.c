@@ -11,7 +11,7 @@ static int playback_decode_pos;
 static int playback_decode_first;
 
 static void dmain(void const * argument);
-osThreadDef(WPlayerTask, dmain, osPriorityHigh, 0, 2048);
+osThreadDef(WPlayerTask, dmain, osPriorityHigh, 0, 3000);
 static osThreadId WPlayerThread;
 
 
@@ -51,7 +51,6 @@ uint8_t warble_hw_init()
 
 uint8_t warble_hw_start()
 {
-    return 1;
 #ifdef I2S_Z1
     HAL_GPIO_WritePin(D_MUTE_GPIO_Port, D_MUTE_Pin, GPIO_PIN_SET);
 #endif
@@ -267,9 +266,10 @@ uint8_t warble_mutex_delete (W_MUTEX_t *sobj)
 //Request Grant to Access some object
 uint8_t warble_mutex_request_grant (W_MUTEX_t *sobj)
 {
-    TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj);
+    //return 1;
+    //TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj);
     //printf("reqqq %ld %lx\n", t, *sobj);
-   int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
+    int res = (int)(xSemaphoreTake(*sobj, W_MUTEX_TIMEOUT)
 		    == pdTRUE);
     if(res == 0)
     {
@@ -283,6 +283,7 @@ uint8_t warble_mutex_release_grant (W_MUTEX_t *sobj)
 {
     /* TaskHandle_t t = xSemaphoreGetMutexHolder(*sobj); */
     /* printf("rellll %d\n", t); */
+    //return 1;
     xSemaphoreGive(*sobj);
     return 1;
 }
@@ -300,3 +301,31 @@ uint8_t warble_hw_start_thread()
     WPlayerThread = osThreadCreate(osThread(WPlayerTask), NULL);
     return 0;
 }
+
+void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed portCHAR *pcTaskName);
+void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed portCHAR *pcTaskName)
+{
+    taskDISABLE_INTERRUPTS(); // game over
+    printf("stack over\n");
+    for( ;; )
+    {
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	HAL_Delay(50);
+    }
+    
+}
+void vApplicationMallocFailedHook( void );
+void vApplicationMallocFailedHook( void ) {
+    taskDISABLE_INTERRUPTS(); // game over
+    printf("malloc fail\n");
+    for( ;; )
+    {
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	HAL_Delay(50);
+    }
+}
+
+
+/* void vApplicationStackOverflowHook( xTaskHandle *pxTsk, signed portCHAR *pcTskNm ) { */
+/*     printf("stack over\n"); */
+/* } */

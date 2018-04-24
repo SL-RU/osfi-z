@@ -311,20 +311,7 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE void __set_FAULTMASK(uint32_t
   \details Returns the current value of the Floating Point Status/Control register.
   \return               Floating Point Status/Control register value
  */
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_FPSCR(void)
-{
-#if (__FPU_PRESENT == 1U) && (__FPU_USED == 1U)
-  uint32_t result;
-
-  /* Empty asm statement works as a scheduling barrier */
-  __ASM volatile ("");
-  __ASM volatile ("VMRS %0, fpscr" : "=r" (result) );
-  __ASM volatile ("");
-  return(result);
-#else
-   return(0);
-#endif
-}
+#define __get_FPSCR __builtin_arm_get_fpscr
 
 
 /**
@@ -332,20 +319,7 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_FPSCR(void)
   \details Assigns the given value to the Floating Point Status/Control register.
   \param [in]    fpscr  Floating Point Status/Control value to set
  */
-__attribute__( ( always_inline ) ) __STATIC_INLINE void __set_FPSCR(uint32_t fpscr)
-{
-#if (__FPU_PRESENT == 1U) && (__FPU_USED == 1U)
-  /* Empty asm statement works as a scheduling barrier */
-  __ASM volatile ("");
-
-#ifdef __clang__
-  __builtin_arm_set_fpscr(0xdeadbeef);
-#else
-  __ASM volatile ("VMSR fpscr, %0" : : "r" (fpscr) : "vfpcc");
-#endif
-  __ASM volatile ("");
-#endif
-}
+#define __set_FPSCR __builtin_arm_set_fpscr
 
 #endif /* (__CORTEX_M == 0x04U) || (__CORTEX_M == 0x07U) */
 

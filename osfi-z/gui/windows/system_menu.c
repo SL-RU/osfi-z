@@ -58,10 +58,10 @@ MElement * system_menu_init()
     m_button_set_text(&b_play, "Play");
     m_button_set_click(&b_play, &b_play_click);
 
-    m_create_lable(&lable, win_host,
-		   mp_rel(0, 10, 60, 15),
-		   &ts_lable);
-    m_lable_set_text(&lable, "LOL");
+    /* m_create_lable(&lable, win_host, */
+    /* 		   mp_rel(0, 10, 60, 15), */
+    /* 		   &ts_lable); */
+    /* m_lable_set_text(&lable, "LOL"); */
 
 
     /* m_create_button(&b_close_menu, 0, */

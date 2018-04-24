@@ -31,8 +31,16 @@ typedef struct {
     struct mp3entry id3;
 } WTrack;
 
+typedef enum {
+    WPlayer_Playing,
+    WPlayer_Pause,
+    WPlayer_Stop
+} WPlayerStatus;
+
 typedef struct {
     WTrack current_track;
+
+    WPlayerStatus status;
 
     struct {
 	enum codec_command_action type;

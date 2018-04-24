@@ -54,6 +54,7 @@ uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 	   strcmp(ext, "FLAC") == 0 ||
 	   strcmp(ext, "AIFF") == 0 )
 	{
+	    warble_stop();
 	    warble_play_file(selected->fname);
 	    return 1;
 	}

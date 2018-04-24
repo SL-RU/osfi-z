@@ -20,7 +20,7 @@ input_buffer[DEC_INPUT_BUFFER_LEN/4];
 #define WMUTEX_REQUEST warble_mutex_request_grant
 #define WMUTEX_RELEASE warble_mutex_release_grant
 
-#define DDDEBUG 1
+#define DDDEBUG 0
 
 static void playback_set_volume(int volume)
 {
@@ -116,7 +116,7 @@ static void *ci_request_buffer(size_t *realsize, size_t reqsize)
         if(DDDEBUG)
 	    printf("ci_request_buffer realsize 0\n");
 
-	WMUTEX_RELEASE(&player.mutex);
+//	WMUTEX_RELEASE(&player.mutex);
 	return NULL;
     }
     lseek(player.current_track.descriptor, -*realsize, SEEK_CUR);
@@ -389,6 +389,9 @@ void warble_decode_file()
 {
     playback_set_volume(10);
     WMUTEX_REQUEST(&player.mutex);
+
+    player.status = WPlayer_Playing;
+    
     dec_id = 0;
     player.action.type = CODEC_ACTION_NULL;
     char trackname[13];
@@ -452,6 +455,8 @@ void warble_decode_file()
     printf("codec_main %d\n", res);
 
     WMUTEX_REQUEST(&player.mutex);
+
+    
     if(player.handlers.onstart != 0)
     	player.handlers.onstart(&player.current_track);
     WMUTEX_RELEASE(&player.mutex);
@@ -485,11 +490,23 @@ void warble_decode_file()
     if(player.handlers.onend != 0)
 	player.handlers.onend(&player.current_track);    
 
+    player.status = WPlayer_Stop;
     WMUTEX_RELEASE(&player.mutex);
+    vTaskDelete(NULL);
 }
 
 void warble_play_file(TCHAR *file)
 {
+    warble_stop();
+    uint8_t playback = 1;
+    while(playback) {
+	//TODO: Stop logic
+	WMUTEX_REQUEST(&player.mutex);
+	playback = player.status != WPlayer_Stop;
+	WMUTEX_RELEASE(&player.mutex);
+	osDelay(30);
+    }
+    
     WMUTEX_REQUEST(&player.mutex);
     memcpy(player.current_track.path, file, MAX_PATH * 2);
     player.action.type = CODEC_ACTION_NULL;
@@ -507,6 +524,8 @@ int warble_init()
     player.handlers.gotmetadata = 0;
     player.handlers.onstart = 0;
     player.handlers.onend = 0;
+
+    player.status = WPlayer_Stop;
     
     warble_hw_init();
     playback_set_volume(10);
