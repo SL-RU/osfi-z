@@ -1241,8 +1241,6 @@ BaseType_t xQueueGenericReceive( QueueHandle_t xQueue, void * const pvBuffer, Ti
     int8_t *pcOriginalReadPosition;
     Queue_t * const pxQueue = ( Queue_t * ) xQueue;
 
-    if(xQueue == 0x20003ef8)
-	printf("qu %ld\n", pxQueue->uxItemSize);
     configASSERT( pxQueue );
     configASSERT( !( ( pvBuffer == NULL ) && ( pxQueue->uxItemSize != ( UBaseType_t ) 0U ) ) );
 	#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )

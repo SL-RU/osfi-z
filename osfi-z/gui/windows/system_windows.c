@@ -30,7 +30,7 @@ void sw_open(SW_TYPE type)
 	break;
     }
     case SW_METADATA: {
-	current_window =  window_play;
+	current_window =  window_metadata;
 	break;
     }
     default:
@@ -68,9 +68,11 @@ void system_windows_init()
     win_host = &container.cont;
     menu_host = &menu_container.cont;
 
+    window_metadata = window_metadata_init();
     window_play = window_play_init();
     window_fm = fm_init();
     system_menu = system_menu_init();
+
 
     sw_open(SW_FM);
 }

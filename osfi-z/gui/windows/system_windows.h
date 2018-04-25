@@ -15,6 +15,7 @@ typedef enum {
 #include "gui_helpers.h"
 #include "window_play.h"
 #include "system_menu.h"
+#include "window_metadata.h"
 #include "fm.h"
 
 
