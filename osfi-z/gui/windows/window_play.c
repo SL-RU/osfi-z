@@ -60,7 +60,7 @@ static void bseek_click(MButton* b)
     warble_seek(-10000);
 }
 static void fseek_click(MButton* b)
-{
+{    
     warble_seek(10000);
 }
 static void pause_click(MButton* b)
@@ -108,6 +108,8 @@ MElement * window_play_init()
 		    &ts_button);
     m_button_set_bitmap(&b_bat, &B_battery_full);
     m_button_set_click(&b_bat, &stop_click);
+    
+    
 
 
     m_create_lable(&l_artist, win_host,

@@ -48,7 +48,6 @@ MElement * system_menu_init()
     m_create_canvas(&container, 0,
 		    mp_sall(0,0,0,0),
 		    &ts_container_black);
-    m_canvas_set_isolated(&container, MContainer_Isolated);
     
     win_host = &container.cont;
     opened = 0;

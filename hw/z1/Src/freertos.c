@@ -78,13 +78,13 @@ void guiStart(void const * argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
-static uint8_t addr = 0b0010000 << 1;
+//static uint8_t addr = 0b0010000 << 1;
 
-static void setr(uint8_t reg, uint8_t val)
-{
-    uint8_t tr[2] = {reg, val};
-    HAL_I2C_Master_Transmit(&hi2c1, addr, tr, 2, 100);
-}
+/* static void setr(uint8_t reg, uint8_t val) */
+/* { */
+/*     uint8_t tr[2] = {reg, val}; */
+/*     HAL_I2C_Master_Transmit(&hi2c1, addr, tr, 2, 100); */
+/* } */
 
 static void init_error() //show error message with required err_msg
 {

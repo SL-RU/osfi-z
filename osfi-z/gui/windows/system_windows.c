@@ -64,7 +64,9 @@ void system_windows_init()
     m_create_canvas(&menu_container, &host->host,
 		    mp_rel(0,0,64,64),
 		    &ts_container_clear);
-
+    m_canvas_set_isolated(&container, MContainer_Isolated);
+    m_canvas_set_isolated(&menu_container, MContainer_Isolated);
+    
     win_host = &container.cont;
     menu_host = &menu_container.cont;
 
