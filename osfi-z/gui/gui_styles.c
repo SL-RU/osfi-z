@@ -95,40 +95,29 @@ MakiseStyle_SListItem ts_slist_item =
 };
 MakiseStyle_SList ts_slist =
 {
-    &F_Default6x10,
-    0,
-    0, //left margin
-    0, //item margin
+    .font              = &F_Default6x10,
+    .font_line_spacing = 0,
+    .left_margin       = 0,
+    .item_margin       = 0,
     //scroll
-    //width  bg color        scroll color
-    5,     MC_Transparent, MC_White,
+    .scroll_width    = 3,
+    .scroll_bg_color = MC_Transparent,
+    .scroll_color     = MC_White,
+    
     //bg       font     border   double_border
-    {MC_Black, MC_White, MC_Black, 0},  //normal
-    {MC_Black, MC_White, MC_White,   0},  //focused
-    {MC_Black, MC_White, MC_White, 0},  //active
-};
-MakiseStyle_SList ts_slist_small =
-{
-    &F_Default8x13,
-    0,
-    0, //left margin
-    0, //item margin
-    //scroll
-    //width  bg color        scroll color
-    5,     MC_White, MC_Black,
-    //bg       font     border   double_border
-    {MC_Black, MC_Black, MC_Black, 0},  //normal
-    {MC_Black, MC_White, MC_White,   0},  //focused
-    {MC_Black, MC_White, MC_White, 0},  //active
+    .normal  = {MC_Black, MC_White, MC_Black, 0},
+    .focused = {MC_Black, MC_White, MC_Black, 0},
+    .active  = {MC_Black, MC_White, MC_White, 0},
 };
 MakiseStyle_SListItem ts_slist_item_big =
 {
-    &F_Default5x7,
-    0,
+    .font              = &F_Default8x13,
+    .font_line_spacing = 0,
+    .text_scroll_speed = 100,
     //bg       font     border   double_border
-    {MC_Transparent, MC_White, MC_White, 0},  //normal
-    {MC_Black, MC_White, MC_White,   0},      //focused
-    {MC_Black, MC_Black, MC_Transparent, 0},   //active
+    .normal  = {MC_Transparent, MC_White, MC_Black, 0}, 
+    .focused = {MC_White,       MC_Black, MC_White, 0}, 
+    .active  = {MC_Transparent, MC_White, MC_White, 0}, 
 };
 
 MakiseStyle_FSViewer ts_fsviewer = {

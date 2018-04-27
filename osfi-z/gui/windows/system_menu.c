@@ -5,6 +5,22 @@ static MContainer * win_host;
 static MButton b_fm, b_play, b_meta, b_close_menu;
 static MLable lable;
 
+static MSList list;
+
+static MSList_Item items[3] = {
+    {
+	.text = "Files",
+	.value = SW_FM
+    },
+    {
+	.text = "Play",
+	.value = SW_PLAY
+    },
+    {
+	.text = "Metadata",
+	.value = SW_METADATA
+    },
+};
 
 static uint8_t opened = 0;
 
@@ -17,30 +33,18 @@ void smenu_open()
     
     opened = !opened;
     makise_g_print_tree(host);
+
+    if(opened) {
+	for (int i = 0; i < 3; i++) {
+	    if(sw_get_current_window() == items[i].value)
+		list.selected = &items[i];
+	}
+    }
 }
 
-static void b_fm_click(MButton* b)
-{
+void list_click (MSList *l, MSList_Item *selected ) {
     smenu_open();
-    sw_open(SW_FM);
-    makise_g_print_tree(host);
-}
-static void b_play_click(MButton* b)
-{
-    smenu_open();
-    sw_open(SW_PLAY);
-    makise_g_print_tree(host);
-}
-static void b_meta_click(MButton* b)
-{
-    smenu_open();
-    sw_open(SW_METADATA);
-    makise_g_print_tree(host);
-}
-static void b_close_click(MButton* b)
-{
-    smenu_open();
-    makise_g_print_tree(host);
+    sw_open(selected->value);
 }
 
 MElement * system_menu_init()
@@ -52,35 +56,16 @@ MElement * system_menu_init()
     win_host = &container.cont;
     opened = 0;
 
-    m_create_button(&b_fm, win_host,
-    		    mp_rel(0, 0, 60, 20),
-    		    &ts_button);
-    m_button_set_text(&b_fm, "Files");
-    m_button_set_click(&b_fm, &b_fm_click);
+    m_create_slist(&list, win_host,
+		   mp_sall(0, 0, 0, 0),
+		   0,
+		   0, &list_click,
+		   MSList_List,
+		   &ts_slist, &ts_slist_item_big);
+    m_slist_set_array(&list, items, 3);
 
-    m_create_button(&b_play, win_host,
-    		    mp_rel(0, 23, 50, 20),
-    		    &ts_button);
-    m_button_set_text(&b_play, "Play");
-    m_button_set_click(&b_play, &b_play_click);
-    
-    m_create_button(&b_meta, win_host,
-    		    mp_rel(0, 50, 50, 20),
-    		    &ts_button);
-    m_button_set_text(&b_meta, "Meta");
-    m_button_set_click(&b_meta, &b_meta_click);
+    mi_focus(&list.el, M_G_FOCUS_GET);
 
-    /* m_create_lable(&lable, win_host, */
-    /* 		   mp_rel(0, 10, 60, 15), */
-    /* 		   &ts_lable); */
-    /* m_lable_set_text(&lable, "LOL"); */
-
-
-    /* m_create_button(&b_close_menu, 0, */
-    /* 		    mp_rel(0, 46, 50, 20), */
-    /* 		    &ts_button); */
-    /* m_button_set_text(&b_close_menu, "Close menu"); */
-    /* m_button_set_click(&b_close_menu, &b_close_click); */
     
     return &container.el;
 }

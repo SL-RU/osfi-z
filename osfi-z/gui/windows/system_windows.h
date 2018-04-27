@@ -27,5 +27,7 @@ void sw_open(SW_TYPE type);
 void _sw_menu_show();
 void _sw_menu_hide();
 
+SW_TYPE sw_get_current_window();
+
 
 #endif

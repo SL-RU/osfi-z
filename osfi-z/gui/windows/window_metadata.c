@@ -5,8 +5,18 @@ static MContainer * win_host;
 /* static MButton b_fm, b_play, b_close_menu; */
 static MLable lable;
 
-static char text[100];
 
+static MSList list;
+
+static char        text_buf[1000];
+static MSList_Item items[10] = {
+    {
+	.text = "null",
+	.next = 0,
+	.prev = 0,
+    }
+};
+static uint32_t    items_i;
 
 /* void smenu_open() */
 /* { */
@@ -37,42 +47,62 @@ static char text[100];
 /*     makise_g_print_tree(host); */
 /* } */
 
+static void add_item(char* text) {
+    items[items_i].text = text;
+    m_slist_add(&list, &items[items_i]);
+    items_i ++;
+    //printf("add item %s\n", text);
+}
+
 void window_metadata_update(WTrack *track)
 {
-    M_E_MUTEX_REQUEST(&lable);
-    uint32_t len = 100;
-    snprintf(text, len, "Path: %s Title: %s Artist: %s Genre: %s Album: %s Year: %s (%d)",
-	     track->id3.path,
-	     track->id3.title,
-	     track->id3.artist,
-	     track->id3.genre_string,
-	     track->id3.album,
-	     track->id3.year_string, track->id3.year
-	     
-	);
-    if (track->id3.title)
-    {
-	printf("Title: %s\n", track->id3.title);
-    }
-    if (track->id3.artist)
-    {
-	printf("Artist: %s\n", track->id3.artist);
-    }
-    if (track->id3.album)
-    {
-	
-	printf("Album: %ld\n", track->id3.frequency);
-    }
-    if (track->id3.genre_string)
-    {
-	printf("Genre: %s\n", track->id3.genre_string);
-    }
-    if (track->id3.disc_string || track->id3.discnum) printf("Disc: %s (%d)\n", track->id3.disc_string, track->id3.discnum);
-    if (track->id3.track_string || track->id3.tracknum) printf("Track: %s (%d)\n", track->id3.track_string, track->id3.tracknum);
-    if (track->id3.year_string || track->id3.year) printf("Year: %s (%d)\n", track->id3.year_string, track->id3.year);
+    const struct mp3entry *id3 = &track->id3;
 
+    m_slist_clear(&list);
+    items_i = 0;
+
+    char *s = text_buf;
+    uint32_t len = 1000;
+
+    snprintf(s, len, "Path: %s", id3->path);
+    add_item(s);
+    len -= strlen(s) + 1;
+    s = text_buf + (1000 - len);
+    if (id3->title)
+    {
+	snprintf(s, len, "Title: %s", id3->title);
+	add_item(s);
+	len -= strlen(s) + 1;
+	s = text_buf + (1000 - len);
+    }
+    if (id3->artist)
+    {
+	snprintf(s, len, "Artist: %s", id3->artist);
+	add_item(s);
+	len -= strlen(s) + 1;
+	s = text_buf + (1000 - len);
+    }
+    if (id3->album)
+    {
+	snprintf(s, len, "Album: %s", id3->album);
+	add_item(s);
+	len -= strlen(s) + 1;
+	s = text_buf + (1000 - len);
+    }
+    if (id3->genre_string)
+    {
+	snprintf(s, len, "Genre: %s", id3->genre_string);
+	add_item(s);
+	len -= strlen(s) + 1;
+	s = text_buf + (1000 - len);	
+    }
+    snprintf(s, len, "Freq: %ld", id3->frequency);
+    add_item(s);
+    len -= strlen(s) + 1;
+    s = text_buf + (1000 - len);
+	
     M_E_MUTEX_RELEASE(&lable);
-    m_lable_set_text(&lable, text);
+//    m_lable_set_text(&lable, text);
 }
 
 MElement * window_metadata_init()
@@ -84,24 +114,17 @@ MElement * window_metadata_init()
     
     win_host = &container.cont;
 
-    /* m_create_button(&b_fm, win_host, */
-    /* 		    mp_rel(0, 0, 60, 20), */
-    /* 		    &ts_button); */
-    /* m_button_set_text(&b_fm, "File viewer"); */
-    /* m_button_set_click(&b_fm, &b_fm_click); */
+    
+    m_create_slist(&list, win_host,
+		   mp_sall(0, 0, 0, 0),
+		   0,
+		   0, 0,
+		   MSList_List,
+		   &ts_slist, &ts_slist_item_big);
+    m_slist_set_list(&list, items);
 
-    /* m_create_button(&b_play, win_host, */
-    /* 		    mp_rel(0, 23, 50, 20), */
-    /* 		    &ts_button); */
-    /* m_button_set_text(&b_play, "Play"); */
-    /* m_button_set_click(&b_play, &b_play_click); */
-
-    m_create_lable(&lable, win_host,
-    		   mp_rel(0, 10, 128, 15),
-    		   &ts_lable);
-    m_lable_set_text(&lable, text);
-
-
+    mi_focus(&list.el, M_G_FOCUS_GET);
+    
     /* m_create_button(&b_close_menu, 0, */
     /* 		    mp_rel(0, 46, 50, 20), */
     /* 		    &ts_button); */

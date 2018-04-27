@@ -54,6 +54,11 @@ void _sw_menu_hide()
     mi_focus(current_window, M_G_FOCUS_GET);
 }
 
+SW_TYPE sw_get_current_window()
+{
+    return current_type;
+}
+
 void system_windows_init()
 {
     warble_init();
