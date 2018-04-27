@@ -8,8 +8,11 @@ static MLable lable;
 
 static MSList list;
 
-static char        text_buf[1000];
-static MSList_Item items[10] = {
+#define METADATA_GUI_BUFFER 5000
+#define METADATA_GUI_ITEMS  20
+
+static char        text_buf[METADATA_GUI_BUFFER];
+static MSList_Item items[METADATA_GUI_ITEMS] = {
     {
 	.text = "null",
 	.next = 0,
@@ -47,12 +50,30 @@ static uint32_t    items_i;
 /*     makise_g_print_tree(host); */
 /* } */
 
-static void add_item(char* text) {
-    items[items_i].text = text;
+static int32_t buf_len = 0;
+static void add_meta(const char *fmt, ...)
+{
+    if(buf_len <= 0 || items_i >= METADATA_GUI_ITEMS) {
+	printf("metadata gui overflow\n");
+	return;
+    }
+    va_list ap;
+    va_start(ap, fmt);
+
+    char *s = text_buf + (METADATA_GUI_BUFFER - buf_len);
+    vsnprintf(s, buf_len, fmt, ap);
+    buf_len -= strlen(s) + 1;
+
+//    vprintf(fmt, ap);
+//    printf(":::  len %d \n", buf_len);
+    
+    va_end(ap);
+
+    items[items_i].text = s;
     m_slist_add(&list, &items[items_i]);
     items_i ++;
-    //printf("add item %s\n", text);
 }
+
 
 void window_metadata_update(WTrack *track)
 {
@@ -60,47 +81,56 @@ void window_metadata_update(WTrack *track)
 
     m_slist_clear(&list);
     items_i = 0;
+    buf_len = METADATA_GUI_BUFFER;
+    
+    
+    add_meta("Path: %s", id3->path);
 
-    char *s = text_buf;
-    uint32_t len = 1000;
-
-    snprintf(s, len, "Path: %s", id3->path);
-    add_item(s);
-    len -= strlen(s) + 1;
-    s = text_buf + (1000 - len);
     if (id3->title)
-    {
-	snprintf(s, len, "Title: %s", id3->title);
-	add_item(s);
-	len -= strlen(s) + 1;
-	s = text_buf + (1000 - len);
-    }
+	add_meta("Title: %s", id3->title);
+
     if (id3->artist)
-    {
-	snprintf(s, len, "Artist: %s", id3->artist);
-	add_item(s);
-	len -= strlen(s) + 1;
-	s = text_buf + (1000 - len);
-    }
+	add_meta("Artist: %s", id3->artist);
+
     if (id3->album)
-    {
-	snprintf(s, len, "Album: %s", id3->album);
-	add_item(s);
-	len -= strlen(s) + 1;
-	s = text_buf + (1000 - len);
-    }
+	add_meta("Album: %s", id3->album);
+
     if (id3->genre_string)
-    {
-	snprintf(s, len, "Genre: %s", id3->genre_string);
-	add_item(s);
-	len -= strlen(s) + 1;
-	s = text_buf + (1000 - len);	
-    }
-    snprintf(s, len, "Freq: %ld", id3->frequency);
-    add_item(s);
-    len -= strlen(s) + 1;
-    s = text_buf + (1000 - len);
-	
+	add_meta("Genre: %s", id3->genre_string);
+
+    if (id3->disc_string || id3->discnum)
+	add_meta("Disc: %s (%d)", id3->disc_string, id3->discnum);
+
+    if (id3->track_string || id3->tracknum)
+	add_meta("Track: %s (%d)", id3->track_string, id3->tracknum);
+
+    if (id3->year_string || id3->year)
+	add_meta("Year: %s (%d)", id3->year_string, id3->year);
+
+    if (id3->composer)
+	add_meta("Composer: %s", id3->composer);
+
+    if (id3->comment)
+	add_meta("Comment: %s", id3->comment);
+
+    if (id3->albumartist)
+	add_meta("Album artist: %s", id3->albumartist);
+
+    if (id3->grouping)
+	add_meta("Grouping: %s", id3->grouping);
+
+    if (id3->layer)
+	add_meta("Layer: %d", id3->layer);
+
+    if (id3->id3version)
+	add_meta("ID3 version: %u", (int)id3->id3version);
+
+    add_meta("Codec: %s", audio_formats[id3->codectype].label);
+    add_meta("Bitrate: %d kb/s", id3->bitrate);
+    add_meta("Freq: %ld", id3->frequency);
+    add_meta("Channels: %d", id3->channels);
+
+    
     M_E_MUTEX_RELEASE(&lable);
 //    m_lable_set_text(&lable, text);
 }
