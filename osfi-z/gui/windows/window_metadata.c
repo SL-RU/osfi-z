@@ -50,6 +50,8 @@ static uint32_t    items_i;
 /*     makise_g_print_tree(host); */
 /* } */
 
+
+
 static int32_t buf_len = 0;
 static void add_meta(const char *fmt, ...)
 {
@@ -74,11 +76,8 @@ static void add_meta(const char *fmt, ...)
     items_i ++;
 }
 
-
-void window_metadata_update(WTrack *track)
+void window_metadata_update(struct mp3entry *id3)
 {
-    const struct mp3entry *id3 = &track->id3;
-
     m_slist_clear(&list);
     items_i = 0;
     buf_len = METADATA_GUI_BUFFER;
@@ -131,8 +130,32 @@ void window_metadata_update(WTrack *track)
     add_meta("Channels: %d", id3->channels);
 
     
-    M_E_MUTEX_RELEASE(&lable);
+    //M_E_MUTEX_RELEASE(&lable);
 //    m_lable_set_text(&lable, text);
+}
+
+void window_metadata_load  (TCHAR *path)
+{
+    char trackname[13];
+    for (int i = 0; i < 13; i++) {
+	trackname[i] = (char)
+	    (((TCHAR*)path)[i]);
+    }
+    
+    static struct mp3entry id3;
+    int descriptor;
+    descriptor = open((char*)path, O_RDONLY);
+    if (descriptor == -1) {
+	printf("error: open %s\n", trackname);
+    }
+    fseek_init(descriptor);
+    if (!get_metadata(&id3, descriptor, trackname))
+    {
+        printf("error: metadata parsing failed\n");
+	close(descriptor);
+        return;
+    }
+    window_metadata_update(&id3);
 }
 
 MElement * window_metadata_init()

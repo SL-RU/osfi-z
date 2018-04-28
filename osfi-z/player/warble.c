@@ -414,6 +414,7 @@ void warble_decode_file()
     if (!get_metadata(&player.current_track.id3, player.current_track.descriptor, trackname))
     {
         printf("error: metadata parsing failed\n");
+	close(player.current_track.descriptor);
 	WMUTEX_RELEASE(&player.mutex);
         return;
     }

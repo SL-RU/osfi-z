@@ -11,6 +11,23 @@ static MLable    lable;
 static MFSViewer flist;
 //static MSList    slist;
 
+static MCanvas action_container;
+static MSList  action_list;
+
+static MSList_Item action_items[3] = {
+    {
+	.text = "Play",
+	.value = 1
+    },
+    {
+	.text = "View metadata",
+	.value = 2
+    },
+    {
+	.text = "Add playlist",
+	.value = 3
+    },
+};
 
 char str[100] = "Hello!";
 void start_warble();
@@ -37,11 +54,15 @@ static char* to_uppercase(char *s)
     return (str);
 }
 
-
+static MFSViewer_Item *selected_file;
 uint8_t onselection(MFSViewer *l, MFSViewer_Item *selected)
 {
     if(selected != 0)
     {
+	selected_file = selected;
+	mi_cont_add(win_host, &action_container.el);
+	mi_focus(&action_list.el, M_G_FOCUS_GET);
+	return 1;
 	/* char b[100] = {0}; */
 	/* f_read(&selected_fil, b, 20, 0); */
 	/* printf("readed: %s\n", b); */
@@ -76,32 +97,30 @@ static void onend(WTrack *track)
     sw_open(SW_FM);
 }
 
-
-
-static MSList_Item items[10];
-void fm_cre(char *art, char *tit, char *alb)
-{
-    printf("FM cre %ld %s %s %s\n", xPortGetFreeHeapSize(), art, tit, alb);
-    items[0].text = art;
-    items[1].text = tit;
-    items[2].text = alb;
-    /* m_create_slist(&slist, host->host, */
-    /* 		   mp_sall(0,0,0,0), */
-    /* 		   "sdf", */
-    /* 		   0, 0, */
-    /* 		   MSList_List, */
-    /* 		   &ts_slist, */
-    /* 		   &ts_slist_item); */
-    /* m_create_lable(&lable, host->host, */
-    /* 	   mp_rel(20, 20, 80, 30), */
-    /* 	   str, */
-    /* 	   &ts_lable); */
-
-    /* m_slist_set_array(&slist, items, 3); */
-    //m_slist_set_array(&slist, items, 3);
-    makise_g_cont_rem(&flist.el);
-    //makise_g_cont_add(host->host, &slist.el);
-    //makise_g_focus(&slist.el, M_G_FOCUS_GET);
+static void list_click (MSList *l, MSList_Item *selected ) {
+    M_E_MUTEX_RELEASE(l);
+    mi_cont_rem(&action_container.el);
+    mi_focus(&flist.el, M_G_FOCUS_GET);
+    M_E_MUTEX_REQUEST(l);
+    if(selected->value == 1) {
+	char ext[10] = {0};
+	strncpy(ext, determine_file_extention(selected_file->name), 4);
+	to_uppercase(ext);
+	printf("EXT: %s\n", ext);
+	if(strcmp(ext, "MP3") == 0  ||
+	   strcmp(ext, "WAV") == 0  ||
+	   strcmp(ext, "FLAC") == 0 ||
+	   strcmp(ext, "AIFF") == 0 )
+	{
+	    warble_stop();
+	    warble_play_file(selected_file->fname);
+	}	
+    } else if(selected->value == 2) {
+	M_E_MUTEX_RELEASE(l);
+	window_metadata_load(selected_file->fname);
+	sw_open(SW_METADATA);
+	M_E_MUTEX_REQUEST(l);
+    }
 }
 
 MElement * fm_init()
@@ -124,6 +143,23 @@ MElement * fm_init()
     m_fsviewer_set_onselection(&flist, &onselection);
 	
     fsviewer_open(&flist, (TCHAR*)"/");
+
+
+    
+    m_create_canvas(&action_container, 0,
+		    mp_sall(20,20,5,5),
+		    &ts_container_clear);
+    m_canvas_set_isolated(&action_container, MContainer_Isolated);
+    m_create_slist(&action_list, &action_container.cont,
+		   mp_sall(0, 0, 0, 0),
+		   0,
+		   0, &list_click,
+		   MSList_List,
+		   &ts_slist, &ts_slist_item_big);
+    m_slist_set_array(&action_list, action_items, 3);
+    mi_focus(&action_list.el, M_G_FOCUS_GET);
+
+    mi_cont_rem(&action_container.el);
     
     /* m_create_lable(&lable, host->host, */
     /* 		   mp_rel(20, 20, 80, 30), */

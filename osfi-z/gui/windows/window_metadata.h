@@ -12,6 +12,7 @@
 
 MElement * window_metadata_init();
 
-void window_metadata_update(WTrack *track);
+void window_metadata_update(struct mp3entry *id3);
+void window_metadata_load  (TCHAR *file);
 
 #endif

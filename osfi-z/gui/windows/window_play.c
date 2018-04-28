@@ -19,7 +19,7 @@ static uint32_t ldden;
 
 static void gotmetadata(WTrack *track)
 {
-    window_metadata_update(track);
+    window_metadata_update(&track->id3);
     
     m_element_mutex_request(&l_artist.el);
     snprintf(s_name, 200, "%s", track->id3.title);
