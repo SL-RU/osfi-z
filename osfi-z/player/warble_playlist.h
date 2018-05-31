@@ -10,34 +10,40 @@ typedef enum {
     WPlaylist_CUE,
 } WPlaylistType;
 
-typedef struct {
-    char *name;
+/* typedef struct { */
+/*     char *name; */
     
-    WPlaylistType type;
-    void *data;
-    struct {
-	WResult (*oncomplete      )(WTrack *track);
-	WResult (*state_update    )(WTrack *track);
-	WResult (*metadata_update )(WTrack *track);
-	WResult (*time_elapsed)   (WTrack *track, uint32_t time);
-    } handlers; //handlers of specific events
+/*     WPlaylistType type; */
+/*     void *data; */
+/*     struct { */
 
-    enum {
-	WP_play,
-	WP_end,
-    } state;
+/* 	WResult (*oncomplete      )(WTrack *track); */
+/* 	WResult (*state_update    )(WTrack *track); */
+/* 	WResult (*metadata_update )(WTrack *track); */
+/* 	WResult (*time_elapsed)   (WTrack *track, uint32_t time); */
+/*     } handlers; //handlers of specific events */
 
-    WResult (*getnext)   (WTrack *track);
-    WResult (*getprev)   (WTrack *track);
-    WResult (*getcurrent)(WTrack *track);
-    WResult (*getcount)  (uint32_t *count);
-    WResult (*getbyindex)(WTrack *track, uint32_t index);
-    WResult (*load) ();
-    WResult (*save) ();
-    WResult (*close)();
-} WPlaylist;
+/*     enum { */
+/* 	WP_play, */
+/* 	WP_end, */
+/*     } state; */
+
+/*     WResult (*getnext)   (WTrack *track); */
+/*     WResult (*getprev)   (WTrack *track); */
+/*     WResult (*getcurrent)(WTrack *track); */
+/*     WResult (*getcount)  (uint32_t *count); */
+/*     WResult (*getbyindex)(WTrack *track, uint32_t index); */
+/*     WResult (*load) (); */
+/*     WResult (*save) (); */
+/*     WResult (*close)(); */
+/* } WPlaylist; */
 
 WResult wp_create(WPlaylist *playlist, WPlaylistType type);
+WResult wp_add   (WPlaylist *playlist, TCHAR *path);
+
+WResult wp_next  (WPlaylist *playlist, TCHAR *path);
+WResult wp_prev  (WPlaylist *playlist, TCHAR *path);
+
 WResult wp_load  (WPlaylist *playlist, TCHAR *path);
 WResult wp_close (WPlaylist *playlist);
 

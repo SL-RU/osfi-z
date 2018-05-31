@@ -11,6 +11,7 @@
 //#define MAKISE_ILI9340_USE 1
 
 
+#define MAKISE_PRIMITIVES_DRAWER_DEFAULT
 #define MAKISEGUI_DRIVER_DEPTH 1
 #define MAKISEGUI_BUFFER_DEPTH 1
 #define MAKISEGUI_BUFFER_DEPTHMASK 0b1
@@ -47,18 +48,25 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #define MAKISE_MUTEX_t       xSemaphoreHandle //change for your OS
-#define MAKISE_MUTEX_TIMEOUT 10000
+#define MAKISE_MUTEX_TIMEOUT 1000
 
 //implement that functions for your OS
 
+// FONTS. Uncomment to use
+#define MAKISE_FONTS_DEFAULT10X20
+#define MAKISE_FONTS_DEFAULT8X13
+#define MAKISE_FONTS_DEFAULT6X10
+#define MAKISE_FONTS_DEFAULT5X7
+
+
 //create mutex object
-uint8_t m_mutex_create (MAKISE_MUTEX_t *sobj);
+MAKISE_MUTEX_t m_mutex_create ();
 //delete mutex
-uint8_t m_mutex_delete (MAKISE_MUTEX_t *sobj);
+uint8_t m_mutex_delete (MAKISE_MUTEX_t sobj);
 //Request Grant to Access some object
-uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj);
+uint8_t m_mutex_request_grant (MAKISE_MUTEX_t sobj);
 //Release Grant to Access the Volume
-uint8_t m_mutex_release_grant (MAKISE_MUTEX_t *sobj);
+uint8_t m_mutex_release_grant (MAKISE_MUTEX_t sobj);
 #endif
 
 

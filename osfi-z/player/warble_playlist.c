@@ -10,3 +10,10 @@ uint8_t * wp_buffer_request(uint32_t size)
     buffer_i += size;
     return pos;
 }
+
+
+WResult wp_create(WPlaylist *playlist, WPlaylistType type)
+{
+    
+    return W_OK;
+}

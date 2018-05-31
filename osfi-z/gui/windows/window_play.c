@@ -34,11 +34,11 @@ static void ontimeelapsed(WTrack *track, uint32_t time)
 
 void window_play_update()
 {
-    if(!MAKISE_MUTEX_REQUEST(&warble_get_player()->mutex))
-	return;
+    MAKISE_MUTEX_REQUEST(warble_get_player()->mutex);
+	//return;
     if(!inited)
     {
-    	MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
+    	MAKISE_MUTEX_RELEASE(warble_get_player()->mutex);
     	return;
     }
 
@@ -51,7 +51,7 @@ void window_play_update()
     
     m_slider_set_value(&slider, warble_get_player()->time_elapsed);
 
-    MAKISE_MUTEX_RELEASE(&warble_get_player()->mutex);
+    MAKISE_MUTEX_RELEASE(warble_get_player()->mutex);
 }
 
 
@@ -121,6 +121,7 @@ MElement * window_play_init()
 		    mp_rel(10, 25, 128, 15),
 		    &ts_lable);
     m_lable_set_text(&l_title, s_time);
+    m_lable_enable_scroll(&l_title, 0);
 
     /* m_create_lable(&l_status, win_host, */
     /* 		    mp_rel(1, 1, 70, 10), */

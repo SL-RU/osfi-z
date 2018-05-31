@@ -55,30 +55,30 @@ MInputData inp_handler(MInputData d, MInputResultEnum res)
 }
 
 #if MAKISE_MUTEX
-uint8_t m_mutex_create (MAKISE_MUTEX_t *sobj)
+MAKISE_MUTEX_t m_mutex_create ()
 {
-    *sobj = xSemaphoreCreateMutex();
-    xSemaphoreGive(*sobj);
-    return (int)(*sobj != NULL);
+    MAKISE_MUTEX_t sobj = xSemaphoreCreateMutex();
+    xSemaphoreGive(sobj);
+    return sobj;
 }
 //delete mutex
-uint8_t m_mutex_delete (MAKISE_MUTEX_t *sobj)
+uint8_t m_mutex_delete (MAKISE_MUTEX_t sobj)
 {
-    if(sobj == 0 || *sobj == 0) {
+    if(sobj == 0) {
 	printf("Mutex null\n");
 	return 0;
     }
-    vSemaphoreDelete(*sobj);
+    vSemaphoreDelete(sobj);
     return 1;
 }
 //Request Grant to Access some object
-uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj)
+uint8_t m_mutex_request_grant (MAKISE_MUTEX_t sobj)
 {
-    if(sobj == 0 || *sobj == 0) {
+    if(sobj == 0 || sobj == 0) {
 	printf("Mutex null\n");
 	return 0;
     }
-    int res = (int)(xSemaphoreTake(*sobj, MAKISE_MUTEX_TIMEOUT) == pdTRUE);
+    int res = (int)(xSemaphoreTake(sobj, MAKISE_MUTEX_TIMEOUT) == pdTRUE);
     if(res == 0) {
 	printf("Mutex err mak\n");
 //	while(1);
@@ -86,18 +86,18 @@ uint8_t m_mutex_request_grant (MAKISE_MUTEX_t *sobj)
     return res;
 }
 //Release Grant to Access the Volume
-uint8_t m_mutex_release_grant (MAKISE_MUTEX_t *sobj)
+uint8_t m_mutex_release_grant (MAKISE_MUTEX_t sobj)
 {
-    if(sobj == 0 || *sobj == 0) {
+    if(sobj == 0) {
 	printf("Mutex null\n");
 	return 0;
     }
-    xSemaphoreGive(*sobj);
+    xSemaphoreGive(sobj);
     return 1;
 }
 #endif
 
-static uint32_t* _get_gui_buffer(uint32_t size)
+static void* _get_gui_buffer(uint32_t size)
 {
     return Makise_Buffer;
 }
@@ -116,10 +116,9 @@ MakiseGUI* gui_init()
 			gu, dr,
 			&_get_gui_buffer,
 			&inp_handler,
-			&gui_draw, &gui_predraw, 0);
+			&gui_draw, &gui_predraw, 0, 0, 0);
     ssd1306_init(gu);
     
-    makise_start(gu);
     mGui = gu;
     return gu;
 }

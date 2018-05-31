@@ -24,11 +24,6 @@ void ssd1306_driver(MakiseDriver * d)
     d->size          = MAKISE_BUF_H * MAKISE_BUF_W / 8;
     d->posx          = 0;
     d->posy          = 0;
-    d->init          = &ssd1306_init;
-    d->start         = 0;
-    d->sleep         = 0;
-    d->awake         = 0;
-    d->set_backlight = 0;
 }
 
 void SSD1306_sendCmd(uint8_t cmd)
